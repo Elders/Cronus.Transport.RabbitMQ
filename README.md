@@ -1,4 +1,4 @@
 Cronus
 ======
-[![Build status](https://ci.appveyor.com/api/projects/status/0ka8b6vnwjj9lhav)](https://ci.appveyor.com/project/mynkow/cronus)
+[![Build status](https://ci.appveyor.com/api/projects/status/lwrklow6fn0a3utr)](https://ci.appveyor.com/project/Elders-OSS/cronus-transport-rabbitmq)  
 CQRS framework + Event Store
