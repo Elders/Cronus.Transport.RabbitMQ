@@ -103,6 +103,7 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="RabbitMqTransport.cs" />
     <Compile Include="Config\RabbitMqTransportSettings.cs" />
     <Compile Include="Hosts\CronusConfigurationRabbitMqExtensions.cs" />
     <Compile Include="Hosts\CronusHost.cs" />

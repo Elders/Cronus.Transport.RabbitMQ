@@ -12,11 +12,7 @@ namespace Elders.Cronus.Pipeline.Hosts
 
         protected override void OnHostStop()
         {
-            if (RabbitMqTransportSettings.Session != null)
-            {
-                RabbitMqTransportSettings.Session.Close();// PLS fix this, This should not be static call so the .Session prop should not be static
-                RabbitMqTransportSettings.Session = null;
-            }
+          
         }
     }
 }
