@@ -26,8 +26,7 @@ namespace Elders.Cronus.Pipeline.Hosts
         {
             self
                 .UsePipelineEventPublisher(x => x.UseRabbitMqTransport())
-                .UsePipelineCommandPublisher(x => x.UseRabbitMqTransport())
-                .UsePipelineEventStorePublisher(x => x.UseRabbitMqTransport());
+                .UsePipelineCommandPublisher(x => x.UseRabbitMqTransport());
             return self;
         }
     }
