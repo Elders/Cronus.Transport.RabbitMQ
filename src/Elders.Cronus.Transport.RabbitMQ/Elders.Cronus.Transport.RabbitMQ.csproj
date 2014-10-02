@@ -73,13 +73,13 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Elders.Cronus, Version=1.1.39.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Elders.Cronus, Version=1.1.40.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Cronus.1.1.39\lib\net40-full\Elders.Cronus.dll</HintPath>
+      <HintPath>..\packages\Cronus.1.1.40\lib\net40-full\Elders.Cronus.dll</HintPath>
     </Reference>
-    <Reference Include="Elders.Cronus.DomainModeling, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Elders.Cronus.DomainModeling, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Cronus.DomainModeling.1.0.1\lib\net40-full\Elders.Cronus.DomainModeling.dll</HintPath>
+      <HintPath>..\packages\Cronus.DomainModeling.1.0.3\lib\net40-full\Elders.Cronus.DomainModeling.dll</HintPath>
     </Reference>
     <Reference Include="Elders.Multithreading.Scheduler">
       <HintPath>..\packages\Multithreading.Scheduler.1.0.0\lib\net40-full\Elders.Multithreading.Scheduler.dll</HintPath>
@@ -108,7 +108,6 @@
     <Compile Include="RabbitMqTransport.cs" />
     <Compile Include="Config\RabbitMqTransportSettings.cs" />
     <Compile Include="Hosts\CronusConfigurationRabbitMqExtensions.cs" />
-    <Compile Include="Hosts\CronusHost.cs" />
     <Compile Include="IRabbitMqPipeline.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RabbitMqEndpoint.cs" />

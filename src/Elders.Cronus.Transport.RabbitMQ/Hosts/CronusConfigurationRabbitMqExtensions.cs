@@ -11,14 +11,14 @@ namespace Elders.Cronus.Pipeline.Hosts
             where T : ICronusSettings
         {
             self
-                .UseCommandConsumable(boundedContext, consumable => consumable
+                .UseCommandConsumer(boundedContext, consumable => consumable
 
-                    .SetNumberOfConsumers(2)
+                    .WithNumberOfConsumersThreads(2)
                     .UseRabbitMqTransport()
-                    .CommandConsumer(consumer => consumer
-                        .UseCommandHandler(h => h
+                        //.CommandConsumer(consumer => consumer
+                        .UseApplicationServices(h => h
                             .UseUnitOfWork(new UnitOfWorkFactory() { CreateBatchUnitOfWork = () => new ApplicationServiceBatchUnitOfWork((self as IHaveEventStores).EventStores[boundedContext].Value.AggregateRepository, (self as IHaveEventStores).EventStores[boundedContext].Value.Persister, self.EventPublisher.Value) })
-                            .RegisterAllHandlersInAssembly(assemblyContainingMessageHandlers, messageHandlerFactory))));
+                            .RegisterAllHandlersInAssembly(assemblyContainingMessageHandlers, messageHandlerFactory)));
             return self;
         }
 

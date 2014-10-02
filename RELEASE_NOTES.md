@@ -1,3 +1,6 @@
+#### 1.0.3 - 02.10.2014
+* Build for Cronus 1.1.40
+
 #### 1.0.2 - 01.10.2014
 * Build for Cronus 1.1.39 without ES publisher
 
