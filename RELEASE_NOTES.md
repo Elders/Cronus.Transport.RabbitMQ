@@ -1,3 +1,6 @@
+#### 1.0.4-alpha1 - 05.10.2014
+* Build for Cronus 1.1.42
+
 #### 1.0.3 - 02.10.2014
 * Build for Cronus 1.1.40
 
