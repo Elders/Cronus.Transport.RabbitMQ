@@ -14,18 +14,14 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
         string VirtualHost { get; set; }
     }
 
-    public class RabbitMqTransportSettings : IRabbitMqTransportSettings
+    public class RabbitMqTransportSettings : SettingsBuilder, IRabbitMqTransportSettings
     {
-        public RabbitMqTransportSettings()
+        public RabbitMqTransportSettings(ISettingsBuilder settingsBuilder) : base(settingsBuilder)
         {
             this.WithDefaultConnectionSettings();
         }
 
-        IContainer ISettingsBuilder.Container { get; set; }
-
-        string ISettingsBuilder.Name { get; set; }
-
-        void ISettingsBuilder.Build()
+        public override void Build()
         {
             var builder = this as ISettingsBuilder;
             var endpointNameConvention = builder.Container.Resolve<IEndpointNameConvention>(builder.Name);
@@ -48,7 +44,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
     {
         public static T UseRabbitMqTransport<T>(this T self, Action<RabbitMqTransportSettings> configure = null)
         {
-            RabbitMqTransportSettings settings = new RabbitMqTransportSettings();
+            RabbitMqTransportSettings settings = new RabbitMqTransportSettings(self as ISettingsBuilder);
             if (configure != null)
                 configure(settings);
             (settings as ISettingsBuilder).Build();
