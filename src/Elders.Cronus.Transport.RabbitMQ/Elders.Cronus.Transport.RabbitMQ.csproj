@@ -75,7 +75,7 @@
   <ItemGroup>
     <Reference Include="Elders.Cronus, Version=1.1.42.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Cronus.1.1.42-alpha1\lib\net40-full\Elders.Cronus.dll</HintPath>
+      <HintPath>..\packages\Cronus.1.1.42-alpha7\lib\net40-full\Elders.Cronus.dll</HintPath>
     </Reference>
     <Reference Include="Elders.Cronus.DomainModeling, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

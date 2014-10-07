@@ -1,10 +1,11 @@
 using System;
+using Elders.Cronus.IocContainer;
 using Elders.Cronus.Pipeline.Config;
 using RabbitMQ.Client;
 
 namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
 {
-    public interface IRabbitMqTransportSettings : ISettingsBuilder<IPipelineTransport>, IHavePipelineSettings
+    public interface IRabbitMqTransportSettings : ISettingsBuilder
     {
         string Server { get; set; }
         int Port { get; set; }
@@ -20,6 +21,18 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
             this.WithDefaultConnectionSettings();
         }
 
+        IContainer ISettingsBuilder.Container { get; set; }
+
+        string ISettingsBuilder.Name { get; set; }
+
+        void ISettingsBuilder.Build()
+        {
+            var builder = this as ISettingsBuilder;
+            var endpointNameConvention = builder.Container.Resolve<IEndpointNameConvention>(builder.Name);
+            var pipelineNameConvention = builder.Container.Resolve<IPipelineNameConvention>(builder.Name);
+            builder.Container.RegisterSingleton<IPipelineTransport>(() => new RabbitMqTransport(this as IRabbitMqTransportSettings, pipelineNameConvention, endpointNameConvention));
+        }
+
         string IRabbitMqTransportSettings.Password { get; set; }
 
         int IRabbitMqTransportSettings.Port { get; set; }
@@ -29,39 +42,16 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
         string IRabbitMqTransportSettings.Username { get; set; }
 
         string IRabbitMqTransportSettings.VirtualHost { get; set; }
-
-        Lazy<IPipelineNameConvention> IHavePipelineSettings.PipelineNameConvention { get; set; }
-
-        Lazy<IEndpointNameConvention> IHavePipelineSettings.EndpointNameConvention { get; set; }
-
-        Lazy<IPipelineTransport> ISettingsBuilder<IPipelineTransport>.Build()
-        {
-            IRabbitMqTransportSettings settings = this as IRabbitMqTransportSettings;
-
-            return new Lazy<IPipelineTransport>(() => new RabbitMqTransport(settings));
-        }
     }
 
     public static class RabbitMqTransportExtensions
     {
-        internal static void CopyPipelineSettingsTo(this IHavePipelineSettings self, IHavePipelineSettings destination)
-        {
-            destination.PipelineNameConvention = self.PipelineNameConvention;
-            destination.EndpointNameConvention = self.EndpointNameConvention;
-        }
-
         public static T UseRabbitMqTransport<T>(this T self, Action<RabbitMqTransportSettings> configure = null)
-                where T : IHaveTransport<IPipelineTransport>, IHavePipelineSettings
         {
-            RabbitMqTransportSettings transportSettingsInstance = new RabbitMqTransportSettings();
+            RabbitMqTransportSettings settings = new RabbitMqTransportSettings();
             if (configure != null)
-                configure(transportSettingsInstance);
-
-            self.Transport = new Lazy<IPipelineTransport>(() =>
-            {
-                self.CopyPipelineSettingsTo(transportSettingsInstance);
-                return transportSettingsInstance.GetInstanceLazy().Value;
-            });
+                configure(settings);
+            (settings as ISettingsBuilder).Build();
 
             return self;
         }

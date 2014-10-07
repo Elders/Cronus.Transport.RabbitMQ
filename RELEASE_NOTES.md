@@ -1,3 +1,6 @@
+#### 1.0.4-alpha2 - 07.10.2014
+* Refactor all settings and how we build objects.
+
 #### 1.0.4-alpha1 - 05.10.2014
 * Build for Cronus 1.1.42
 

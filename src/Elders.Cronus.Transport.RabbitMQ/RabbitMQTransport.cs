@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 {
@@ -13,7 +9,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 
         private string connectionString;
 
-        public RabbitMqTransport(Elders.Cronus.Pipeline.Transport.RabbitMQ.Config.IRabbitMqTransportSettings settings)
+        public RabbitMqTransport(Elders.Cronus.Pipeline.Transport.RabbitMQ.Config.IRabbitMqTransportSettings settings, IPipelineNameConvention pipelineNameConvention, IEndpointNameConvention endpointNameConvention)
         {
             connectionString = settings.Server + settings.Port + settings.Username + settings.Password + settings.VirtualHost;
             var session = sessions.GetOrAdd(connectionString, x =>
@@ -23,8 +19,8 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
              });
 
 
-            PipelineFactory = new RabbitMqPipelineFactory(session, settings.PipelineNameConvention.Value);
-            EndpointFactory = new RabbitMqEndpointFactory(session, settings.EndpointNameConvention.Value);
+            PipelineFactory = new RabbitMqPipelineFactory(session, pipelineNameConvention);
+            EndpointFactory = new RabbitMqEndpointFactory(session, endpointNameConvention);
         }
         public IEndpointFactory EndpointFactory { get; private set; }
 
