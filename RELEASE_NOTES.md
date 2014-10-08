@@ -1,3 +1,6 @@
+#### 1.0.4-alpha6 - 09.10.2014
+* Pipeline name configuration
+
 #### 1.0.4-alpha5 - 08.10.2014
 * Do not initialize a transport when a publisher is configured
 
