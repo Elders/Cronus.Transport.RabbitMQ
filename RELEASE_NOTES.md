@@ -1,3 +1,6 @@
+#### 1.0.4-alpha5 - 08.10.2014
+* Do not initialize a transport when a publisher is configured
+
 #### 1.0.4-alpha4 - 07.10.2014
 * Introduce pipeline and endpoint strategies
 

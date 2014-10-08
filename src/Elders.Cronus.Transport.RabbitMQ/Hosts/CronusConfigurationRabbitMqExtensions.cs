@@ -39,8 +39,8 @@ namespace Elders.Cronus.Pipeline.Hosts
         public static T WithDefaultPublishersWithRabbitMq<T>(this T self) where T : ICronusSettings
         {
             self
-                .UsePipelineEventPublisher(x => x.UseRabbitMqTransport())
-                .UsePipelineCommandPublisher(x => x.UseRabbitMqTransport());
+                .UsePipelineEventPublisher()
+                .UsePipelineCommandPublisher();
             return self;
         }
 
