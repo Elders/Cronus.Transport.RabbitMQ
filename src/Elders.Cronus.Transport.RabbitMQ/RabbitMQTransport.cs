@@ -9,7 +9,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 
         private string connectionString;
 
-        public RabbitMqTransport(Elders.Cronus.Pipeline.Transport.RabbitMQ.Config.IRabbitMqTransportSettings settings, IPipelineNameConvention pipelineNameConvention, IEndpointNameConvention endpointNameConvention)
+        public RabbitMqTransport(Elders.Cronus.Pipeline.Transport.RabbitMQ.Config.IRabbitMqTransportSettings settings)
         {
             connectionString = settings.Server + settings.Port + settings.Username + settings.Password + settings.VirtualHost;
             var session = sessions.GetOrAdd(connectionString, x =>
@@ -19,8 +19,8 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
              });
 
 
-            PipelineFactory = new RabbitMqPipelineFactory(session, pipelineNameConvention);
-            EndpointFactory = new RabbitMqEndpointFactory(session, endpointNameConvention);
+            PipelineFactory = new RabbitMqPipelineFactory(session, settings.PipelineNameConvention);
+            EndpointFactory = new RabbitMqEndpointFactory(session, settings.EndpointNameConvention);
         }
         public IEndpointFactory EndpointFactory { get; private set; }
 

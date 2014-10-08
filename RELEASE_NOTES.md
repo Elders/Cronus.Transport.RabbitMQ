@@ -1,3 +1,6 @@
+#### 1.0.4-alpha4 - 07.10.2014
+* Introduce pipeline and endpoint strategies
+
 #### 1.0.4-alpha3 - 07.10.2014
 * Copy the container to all setting classes
 

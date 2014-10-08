@@ -43,5 +43,8 @@ namespace Elders.Cronus.Pipeline.Hosts
                 .UsePipelineCommandPublisher(x => x.UseRabbitMqTransport());
             return self;
         }
+
+
+
     }
 }

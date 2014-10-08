@@ -1,11 +1,18 @@
 using System;
 using Elders.Cronus.IocContainer;
 using Elders.Cronus.Pipeline.Config;
+using Elders.Cronus.Pipeline.Transport.RabbitMQ.Strategy;
 using RabbitMQ.Client;
 
 namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
 {
-    public interface IRabbitMqTransportSettings : ISettingsBuilder
+    public interface IPipelineTransportSettings : ISettingsBuilder
+    {
+        IEndpointNameConvention EndpointNameConvention { get; set; }
+        IPipelineNameConvention PipelineNameConvention { get; set; }
+    }
+
+    public interface IRabbitMqTransportSettings : IPipelineTransportSettings
     {
         string Server { get; set; }
         int Port { get; set; }
@@ -21,14 +28,6 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
             this.WithDefaultConnectionSettings();
         }
 
-        public override void Build()
-        {
-            var builder = this as ISettingsBuilder;
-            var endpointNameConvention = builder.Container.Resolve<IEndpointNameConvention>(builder.Name);
-            var pipelineNameConvention = builder.Container.Resolve<IPipelineNameConvention>(builder.Name);
-            builder.Container.RegisterSingleton<IPipelineTransport>(() => new RabbitMqTransport(this as IRabbitMqTransportSettings, pipelineNameConvention, endpointNameConvention));
-        }
-
         string IRabbitMqTransportSettings.Password { get; set; }
 
         int IRabbitMqTransportSettings.Port { get; set; }
@@ -38,6 +37,16 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
         string IRabbitMqTransportSettings.Username { get; set; }
 
         string IRabbitMqTransportSettings.VirtualHost { get; set; }
+
+        IEndpointNameConvention IPipelineTransportSettings.EndpointNameConvention { get; set; }
+
+        IPipelineNameConvention IPipelineTransportSettings.PipelineNameConvention { get; set; }
+
+        public override void Build()
+        {
+            var builder = this as ISettingsBuilder;
+            builder.Container.RegisterSingleton<IPipelineTransport>(() => new RabbitMqTransport(this as IRabbitMqTransportSettings), builder.Name);
+        }
     }
 
     public static class RabbitMqTransportExtensions
@@ -45,8 +54,13 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
         public static T UseRabbitMqTransport<T>(this T self, Action<RabbitMqTransportSettings> configure = null)
         {
             RabbitMqTransportSettings settings = new RabbitMqTransportSettings(self as ISettingsBuilder);
+            settings
+                .WithDefaultConnectionSettings()
+                .WithEndpointPerBoundedContext();
+
             if (configure != null)
                 configure(settings);
+
             (settings as ISettingsBuilder).Build();
 
             return self;
@@ -59,6 +73,13 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
             self.Username = ConnectionFactory.DefaultUser;
             self.Password = ConnectionFactory.DefaultPass;
             self.VirtualHost = ConnectionFactory.DefaultVHost;
+            return self;
+        }
+
+        public static T WithEndpointPerBoundedContext<T>(this T self) where T : IPipelineTransportSettings
+        {
+            self.PipelineNameConvention = new RabbitMqPipelinePerApplication();
+            self.EndpointNameConvention = new RabbitMqEndpointPerBoundedContext(self.PipelineNameConvention);
             return self;
         }
     }

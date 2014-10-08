@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 {
@@ -36,7 +37,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
             return endpoint;
         }
 
-        public EndpointDefinition GetEndpointDefinition(params Type[] handlerTypes)
+        public IEnumerable<EndpointDefinition> GetEndpointDefinition(params Type[] handlerTypes)
         {
             return endpointNameConvention.GetEndpointDefinition(handlerTypes);
         }
