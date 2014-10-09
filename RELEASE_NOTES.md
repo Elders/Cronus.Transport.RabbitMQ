@@ -1,3 +1,6 @@
+#### 1.0.4-alpha7 - 09.10.2014
+* Update nuget packages
+
 #### 1.0.4-alpha6 - 09.10.2014
 * Pipeline name configuration
 
