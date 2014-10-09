@@ -1,3 +1,6 @@
+#### 1.0.4-alpha9 - 09.10.2014
+* Fix bug with assigning wrong pipeline for app service endpoint
+
 #### 1.0.4-alpha8 - 09.10.2014
 * Update nuget packages
 

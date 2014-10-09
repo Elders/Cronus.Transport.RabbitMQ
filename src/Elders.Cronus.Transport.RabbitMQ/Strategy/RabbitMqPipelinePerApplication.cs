@@ -13,7 +13,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Strategy
             else if (typeof(IEvent).IsAssignableFrom(messageType))
                 return GetEventsPipelineName(messageType);
             else if (typeof(IAggregateRootApplicationService).IsAssignableFrom(messageType))
-                return GetEventsPipelineName(messageType);
+                return GetCommandsPipelineName(messageType);
             else if (typeof(IPort).IsAssignableFrom(messageType))
                 return GetEventsPipelineName(messageType);
             else if (typeof(IProjection).IsAssignableFrom(messageType))
