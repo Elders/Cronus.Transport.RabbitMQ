@@ -53,7 +53,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Strategy
 
         protected override string GetProjectionEndpointName(Type handlerType)
         {
-            return String.Format("{0}.Ports", GetBoundedContext(handlerType).BoundedContextNamespace);
+            return String.Format("{0}.Projections", GetBoundedContext(handlerType).BoundedContextNamespace);
         }
 
         private BoundedContextAttribute GetBoundedContext(Type handlerType)

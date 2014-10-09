@@ -1,3 +1,6 @@
+#### 1.0.4-beta1 - 09.10.2014
+* Fix bug with wrong endpoint for projections
+
 #### 1.0.4-alpha9 - 09.10.2014
 * Fix bug with assigning wrong pipeline for app service endpoint
 
