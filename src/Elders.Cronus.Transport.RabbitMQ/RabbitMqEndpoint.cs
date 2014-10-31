@@ -97,8 +97,10 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
         public void Close()
         {
             if (safeChannel != null)
+            {
                 safeChannel.Close();
-            safeChannel = null;
+                safeChannel = null;
+            }
             dequeuedMessages.Clear();
         }
 

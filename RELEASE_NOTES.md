@@ -1,3 +1,6 @@
+#### 1.0.4-beta2 - 31.10.2014
+* Fix bug when closing endpoint
+
 #### 1.0.4-beta1 - 09.10.2014
 * Fix bug with wrong endpoint for projections
 
