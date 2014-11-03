@@ -1,3 +1,6 @@
+#### 1.0.4-beta3 - 03.11.2014
+* Properly close rabbit mq channel
+
 #### 1.0.4-beta2 - 31.10.2014
 * Fix bug when closing endpoint
 

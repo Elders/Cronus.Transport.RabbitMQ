@@ -1,7 +1,8 @@
 using System;
 using System.IO;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
-using RabbitMQ.Client.Framing.v0_9_1;
+using RabbitMQ.Client.Framing;
 
 namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 {
@@ -32,8 +33,17 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 
         public void Close()
         {
-            safeChannel.Close();
-            safeChannel = null;
+            if (safeChannel != null)
+            {
+                lock (safeChannel)
+                {
+                    if (safeChannel != null)
+                    {
+                        safeChannel.Close();
+                        safeChannel = null;
+                    }
+                }
+            }
         }
 
         public void Push(EndpointMessage message)
@@ -44,15 +54,18 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
             }
             try
             {
-                var properties = new BasicProperties();
+                IBasicProperties properties = new BasicProperties();
                 properties.Headers = message.RoutingHeaders;
                 properties.SetPersistent(true);
                 properties.Priority = 9;
                 safeChannel.Channel.BasicPublish(name, message.RoutingKey, false, false, properties, message.Body);
             }
-            catch (EndOfStreamException ex) { throw new PipelineClosedException(String.Format("The Pipeline '{0}' was closed", name), ex); }
-            catch (AlreadyClosedException ex) { throw new PipelineClosedException(String.Format("The Pipeline '{0}' was closed", name), ex); }
-            catch (OperationInterruptedException ex) { throw new PipelineClosedException(String.Format("The Pipeline '{0}' was closed", name), ex); }
+            catch (EndOfStreamException ex)
+            { throw new PipelineClosedException(String.Format("The Pipeline '{0}' was closed", name), ex); }
+            catch (AlreadyClosedException ex)
+            { throw new PipelineClosedException(String.Format("The Pipeline '{0}' was closed", name), ex); }
+            catch (OperationInterruptedException ex)
+            { throw new PipelineClosedException(String.Format("The Pipeline '{0}' was closed", name), ex); }
 
         }
         public void Bind(IEndpoint endpoint)

@@ -58,9 +58,15 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
         {
             if (channel != null)
             {
-                channel.Close();
-                channel.Dispose();
-                channel = null;
+                lock (channel)
+                {
+                    if (channel != null)
+                    {
+                        channel.Close();
+                        channel.Dispose();
+                        channel = null;
+                    }
+                }
             }
         }
     }
