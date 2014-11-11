@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Json;
+using System.Linq;
 namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 {
     public class RabbitMqEndpointFactory : IEndpointFactory
@@ -29,6 +31,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
         public IEndpoint CreateTopicEndpoint(EndpointDefinition definition)
         {
             var endpoint = new RabbitMqEndpoint(definition, session);
+            
             endpoint.Declare();
 
             var pipeLine = new RabbitMqPipeline(definition.PipelineName, session, RabbitMqPipeline.PipelineType.Topics);

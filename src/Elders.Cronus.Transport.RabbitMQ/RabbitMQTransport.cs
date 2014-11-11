@@ -9,18 +9,18 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 
         private string connectionString;
 
-        public RabbitMqTransport(Elders.Cronus.Pipeline.Transport.RabbitMQ.Config.IRabbitMqTransportSettings settings)
+        public RabbitMqTransport(string server, int port, int restApiPort, string username, string password, string virtualHost, IPipelineNameConvention pipelineNameConvention, IEndpointNameConvention endpointNameConvention)
         {
-            connectionString = settings.Server + settings.Port + settings.Username + settings.Password + settings.VirtualHost;
+            connectionString = server + port + username + password + virtualHost;
             var session = sessions.GetOrAdd(connectionString, x =>
              {
-                 var rabbitSessionFactory = new RabbitMqSessionFactory(settings.Server, settings.Port, settings.Username, settings.Password, settings.VirtualHost);
+                 var rabbitSessionFactory = new RabbitMqSessionFactory(server, port, restApiPort, username, password, virtualHost);
                  return rabbitSessionFactory.OpenSession();
              });
 
 
-            PipelineFactory = new RabbitMqPipelineFactory(session, settings.PipelineNameConvention);
-            EndpointFactory = new RabbitMqEndpointFactory(session, settings.EndpointNameConvention);
+            PipelineFactory = new RabbitMqPipelineFactory(session, pipelineNameConvention);
+            EndpointFactory = new RabbitMqEndpointFactory(session, endpointNameConvention);
         }
         public IEndpointFactory EndpointFactory { get; private set; }
 

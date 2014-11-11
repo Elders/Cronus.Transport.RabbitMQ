@@ -16,6 +16,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
     {
         string Server { get; set; }
         int Port { get; set; }
+        int RestApiPort { get; set; }
         string Username { get; set; }
         string Password { get; set; }
         string VirtualHost { get; set; }
@@ -23,7 +24,8 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
 
     public class RabbitMqTransportSettings : SettingsBuilder, IRabbitMqTransportSettings
     {
-        public RabbitMqTransportSettings(ISettingsBuilder settingsBuilder) : base(settingsBuilder)
+        public RabbitMqTransportSettings(ISettingsBuilder settingsBuilder)
+            : base(settingsBuilder)
         {
             this.WithDefaultConnectionSettings();
         }
@@ -31,6 +33,8 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
         string IRabbitMqTransportSettings.Password { get; set; }
 
         int IRabbitMqTransportSettings.Port { get; set; }
+
+        int IRabbitMqTransportSettings.RestApiPort { get; set; }
 
         string IRabbitMqTransportSettings.Server { get; set; }
 
@@ -45,7 +49,8 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
         public override void Build()
         {
             var builder = this as ISettingsBuilder;
-            builder.Container.RegisterSingleton<IPipelineTransport>(() => new RabbitMqTransport(this as IRabbitMqTransportSettings), builder.Name);
+            var castedSettings = this as IRabbitMqTransportSettings;
+            builder.Container.RegisterSingleton<IPipelineTransport>(() => new RabbitMqTransport(castedSettings.Server, castedSettings.Port, castedSettings.RestApiPort, castedSettings.Username, castedSettings.Password, castedSettings.VirtualHost, castedSettings.PipelineNameConvention, castedSettings.EndpointNameConvention), builder.Name);
         }
     }
 
@@ -74,6 +79,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
         {
             self.Server = "localhost";
             self.Port = 5672;
+            self.RestApiPort = 15672;
             self.Username = ConnectionFactory.DefaultUser;
             self.Password = ConnectionFactory.DefaultPass;
             self.VirtualHost = ConnectionFactory.DefaultVHost;

@@ -3,7 +3,9 @@ using System.IO;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
-
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
 namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 {
     public sealed class RabbitMqPipeline : IRabbitMqPipeline, IDisposable
@@ -11,7 +13,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
         private RabbitMqSafeChannel safeChannel;
         private readonly PipelineType pipelineType;
         private RabbitMqSession session;
-
+        static readonly log4net.ILog log = log4net.LogManager.GetLogger(typeof(RabbitMqPipeline));
         private string name;
 
         public RabbitMqPipeline(string pipelineName, RabbitMqSession rabbitMqSession, PipelineType pipelineType)
@@ -68,13 +70,55 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
             { throw new PipelineClosedException(String.Format("The Pipeline '{0}' was closed", name), ex); }
 
         }
+
+        [DataContract]
+        internal class Binding
+        {
+            [DataMember(Name = "routing_key")]
+            public string Routing_Key { get; set; }
+
+            [DataMember(Name = "destination")]
+            public string Destination { get; set; }
+
+            [DataMember(Name = "source")]
+            public string Source { get; set; }
+
+            [DataMember(Name = "arguments")]
+            public Dictionary<string, string> Arguments { get; set; }
+
+            public Dictionary<string, object> Headers
+            {
+                get
+                {
+                    var dc = new Dictionary<string, object>();
+                    foreach (var item in Arguments)
+                    {
+                        dc.Add(item.Key, item.Value);
+                    }
+                    return dc;
+                }
+            }
+        }
+
         public void Bind(IEndpoint endpoint)
         {
-            // TODO: ClearOldHeaders
             if (safeChannel == null)
             {
                 safeChannel = session.OpenSafeChannel();
             }
+
+            var bindings = session.ExecuteGetRequest<List<Binding>>("/api/queues/{vhost}/" + endpoint.Name + "/bindings");
+            if (bindings == null)
+                log.Warn("Rest api did not return any bindings. We could not remove anybindings.");
+            else
+            {
+                var nonDefaultBindings = bindings.Where(x => x.Source == name);
+                foreach (var item in nonDefaultBindings)
+                {
+                    safeChannel.Channel.QueueUnbind(endpoint.Name, item.Source, item.Routing_Key, item.Headers);
+                }
+            }
+
             safeChannel.Channel.QueueBind(endpoint.Name, name, endpoint.RoutingKey, endpoint.RoutingHeaders);
             safeChannel.Close();
             safeChannel = null;
