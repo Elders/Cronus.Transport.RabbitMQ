@@ -1,3 +1,6 @@
+#### 1.0.4-beta4 - 02.12.2014
+* Code cleanup and update packages
+
 #### 1.0.4-beta3 - 03.11.2014
 * Properly close rabbit mq channel
 
