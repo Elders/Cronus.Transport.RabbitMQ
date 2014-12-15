@@ -1,6 +1,5 @@
 ﻿using System;
 using Elders.Cronus.DomainModeling;
-using Elders.Cronus.Pipeline;
 
 namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Strategy
 {

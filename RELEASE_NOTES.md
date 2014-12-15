@@ -1,3 +1,6 @@
+#### 1.0.4-beta5 - 15.12.2014
+* Update nuget packages
+
 #### 1.0.4-beta4 - 02.12.2014
 * Code cleanup and update packages
 
