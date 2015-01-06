@@ -4,11 +4,11 @@ using System.Reflection;
 [assembly: AssemblyTitleAttribute("Elders.Cronus.Transport.RabbitMQ")]
 [assembly: AssemblyDescriptionAttribute("Elders.Cronus.Transport.RabbitMQ")]
 [assembly: AssemblyProductAttribute("Elders.Cronus.Transport.RabbitMQ")]
-[assembly: AssemblyVersionAttribute("1.2.5")]
-[assembly: AssemblyInformationalVersionAttribute("1.2.5")]
-[assembly: AssemblyFileVersionAttribute("1.2.5")]
+[assembly: AssemblyVersionAttribute("2.0.0")]
+[assembly: AssemblyInformationalVersionAttribute("2.0.0")]
+[assembly: AssemblyFileVersionAttribute("2.0.0")]
 namespace System {
     internal static class AssemblyVersionInformation {
-        internal const string Version = "1.2.5";
+        internal const string Version = "2.0.0";
     }
 }
