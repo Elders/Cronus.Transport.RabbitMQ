@@ -1,3 +1,7 @@
+#### 1.2.2 - 17.02.2015
+* Improve error reporting.
+* Update nuget packages
+
 #### 1.2.1 - 13.01.2015
 * Update Cronus package
 

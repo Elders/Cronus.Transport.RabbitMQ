@@ -14,10 +14,21 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Strategy
             this.pipelineNameConvention = pipelineNameConvention;
         }
 
+        private void Guard_HandlersMustBelongToSingleBoundedContext(Type[] handlerTypes)
+        {
+            var boundedContextexts = handlerTypes.Select(x => x.GetBoundedContext()).Distinct();
+            if (boundedContextexts.Count() != 1)
+            {
+                if (boundedContextexts.Count() == 0)
+                    throw new ArgumentException("The specified handlers do not belong to any bounded context.");
+                else if (boundedContextexts.Count() > 1)
+                    throw new ArgumentException("The specified handlers belong to more than one bounded context. Only 1 is allowed.");
+            }
+        }
+
         public override IEnumerable<EndpointDefinition> GetEndpointDefinition(Type[] handlerTypes)
         {
-            if (handlerTypes.Select(x => x.GetBoundedContext()).Distinct().Count() != 1)
-                throw new ArgumentException("Cannot find bounded context or more than one bounded context are in use.");
+            Guard_HandlersMustBelongToSingleBoundedContext(handlerTypes);
             var handler = handlerTypes.First();
             var boundedContext = handler.GetBoundedContext();
 
