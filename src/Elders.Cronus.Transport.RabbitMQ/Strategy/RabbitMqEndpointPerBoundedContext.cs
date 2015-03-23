@@ -26,45 +26,27 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Strategy
             }
         }
 
-        public override IEnumerable<EndpointDefinition> GetEndpointDefinition(Type[] handlerTypes)
+        private Dictionary<Type, BoundedContextAttribute> MapHandlersToBoundedContext(Type[] handlerTypes)
         {
+            return handlerTypes.ToList().ToDictionary(key => key, val => val.GetBoundedContext());
+        }
+
+        public override IEnumerable<EndpointDefinition> GetEndpointDefinition(IMessageProcessor messageProcessor)
+        {
+            var handlerTypes = messageProcessor.GetSubscriptions().Select(x => x.MessageHandlerType).ToArray();
             Guard_HandlersMustBelongToSingleBoundedContext(handlerTypes);
             var handler = handlerTypes.First();
+
             var boundedContext = handler.GetBoundedContext();
 
-            string endpointName = String.Empty;
-            if (typeof(IAggregateRootApplicationService).IsAssignableFrom(handler))
-                endpointName = GetAppServiceEndpointName(handler);
-            else if (typeof(IPort).IsAssignableFrom(handler))
-                endpointName = GetPortEndpointName(handler);
-            else if (typeof(IProjection).IsAssignableFrom(handler))
-                endpointName = GetProjectionEndpointName(handler);
+            string endpointName = String.Format("{0}.{1}", GetBoundedContext(handler).BoundedContextNamespace, messageProcessor.Name);
 
-            var routingHeaders = (from handlerType in handlerTypes
-                                  from handlerMethod in handlerType.GetMethods()
-                                  from handlerMethodParameter in handlerMethod.GetParameters()
-                                  where handlerMethod.Name == "Handle"
-                                  select handlerMethodParameter.ParameterType)
-                                  .Distinct()
-                                 .ToDictionary<Type, string, object>(key => key.GetContractId(), val => String.Empty);
+            var routingHeaders = messageProcessor.GetSubscriptions().Select(x => x.MessageType)
+                                .Distinct()
+                                .ToDictionary<Type, string, object>(key => key.GetContractId(), val => String.Empty);
 
             EndpointDefinition endpointDefinition = new EndpointDefinition(pipelineNameConvention.GetPipelineName(handler), endpointName, routingHeaders);
             yield return endpointDefinition;
-        }
-
-        protected override string GetAppServiceEndpointName(Type handlerType)
-        {
-            return String.Format("{0}.Commands", GetBoundedContext(handlerType).BoundedContextNamespace);
-        }
-
-        protected override string GetPortEndpointName(Type handlerType)
-        {
-            return String.Format("{0}.Ports", GetBoundedContext(handlerType).BoundedContextNamespace);
-        }
-
-        protected override string GetProjectionEndpointName(Type handlerType)
-        {
-            return String.Format("{0}.Projections", GetBoundedContext(handlerType).BoundedContextNamespace);
         }
 
         private BoundedContextAttribute GetBoundedContext(Type handlerType)

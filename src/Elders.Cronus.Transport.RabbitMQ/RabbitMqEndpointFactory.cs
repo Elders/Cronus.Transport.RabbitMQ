@@ -37,9 +37,9 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
             return endpoint;
         }
 
-        public IEnumerable<EndpointDefinition> GetEndpointDefinition(params Type[] handlerTypes)
+        public IEnumerable<EndpointDefinition> GetEndpointDefinition(IMessageProcessor messageProcessor)
         {
-            return endpointNameConvention.GetEndpointDefinition(handlerTypes);
+            return endpointNameConvention.GetEndpointDefinition(messageProcessor);
         }
     }
 }
