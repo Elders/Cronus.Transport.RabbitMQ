@@ -1,3 +1,6 @@
+#### 1.2.4 - 25.03.2015
+* Downgrade RabbitMq to v3.4.3
+
 #### 1.2.3 - 23.03.2015
 * Update to latest Cronus
 
