@@ -1,3 +1,6 @@
+#### 1.2.5 - 27.03.2015
+* Fix issues with building exchanges and queues.
+
 #### 1.2.4 - 25.03.2015
 * Downgrade RabbitMq to v3.4.3
 
