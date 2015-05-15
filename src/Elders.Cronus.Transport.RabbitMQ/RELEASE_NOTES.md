@@ -1,3 +1,6 @@
+#### 2.0.0-alpha04 - 15.05.2015
+* Version for Cronus 2.0.alpha9
+
 #### 1.2.6 - 21.04.2015
 * Fix nuget package dependencies
 
