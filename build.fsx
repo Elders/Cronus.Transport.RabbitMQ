@@ -8,6 +8,7 @@ open Fake.Git
 open Fake.FSharpFormatting
 open Fake.AssemblyInfoFile
 open Fake.ReleaseNotesHelper
+open Fake.ProcessHelper
 
 type System.String with member x.endswith (comp:System.StringComparison) str =
                           let newVal = x.Remove(x.Length-4)
@@ -31,17 +32,29 @@ let release = LoadReleaseNotes releaseNotes
 
 let nuget = environVar "NUGET"
 let nugetWorkDir = "./bin/nuget" @@ appName
-let nugetOutDir = nugetWorkDir @@ "lib" @@ "net45-full"
 
-Target "Clean" (fun _ -> CleanDirs [buildDir; nugetOutDir;])
+Target "Clean" (fun _ -> CleanDirs [buildDir; nugetWorkDir;])
 
-Target "RestorePackages" (fun _ ->
+Target "RestoreNugetPackages" (fun _ ->
   let packagesDir = @"./src/packages"
-  !! "./**/packages.config"
+  !! "./src/*/packages.config"
   |> Seq.iter (RestorePackage (fun p ->
       { p with
           ToolPath = nuget
           OutputPath = packagesDir }))
+)
+
+Target "RestoreBowerPackages" (fun _ ->
+    !! "./src/*/package.config"
+    |> Seq.iter (fun config ->
+        config.Replace("package.config", "")
+        |> fun cfgDir ->
+            printf "Bower working dir: %s" cfgDir
+            let result = ExecProcess (fun info ->
+                            info.FileName <- "cmd"
+                            info.WorkingDirectory <- cfgDir
+                            info.Arguments <- "/c npm install") (TimeSpan.FromMinutes 20.0)
+            if result <> 0 then failwithf "'npm install' returned with a non-zero exit code")
 )
 
 Target "Build" (fun _ ->
@@ -58,6 +71,7 @@ Target "CreateWebNuGet" (fun _ ->
   let packages = [appName, appType]
   for appName,appType in packages do
 
+      let nugetOutDir = nugetWorkDir
       let nugetOutArtifactsDir = nugetOutDir @@ "Artifacts"
       CleanDir nugetOutArtifactsDir
 
@@ -110,6 +124,7 @@ Target "CreateLibraryNuGet" (fun _ ->
         | true -> getDependencies nugetPackagesFile |> List.unzip |> fst
         | _ -> []
 
+      let nugetOutDir = nugetWorkDir @@ "lib" @@ "net45-full"
       let excludePaths (pathsToExclude : string list) (path: string) = pathsToExclude |> List.exists (path.endswith StringComparison.OrdinalIgnoreCase)|> not
       let exclude = excludePaths nugetDependenciesFlat
       CopyDir nugetOutDir buildDir exclude
@@ -155,7 +170,8 @@ Target "Release" (fun _ ->
 )
 
 "Clean"
-    ==> "RestorePackages"
+    ==> "RestoreNugetPackages"
+    ==> "RestoreBowerPackages"
     ==> "Build"
     =?> ("CreateLibraryNuGet", appType.Equals "nuget")
     =?> ("CreateWebNuGet", appType.Equals "web")
