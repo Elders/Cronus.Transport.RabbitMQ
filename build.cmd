@@ -5,6 +5,7 @@ SETLOCAL
 SET TOOLS_PATH=.\bin\tools
 SET NUGET=%TOOLS_PATH%\NuGet\NuGet.exe
 SET FAKE=%TOOLS_PATH%\FAKE\tools\Fake.exe
+SET NYX=%TOOLS_PATH%\Nyx\tools\build.fsx
 SET BUILD_TOOLS_PATH="%ProgramFiles(x86)%\MSBuild\12.0\bin\MSBuild.exe"
 
 IF NOT EXIST %BUILD_TOOLS_PATH% (
@@ -25,6 +26,12 @@ IF NOT EXIST %TOOLS_PATH%\NuGet md %TOOLS_PATH%\NuGet
 echo Downloading latest version of Fake.exe...
 %NUGET% "install" "FAKE" "-OutputDirectory" "%TOOLS_PATH%" "-ExcludeVersion" "-Prerelease"
 
+echo Downloading latest version of Nuget.Core...
+%NUGET% "install" "Nuget.Core" "-OutputDirectory" "%TOOLS_PATH%" "-ExcludeVersion" "-Prerelease"
+
+echo Downloading latest version of Nyx...
+%NUGET% "install" "Nyx" "-OutputDirectory" "%TOOLS_PATH%" "-ExcludeVersion" "-Prerelease"
+
 SET TARGET="Build"
 
 IF NOT [%1]==[] (set TARGET="%1")
@@ -32,4 +39,4 @@ IF NOT [%1]==[] (set TARGET="%1")
 SET SUMMARY="Elders.Cronus.Transport.RabbitMQ"
 SET DESCRIPTION="Elders.Cronus.Transport.RabbitMQ"
 
-%FAKE% "build.fsx" "target=%TARGET%"    appName=Elders.Cronus.Projections.ElasticSearch    appType=msi appSummary=%SUMMARY% appDescription=%DESCRIPTION%
+%FAKE% %NYX% "target=%TARGET%"  appName=Elders.Cronus.Transport.RabbitMQ appType=lib appSummary=%SUMMARY% appDescription=%DESCRIPTION% nugetPackageName=Cronus.Transport.RabbitMQ

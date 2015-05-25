@@ -1,3 +1,6 @@
+#### 2.0.1 - 25.05.2015
+* Properly expose the configuration extensions
+
 #### 2.0.0 - 16.05.2015
 * Build for Cronus 2.*
 

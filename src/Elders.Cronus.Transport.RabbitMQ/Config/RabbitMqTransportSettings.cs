@@ -51,15 +51,19 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
 
     public static class RabbitMqTransportExtensions
     {
-        public static T UseRabbitMqTransport<T>(this T self, Action<RabbitMqTransportSettings> configure = null)
+        public static T UseRabbitMqTransport<T>(
+            this T self,
+            Action<IRabbitMqTransportSettings> configure = null,
+            Action<IPipelineTransportSettings> configureConventions = null)
         {
             RabbitMqTransportSettings settings = new RabbitMqTransportSettings(self as ISettingsBuilder);
             settings
                 .WithDefaultConnectionSettings()
                 .WithEndpointPerBoundedContext();
 
-            if (configure != null)
-                configure(settings);
+            if (configure != null) configure(settings);
+            if (configureConventions != null) configureConventions(settings);
+
 
             (settings as ISettingsBuilder).Build();
 
