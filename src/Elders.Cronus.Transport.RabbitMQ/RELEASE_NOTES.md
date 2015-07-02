@@ -1,3 +1,6 @@
+#### 2.1.0 - 02.07.2015
+* Update packages
+
 #### 2.0.1 - 25.05.2015
 * Properly expose the configuration extensions
 
