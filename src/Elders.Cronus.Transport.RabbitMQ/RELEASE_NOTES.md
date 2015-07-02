@@ -1,3 +1,6 @@
+#### 2.1.1 - 02.07.2015
+* Update packages
+
 #### 2.1.0 - 02.07.2015
 * Update packages
 
