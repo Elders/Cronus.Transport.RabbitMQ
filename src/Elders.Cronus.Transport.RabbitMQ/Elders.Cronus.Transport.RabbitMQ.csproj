@@ -73,33 +73,35 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Elders.Cronus, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Cronus.2.2.4\lib\net45-full\Elders.Cronus.dll</HintPath>
+    <Reference Include="Elders.Cronus, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Cronus.2.6.0-beta0003\lib\net45-full\Elders.Cronus.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="Elders.Cronus.DomainModeling, Version=1.2.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Cronus.DomainModeling.2.1.1\lib\net45-full\Elders.Cronus.DomainModeling.dll</HintPath>
+    <Reference Include="Elders.Cronus.DomainModeling, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Cronus.DomainModeling.2.3.0-beta0001\lib\net45-full\Elders.Cronus.DomainModeling.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="Elders.Multithreading.Scheduler, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Multithreading.Scheduler.1.0.1\lib\net40-full\Elders.Multithreading.Scheduler.dll</HintPath>
+    <Reference Include="Elders.Multithreading.Scheduler, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Multithreading.Scheduler.1.1.0\lib\net45-full\Elders.Multithreading.Scheduler.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="RabbitMQ.Client, Version=3.5.3.0, Culture=neutral, PublicKeyToken=89e7d7c5feba84ce, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\RabbitMQ.Client.3.5.3\lib\net40\RabbitMQ.Client.dll</HintPath>
+    <Reference Include="RabbitMQ.Client, Version=3.6.1.0, Culture=neutral, PublicKeyToken=89e7d7c5feba84ce, processorArchitecture=MSIL">
+      <HintPath>..\packages\RabbitMQ.Client.3.6.1\lib\net45\RabbitMQ.Client.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
     <Compile Include="Hosts\CronusConfigurationRabbitMqExtensions.cs" />
     <Compile Include="RabbitMqTransport.cs" />
     <Compile Include="Config\RabbitMqTransportSettings.cs" />

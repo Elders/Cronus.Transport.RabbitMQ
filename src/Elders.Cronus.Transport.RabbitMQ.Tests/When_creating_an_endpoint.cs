@@ -18,10 +18,10 @@ namespace Elders.Cronus.Transport.RabbitMQ.Tests
         {
             var pipelineConvention = new RabbitMqPipelinePerApplication();
             var endpointConvention = new RabbitMqEndpointPerBoundedContext(pipelineConvention);
-            transport = new RabbitMqTransport("localhost", 5672, 15672, ConnectionFactory.DefaultUser, ConnectionFactory.DefaultPass, ConnectionFactory.DefaultVHost, pipelineConvention, endpointConvention);
+            transport = new RabbitMqTransport("docker-local.com", 5672, 15672, ConnectionFactory.DefaultUser, ConnectionFactory.DefaultPass, ConnectionFactory.DefaultVHost, pipelineConvention, endpointConvention);
             endpointDefinition = new Pipeline.EndpointDefinition("When_Creating_An_Endpoint_Exchange", "When_Creating_An_Endpoint_Queue", new Dictionary<string, object>() { { "Header 1", "Value 1" } }, "testRoutingKey");
 
-            restClient = new RestClient("http://localhost:15672/api");
+            restClient = new RestClient("http://docker-local.com:15672/api");
 
             getQueueRequest = new RestRequest("/queues/%2f/" + endpointDefinition.EndpointName, Method.GET);
             getQueueRequest.AddHeader("Authorization", "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes("guest:guest")));
@@ -34,27 +34,19 @@ namespace Elders.Cronus.Transport.RabbitMQ.Tests
         Because of = () => transport.EndpointFactory.CreateEndpoint(endpointDefinition);
 
         It should_have_queue_in_rabbit_mq = () =>
-        {
             restClient.Execute<List<Queue>>(getQueueRequest).Data.Where(x => x.Name == endpointDefinition.EndpointName).SingleOrDefault().ShouldNotBeNull();
-        };
+
         It should_have_exchange_in_rabbit_mq = () =>
-        {
             restClient.Execute<List<Exchange>>(getExchangeRequest).Data.Where(x => x.Name == endpointDefinition.PipelineName).SingleOrDefault().ShouldNotBeNull();
-        };
+
         It should_have_queue_with_routing_key_in_rabbit_mq = () =>
-        {
             restClient.Execute<List<Binding>>(getBindingsRequest).Data.Where(x => x.Destination == endpointDefinition.EndpointName && x.Routing_Key == "testRoutingKey").SingleOrDefault().ShouldNotBeNull();
-        };
 
         It should_have_queue_with_headers_in_rabbit_mq = () =>
-        {
             restClient.Execute<List<Binding>>(getBindingsRequest).Data.Where(x => x.Destination == endpointDefinition.EndpointName && x.Arguments.Any(y => y.Key == "Header 1" && y.Value == "Value 1")).SingleOrDefault().ShouldNotBeNull();
-        };
 
-        Cleanup cleanup = () =>
-        {
-            endpointDefinition.DeleteEndpointAndPipelines();
-        };
+        Cleanup cleanup = () => endpointDefinition.DeleteEndpointAndPipelines();
+
         static RabbitMqTransport transport;
         static EndpointDefinition endpointDefinition;
         static RestClient restClient;

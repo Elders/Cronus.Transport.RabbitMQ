@@ -1,14 +1,7 @@
-using Elders.Cronus.Pipeline;
-using Elders.Cronus.Pipeline.Transport.RabbitMQ;
-using Elders.Cronus.Pipeline.Transport.RabbitMQ.Config;
-using Elders.Cronus.Pipeline.Transport.RabbitMQ.Strategy;
-using Machine.Specifications;
-using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using Elders.Cronus.Pipeline;
 
 namespace Elders.Cronus.Transport.RabbitMQ.Tests
 {
@@ -16,7 +9,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Tests
     {
         public static void DeleteEndpointAndPipelines(this EndpointDefinition endpoint)
         {
-            var client = new RestSharp.RestClient("http://localhost:15672/api");
+            var client = new RestSharp.RestClient("http://docker-local.com:15672/api");
 
             var request = new RestSharp.RestRequest("/queues/%2f/" + endpoint.EndpointName, RestSharp.Method.DELETE);
             request.AddHeader("Authorization", "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes("guest:guest")));

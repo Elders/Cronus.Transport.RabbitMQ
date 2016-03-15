@@ -58,9 +58,9 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
             {
                 IBasicProperties properties = new BasicProperties();
                 properties.Headers = message.RoutingHeaders;
-                properties.SetPersistent(true);
+                properties.Persistent = true;
                 properties.Priority = 9;
-                safeChannel.Channel.BasicPublish(name, message.RoutingKey, false, false, properties, message.Body);
+                safeChannel.Channel.BasicPublish(name, message.RoutingKey, false, properties, message.Body);
             }
             catch (EndOfStreamException ex)
             { throw new PipelineClosedException(String.Format("The Pipeline '{0}' was closed", name), ex); }
