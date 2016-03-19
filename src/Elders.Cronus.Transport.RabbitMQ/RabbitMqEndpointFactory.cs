@@ -20,7 +20,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
             endpoint.RoutingHeaders.Add("x-match", "any");
             endpoint.Declare();
 
-            var pipeLine = new RabbitMqPipeline(definition.PipelineName, session, RabbitMqPipeline.PipelineType.Headers);
+            var pipeLine = new UberPipeline(definition.PipelineName, session, PipelineType.Headers);
             pipeLine.Declare();
             pipeLine.Bind(endpoint);
             return endpoint;
@@ -31,7 +31,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
             var endpoint = new RabbitMqEndpoint(definition, session);
             endpoint.Declare();
 
-            var pipeLine = new RabbitMqPipeline(definition.PipelineName, session, RabbitMqPipeline.PipelineType.Topics);
+            var pipeLine = new RabbitMqPipeline(definition.PipelineName, session, PipelineType.Topics);
             pipeLine.Declare();
             pipeLine.Bind(endpoint);
             return endpoint;
