@@ -1,4 +1,4 @@
-#### 2.2.0-beta0001 - 19.03.2016
+#### 2.2.0 - 19.03.2016
 * Schedule a message for future publishing is not possible using the 'rabbitmq_delayed_message_exchange' from http://www.rabbitmq.com/community-plugins.html
 The plugin did not work well with the current RabbitMQ v3.5.3 so the RabbitMQ client is updated to the current latest v3.6.1
 
