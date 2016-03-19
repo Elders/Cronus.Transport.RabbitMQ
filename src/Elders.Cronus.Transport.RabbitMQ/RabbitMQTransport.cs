@@ -7,7 +7,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
     {
         static ConcurrentDictionary<string, RabbitMqSession> sessions = new ConcurrentDictionary<string, RabbitMqSession>();
 
-        private string connectionString;
+        string connectionString;
 
         public RabbitMqTransport(Elders.Cronus.Pipeline.Transport.RabbitMQ.Config.IRabbitMqTransportSettings settings)
         {

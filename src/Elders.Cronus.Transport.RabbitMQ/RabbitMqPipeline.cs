@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
@@ -6,38 +7,179 @@ using RabbitMQ.Client.Framing;
 
 namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 {
-    public sealed class RabbitMqPipeline : IRabbitMqPipeline, IDisposable
+    public class UberPipeline : IRabbitMqPipeline, IDisposable
     {
-        private RabbitMqSafeChannel safeChannel;
-        private readonly PipelineType pipelineType;
-        private RabbitMqSession session;
+        protected RabbitMqSafeChannel safeChannel;
 
-        private string name;
+        readonly protected string name;
+        readonly protected PipelineType pipelineType;
 
-        public RabbitMqPipeline(string pipelineName, RabbitMqSession rabbitMqSession, PipelineType pipelineType)
+        readonly private IRabbitMqPipeline pipeline;
+        readonly private IRabbitMqPipeline scheduler;
+
+        public UberPipeline(string pipelineName, RabbitMqSession session, PipelineType pipelineType)
         {
             this.pipelineType = pipelineType;
             this.name = pipelineName;
-            this.session = rabbitMqSession;
+
+            this.pipeline = new RabbitMqPipeline(pipelineName, session, pipelineType);
+            this.scheduler = new SchedulerPipeline(pipelineName + ".Scheduler", session, pipelineType);
+        }
+
+        public string Name { get { return name; } }
+
+        public void Open()
+        {
+            pipeline.Open();
+            scheduler.Open();
+        }
+
+        public void Close()
+        {
+            pipeline.Close();
+            scheduler.Close();
+        }
+
+        public void Declare()
+        {
+            pipeline.Declare();
+            scheduler.Declare();
+        }
+
+        public void Push(EndpointMessage message)
+        {
+            if (message.PublishDelayInMiliseconds == long.MinValue)
+                pipeline.Push(message);
+            else
+                scheduler.Push(message);
+        }
+
+        public void Bind(IEndpoint endpoint)
+        {
+            pipeline.Bind(endpoint);
+            scheduler.Bind(endpoint);
+        }
+
+        public bool Equals(IPipeline other)
+        {
+            throw new NotImplementedException();
         }
 
         public void Dispose()
         {
             Close();
         }
+    }
+
+    public class SchedulerPipeline : RabbitMqPipeline
+    {
+        public SchedulerPipeline(string pipelineName, RabbitMqSession session, PipelineType pipelineType)
+            : base(pipelineName, session, pipelineType)
+        { }
+
+        public override void Bind(IEndpoint endpoint)
+        {
+            // TODO: ClearOldHeaders
+            Open();
+            safeChannel.Channel.QueueBind(endpoint.Name, name, endpoint.RoutingKey, endpoint.RoutingHeaders);
+            Close();
+        }
+
+        public override void Declare()
+        {
+            Open();
+            var args = new Dictionary<string, object>();
+            args.Add("x-delayed-type", pipelineType.ToString());
+            safeChannel.Channel.ExchangeDeclare(name, "x-delayed-message", true, false, args);
+            Close();
+        }
+
+        public override void Push(EndpointMessage message)
+        {
+            if (ReferenceEquals(null, safeChannel)) throw new PipelineClosedException($"The Pipeline '{name}' was closed.");
+
+            try
+            {
+                message.RoutingHeaders.Add("x-delay", message.PublishDelayInMiliseconds);
+                IBasicProperties properties = new BasicProperties();
+                properties.Headers = message.RoutingHeaders;
+                properties.Persistent = true;
+                properties.Priority = 9;
+                safeChannel.Channel.BasicPublish(name, message.RoutingKey, false, properties, message.Body);
+            }
+            catch (EndOfStreamException ex) { throw new PipelineClosedException($"The Pipeline '{name}' was closed.", ex); }
+            catch (AlreadyClosedException ex) { throw new PipelineClosedException($"The Pipeline '{name}' was closed.", ex); }
+            catch (OperationInterruptedException ex) { throw new PipelineClosedException($"The Pipeline '{name}' was closed.", ex); }
+        }
+    }
+
+    public class RabbitMqPipeline : IRabbitMqPipeline, IDisposable
+    {
+        protected RabbitMqSafeChannel safeChannel;
+
+        readonly protected string name;
+        readonly protected RabbitMqSession session;
+        readonly protected PipelineType pipelineType;
+
+        public RabbitMqPipeline(string pipelineName, RabbitMqSession session, PipelineType pipelineType)
+        {
+            this.pipelineType = pipelineType;
+            this.name = pipelineName;
+            this.session = session;
+        }
+
+        public string Name { get { return name; } }
 
         public void Open()
         {
-            safeChannel = session.OpenSafeChannel();
+            if (ReferenceEquals(null, safeChannel))
+                safeChannel = session.OpenSafeChannel();
+        }
+
+        public virtual void Push(EndpointMessage message)
+        {
+            if (ReferenceEquals(null, safeChannel)) throw new PipelineClosedException($"The Pipeline '{name}' was closed.");
+
+            try
+            {
+                Open();
+                IBasicProperties properties = new BasicProperties();
+                properties.Headers = message.RoutingHeaders;
+                properties.Persistent = true;
+                properties.Priority = 9;
+                safeChannel.Channel.BasicPublish(name, message.RoutingKey, false, properties, message.Body);
+            }
+            catch (EndOfStreamException ex) { throw new PipelineClosedException($"The Pipeline '{name}' was closed.", ex); }
+            catch (AlreadyClosedException ex) { throw new PipelineClosedException($"The Pipeline '{name}' was closed.", ex); }
+            catch (OperationInterruptedException ex) { throw new PipelineClosedException($"The Pipeline '{name}' was closed.", ex); }
+            finally
+            {
+                Close();
+            }
+        }
+
+        public virtual void Bind(IEndpoint endpoint)
+        {
+            // TODO: ClearOldHeaders
+            Open();
+            safeChannel.Channel.QueueBind(endpoint.Name, name, endpoint.RoutingKey, endpoint.RoutingHeaders);
+            Close();
+        }
+
+        public virtual void Declare()
+        {
+            Open();
+            safeChannel.Channel.ExchangeDeclare(name, pipelineType.ToString(), true);
+            Close();
         }
 
         public void Close()
         {
-            if (safeChannel != null)
+            if (ReferenceEquals(null, safeChannel) == false)
             {
                 lock (safeChannel)
                 {
-                    if (safeChannel != null)
+                    if (ReferenceEquals(null, safeChannel) == false)
                     {
                         safeChannel.Close();
                         safeChannel = null;
@@ -46,77 +188,9 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
             }
         }
 
-        public void Push(EndpointMessage message)
+        public void Dispose()
         {
-            if (safeChannel == null)
-            {
-                throw new PipelineClosedException(String.Format("The Pipeline '{0}' is closed", name));
-            }
-            try
-            {
-                IBasicProperties properties = new BasicProperties();
-                properties.Headers = message.RoutingHeaders;
-                properties.SetPersistent(true);
-                properties.Priority = 9;
-                safeChannel.Channel.BasicPublish(name, message.RoutingKey, false, false, properties, message.Body);
-            }
-            catch (EndOfStreamException ex)
-            { throw new PipelineClosedException(String.Format("The Pipeline '{0}' was closed", name), ex); }
-            catch (AlreadyClosedException ex)
-            { throw new PipelineClosedException(String.Format("The Pipeline '{0}' was closed", name), ex); }
-            catch (OperationInterruptedException ex)
-            { throw new PipelineClosedException(String.Format("The Pipeline '{0}' was closed", name), ex); }
-
-        }
-        public void Bind(IEndpoint endpoint)
-        {
-            // TODO: ClearOldHeaders
-            if (safeChannel == null)
-            {
-                safeChannel = session.OpenSafeChannel();
-            }
-            safeChannel.Channel.QueueBind(endpoint.Name, name, endpoint.RoutingKey, endpoint.RoutingHeaders);
-            safeChannel.Close();
-            safeChannel = null;
-        }
-
-        public void Declare()
-        {
-            if (safeChannel == null)
-            {
-                safeChannel = session.OpenSafeChannel();
-            }
-
-            safeChannel.Channel.ExchangeDeclare(name, pipelineType.ToString());
-            safeChannel.Close();
-            safeChannel = null;
-        }
-
-        public sealed class PipelineType
-        {
-            private readonly string name;
-            private readonly int value;
-
-            public static readonly PipelineType Direct = new PipelineType(1, "direct");
-            public static readonly PipelineType Fanout = new PipelineType(2, "fanout");
-            public static readonly PipelineType Headers = new PipelineType(3, "headers");
-            public static readonly PipelineType Topics = new PipelineType(4, "topic");
-
-            private PipelineType(int value, string name)
-            {
-                this.name = name;
-                this.value = value;
-            }
-
-            public override String ToString()
-            {
-                return name;
-            }
-
-        }
-        public string Name
-        {
-            get { return name; }
+            Close();
         }
 
         public bool Equals(IPipeline other)

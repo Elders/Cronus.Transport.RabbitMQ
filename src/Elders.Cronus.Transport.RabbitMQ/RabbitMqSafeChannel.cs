@@ -7,11 +7,11 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 {
     public class RabbitMqSafeChannel
     {
-        private IModel channel;
+        IModel channel;
 
-        private RetryPolicy retryPolicy = RetryableOperation.RetryPolicyFactory.CreateInfiniteLinearRetryPolicy(new TimeSpan(500000));
+        readonly RetryPolicy retryPolicy = RetryableOperation.RetryPolicyFactory.CreateInfiniteLinearRetryPolicy(new TimeSpan(500000));
 
-        private readonly RabbitMqSession session;
+        readonly RabbitMqSession session;
 
         public RabbitMqSafeChannel(RabbitMqSession session)
         {
@@ -27,7 +27,6 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
                 {
                     Reconnect();
                     return channel;
-
                 }
                 catch (EndOfStreamException)
                 {

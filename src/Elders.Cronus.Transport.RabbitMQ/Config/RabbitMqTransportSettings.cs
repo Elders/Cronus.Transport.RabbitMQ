@@ -86,5 +86,12 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
             self.EndpointNameConvention = new RabbitMqEndpointPerBoundedContext(self.PipelineNameConvention);
             return self;
         }
+
+        public static T WithEndpointPerHandler<T>(this T self) where T : IPipelineTransportSettings
+        {
+            self.PipelineNameConvention = new RabbitMqPipelinePerApplication();
+            self.EndpointNameConvention = new EndpointPerHandler(self.PipelineNameConvention);
+            return self;
+        }
     }
 }

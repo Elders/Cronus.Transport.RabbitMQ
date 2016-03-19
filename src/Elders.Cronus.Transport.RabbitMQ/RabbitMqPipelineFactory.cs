@@ -21,7 +21,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
         {
             if (!pipes.ContainsKey(pipelineName))
             {
-                IRabbitMqPipeline pipeline = new RabbitMqPipeline(pipelineName, session, RabbitMqPipeline.PipelineType.Headers);
+                IRabbitMqPipeline pipeline = new UberPipeline(pipelineName, session, PipelineType.Headers);
                 pipeline.Open();
                 pipes.TryAdd(pipelineName, pipeline);
                 return pipeline;

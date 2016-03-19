@@ -4,19 +4,19 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 {
     public sealed class RabbitMqSessionFactory
     {
-        private ConnectionFactory factory;
+        ConnectionFactory factory;
 
-        private readonly string hostname;
+        readonly string hostname;
 
-        private readonly string password;
+        readonly string password;
 
-        private readonly int port;
+        readonly int port;
 
-        private readonly string username;
+        readonly string username;
 
-        private readonly string virtualHost;
+        readonly string virtualHost;
 
-        public  RabbitMqSessionFactory(string hostname = "localhost", int port = 5672, string username = ConnectionFactory.DefaultUser, string password = ConnectionFactory.DefaultPass, string virtualHost = ConnectionFactory.DefaultVHost)
+        public RabbitMqSessionFactory(string hostname = "localhost", int port = 5672, string username = ConnectionFactory.DefaultUser, string password = ConnectionFactory.DefaultPass, string virtualHost = ConnectionFactory.DefaultVHost)
         {
             this.hostname = hostname;
             this.username = username;
@@ -29,7 +29,8 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
                 Port = port,
                 UserName = username,
                 Password = password,
-                VirtualHost = virtualHost
+                VirtualHost = virtualHost,
+                AutomaticRecoveryEnabled = true
             };
         }
 
@@ -38,6 +39,4 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
             return new RabbitMqSession(factory);
         }
     }
-
-
 }
