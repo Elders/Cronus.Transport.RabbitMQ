@@ -7,11 +7,11 @@ using System.Runtime.InteropServices;
 [assembly: ComVisibleAttribute(false)]
 [assembly: AssemblyProductAttribute("Elders.Cronus.Transport.RabbitMQ")]
 [assembly: AssemblyCopyrightAttribute("Copyright ©  2016")]
-[assembly: AssemblyVersionAttribute("2.2.0.0")]
-[assembly: AssemblyFileVersionAttribute("2.2.0.0")]
-[assembly: AssemblyInformationalVersionAttribute("2.2.0+0.Branch.master.Sha.3dd330e280aad323793004940f7f61e52428ef52")]
+[assembly: AssemblyVersionAttribute("3.0.0.0")]
+[assembly: AssemblyFileVersionAttribute("3.0.0.0")]
+[assembly: AssemblyInformationalVersionAttribute("3.0.0-beta.1+2.Branch.release-3.0.0.Sha.d8b9373cf127788b1c19b75e243f04dae21f6430")]
 namespace System {
     internal static class AssemblyVersionInformation {
-        internal const string Version = "2.2.0.0";
+        internal const string Version = "3.0.0.0";
     }
 }
