@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCopyrightAttribute("Copyright ©  2016")]
 [assembly: AssemblyVersionAttribute("3.0.0.0")]
 [assembly: AssemblyFileVersionAttribute("3.0.0.0")]
-[assembly: AssemblyInformationalVersionAttribute("3.0.0-beta.1+2.Branch.release-3.0.0.Sha.d8b9373cf127788b1c19b75e243f04dae21f6430")]
+[assembly: AssemblyInformationalVersionAttribute("3.0.0-beta.2+4.Branch.release-3.0.0.Sha.aacafedda5ba9ebeb760f281908b6e6545ba970f")]
 namespace System {
     internal static class AssemblyVersionInformation {
         internal const string Version = "3.0.0.0";
