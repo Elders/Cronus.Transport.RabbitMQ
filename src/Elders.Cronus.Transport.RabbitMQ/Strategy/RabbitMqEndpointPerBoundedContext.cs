@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Elders.Cronus.DomainModeling;
-using Elders.Cronus.Netflix;
+using Elders.Cronus.MessageProcessing;
 
 namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Strategy
 {

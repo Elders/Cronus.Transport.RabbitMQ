@@ -1,3 +1,6 @@
+#### 3.0.0-beta0004 - 29.08.2016
+* Updates cronus package
+
 #### 3.0.0-beta0003 - 29.08.2016
 * Removes dev dependencies
 
