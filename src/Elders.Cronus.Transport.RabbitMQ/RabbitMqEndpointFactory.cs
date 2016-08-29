@@ -1,6 +1,6 @@
-﻿using Elders.Cronus.Netflix;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Elders.Cronus.MessageProcessing;
 
 namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 {
@@ -38,9 +38,9 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
             return endpoint;
         }
 
-        public IEnumerable<EndpointDefinition> GetEndpointDefinition(SubscriptionMiddleware messageProcessor)
+        public IEnumerable<EndpointDefinition> GetEndpointDefinition(SubscriptionMiddleware subscriptionMiddleware)
         {
-            return endpointNameConvention.GetEndpointDefinition(messageProcessor);
+            return endpointNameConvention.GetEndpointDefinition(subscriptionMiddleware);
         }
     }
 }

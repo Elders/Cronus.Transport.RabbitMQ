@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Elders.Cronus.DomainModeling;
-using Elders.Cronus.Netflix;
+using Elders.Cronus.MessageProcessing;
 
 namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Strategy
 {
@@ -15,12 +15,11 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Strategy
             this.pipelineNameConvention = pipelineNameConvention;
         }
 
-        public IEnumerable<EndpointDefinition> GetEndpointDefinition(SubscriptionMiddleware messageProcessor)
+        public IEnumerable<EndpointDefinition> GetEndpointDefinition(SubscriptionMiddleware subscriptionMiddleware)
         {
-            var subscriptions = messageProcessor.Subscribers.FirstOrDefault();
             Dictionary<string, HashSet<Type>> handlers = new Dictionary<string, HashSet<Type>>();
             var subType = typeof(SubscriptionMiddleware);
-            foreach (var item in messageProcessor.Subscribers)
+            foreach (var item in subscriptionMiddleware.Subscribers)
             {
                 var messageHandlerType = subType.GetField("messageHandlerType", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(item) as Type;
                 if (!handlers.ContainsKey(item.Id))
