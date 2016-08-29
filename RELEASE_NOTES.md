@@ -1,3 +1,6 @@
+#### 3.0.0-beta0003 - 29.08.2016
+* Removes dev dependencies
+
 #### 3.0.0-beta0002 - 23.07.2016
 * vNext
 

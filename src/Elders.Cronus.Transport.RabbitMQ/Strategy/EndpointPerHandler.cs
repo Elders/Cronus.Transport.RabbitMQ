@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Elders.Cronus.DomainModeling;
-using Elders.Cronus.MessageProcessingMiddleware;
 using Elders.Cronus.Netflix;
 
 namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Strategy
@@ -15,11 +14,12 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Strategy
         {
             this.pipelineNameConvention = pipelineNameConvention;
         }
+
         public IEnumerable<EndpointDefinition> GetEndpointDefinition(SubscriptionMiddleware messageProcessor)
         {
             var subscriptions = messageProcessor.Subscribers.FirstOrDefault();
             Dictionary<string, HashSet<Type>> handlers = new Dictionary<string, HashSet<Type>>();
-            var subType = typeof(SubscriberMiddleware);
+            var subType = typeof(SubscriptionMiddleware);
             foreach (var item in messageProcessor.Subscribers)
             {
                 var messageHandlerType = subType.GetField("messageHandlerType", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(item) as Type;
@@ -40,10 +40,6 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Strategy
                                .Distinct()
                                .ToDictionary<Type, string, object>(key => key.GetContractId(), val => String.Empty);
                 var bc = item.Value.First().GetBoundedContext().BoundedContextNamespace;
-                //var handlerType = typeof(IPort).IsAssignableFrom(item.Key) ? "Port" :
-                //                  typeof(IProjection).IsAssignableFrom(item.Key) ? "Projection" :
-                //                  typeof(IAggregateRootApplicationService).IsAssignableFrom(item.Key) ? "AppService" :
-                //                  "Unknown";
 
                 var endpointName = bc + "." + "(" + item.Key + ")";
                 if (endpointNames.Contains(endpointName))
