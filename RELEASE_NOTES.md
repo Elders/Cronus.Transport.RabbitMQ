@@ -1,3 +1,6 @@
+#### 3.0.0-beta0005 - 30.08.2016
+* Replaces RabbitMqEndpointPerBoundedContext with RabbitMqEndpointPerConsumer
+
 #### 3.0.0-beta0004 - 29.08.2016
 * Updates cronus package
 

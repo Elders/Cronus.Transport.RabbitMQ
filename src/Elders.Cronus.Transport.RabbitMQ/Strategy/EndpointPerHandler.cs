@@ -15,7 +15,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Strategy
             this.pipelineNameConvention = pipelineNameConvention;
         }
 
-        public IEnumerable<EndpointDefinition> GetEndpointDefinition(SubscriptionMiddleware subscriptionMiddleware)
+        public IEnumerable<EndpointDefinition> GetEndpointDefinition(IEndpointConsumer consumer, SubscriptionMiddleware subscriptionMiddleware)
         {
             Dictionary<string, HashSet<Type>> handlers = new Dictionary<string, HashSet<Type>>();
             var subType = typeof(SubscriptionMiddleware);
