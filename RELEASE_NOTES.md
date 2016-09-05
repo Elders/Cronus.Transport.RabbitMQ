@@ -1,3 +1,6 @@
+#### 3.0.0-beta0007 - 05.09.2016
+* Adds support for IScheduleMessages sent to pipelines
+
 #### 3.0.0-beta0006 - 05.09.2016
 * Moves WithDefaultPublishersWithRabbitMq to Cronus
 
