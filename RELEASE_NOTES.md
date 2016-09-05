@@ -1,3 +1,6 @@
+#### 3.0.0-beta0006 - 05.09.2016
+* Moves WithDefaultPublishersWithRabbitMq to Cronus
+
 #### 3.0.0-beta0005 - 30.08.2016
 * Replaces RabbitMqEndpointPerBoundedContext with RabbitMqEndpointPerConsumer
 
