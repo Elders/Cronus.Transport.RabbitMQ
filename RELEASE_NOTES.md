@@ -1,3 +1,8 @@
+#### 3.0.0 - 08.09.2016
+* Adds support for IScheduleMessages sent to pipelines
+* Moves WithDefaultPublishersWithRabbitMq to Cronus
+* Replaces RabbitMqEndpointPerBoundedContext with RabbitMqEndpointPerConsumer
+
 #### 2.2.0 - 19.03.2016
 * Schedule a message for future publishing is not possible using the 'rabbitmq_delayed_message_exchange' from http://www.rabbitmq.com/community-plugins.html
 The plugin did not work well with the current RabbitMQ v3.5.3 so the RabbitMQ client is updated to the current latest v3.6.1

@@ -14,17 +14,20 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Strategy
         {
             this.pipelineNameConvention = pipelineNameConvention;
         }
-        public IEnumerable<EndpointDefinition> GetEndpointDefinition(IMessageProcessor messageProcessor)
+
+        public IEnumerable<EndpointDefinition> GetEndpointDefinition(IEndpointConsumer consumer, SubscriptionMiddleware subscriptionMiddleware)
         {
-            var subscriptions = messageProcessor.GetSubscriptions().FirstOrDefault();
-            Dictionary<Type, HashSet<Type>> handlers = new Dictionary<Type, HashSet<Type>>();
-            var subType = typeof(MessageProcessorSubscription);
-            foreach (var item in messageProcessor.GetSubscriptions())
+            Dictionary<string, HashSet<Type>> handlers = new Dictionary<string, HashSet<Type>>();
+            var subType = typeof(SubscriptionMiddleware);
+            foreach (var item in subscriptionMiddleware.Subscribers)
             {
                 var messageHandlerType = subType.GetField("messageHandlerType", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(item) as Type;
-                if (!handlers.ContainsKey(messageHandlerType))
-                    handlers.Add(messageHandlerType, new HashSet<Type>() { });
-                handlers[messageHandlerType].Add(item.MessageType);
+                if (!handlers.ContainsKey(item.Id))
+                    handlers.Add(item.Id, new HashSet<Type>() { });
+                foreach (var messageType in item.MessageTypes)
+                {
+                    handlers[item.Id].Add(messageType);
+                }
             }
 
             List<string> endpointNames = new List<string>();
@@ -35,13 +38,9 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Strategy
                 var routingHeaders = item.Value
                                .Distinct()
                                .ToDictionary<Type, string, object>(key => key.GetContractId(), val => String.Empty);
-                var bc = item.Key.GetBoundedContext().BoundedContextNamespace;
-                var handlerType = typeof(IPort).IsAssignableFrom(item.Key) ? "Port" :
-                                  typeof(IProjection).IsAssignableFrom(item.Key) ? "Projection" :
-                                  typeof(IAggregateRootApplicationService).IsAssignableFrom(item.Key) ? "AppService" :
-                                  "Unknown";
+                var bc = item.Value.First().GetBoundedContext().BoundedContextNamespace;
 
-                var endpointName = bc + "." + handlerType + "(" + item.Key.Name + ")";
+                var endpointName = bc + "." + "(" + item.Key + ")";
                 if (endpointNames.Contains(endpointName))
                     throw new InvalidOperationException("Duplicatie endpoint name " + endpointName);
 

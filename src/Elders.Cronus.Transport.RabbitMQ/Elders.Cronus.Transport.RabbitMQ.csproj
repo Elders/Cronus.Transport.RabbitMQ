@@ -74,15 +74,15 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Elders.Cronus, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Cronus.2.6.0\lib\net45-full\Elders.Cronus.dll</HintPath>
+      <HintPath>..\packages\Cronus.3.0.0\lib\net45-full\Elders.Cronus.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Elders.Cronus.DomainModeling, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Cronus.DomainModeling.2.3.0\lib\net45-full\Elders.Cronus.DomainModeling.dll</HintPath>
+      <HintPath>..\packages\Cronus.DomainModeling.3.1.0\lib\net45-full\Elders.Cronus.DomainModeling.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Elders.Multithreading.Scheduler, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Multithreading.Scheduler.1.1.0\lib\net45-full\Elders.Multithreading.Scheduler.dll</HintPath>
+    <Reference Include="Elders.Multithreading.Scheduler, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Multithreading.Scheduler.1.1.1\lib\net45-full\Elders.Multithreading.Scheduler.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="log4net, Version=1.2.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
@@ -90,8 +90,8 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="RabbitMQ.Client, Version=3.6.1.0, Culture=neutral, PublicKeyToken=89e7d7c5feba84ce, processorArchitecture=MSIL">
-      <HintPath>..\packages\RabbitMQ.Client.3.6.1\lib\net45\RabbitMQ.Client.dll</HintPath>
+    <Reference Include="RabbitMQ.Client, Version=3.6.5.0, Culture=neutral, PublicKeyToken=89e7d7c5feba84ce, processorArchitecture=MSIL">
+      <HintPath>..\packages\RabbitMQ.Client.3.6.5\lib\net45\RabbitMQ.Client.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -104,7 +104,6 @@
     <Compile Include="PipelineType.cs" />
     <Compile Include="RabbitMqTransport.cs" />
     <Compile Include="Config\RabbitMqTransportSettings.cs" />
-    <Compile Include="Hosts\CronusConfigurationRabbitMqExtensions.cs" />
     <Compile Include="IRabbitMqPipeline.cs" />
     <Compile Include="RabbitMqEndpoint.cs" />
     <Compile Include="RabbitMqEndpointFactory.cs" />
@@ -116,7 +115,7 @@
     <Compile Include="Strategy\EndpointPerHandler.cs" />
     <Compile Include="Strategy\PortEndpointPerHandler.cs" />
     <Compile Include="Strategy\ProjectionEndpointPerHandler.cs" />
-    <Compile Include="Strategy\RabbitMqEndpointPerBoundedContext.cs" />
+    <Compile Include="Strategy\RabbitMqEndpointPerConsumer.cs" />
     <Compile Include="Strategy\RabbitMqPipelinePerApplication.cs" />
   </ItemGroup>
   <ItemGroup>

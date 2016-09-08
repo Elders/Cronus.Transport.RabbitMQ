@@ -11,8 +11,10 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Strategy
                 return GetCommandsPipelineName(messageType);
             else if (typeof(IEvent).IsAssignableFrom(messageType))
                 return GetEventsPipelineName(messageType);
+            else if (typeof(IScheduledMessage).IsAssignableFrom(messageType))
+                return GetEventsPipelineName(messageType);
             else
-                throw new Exception("The message type '{0}' is not eligible. Please use ICommand or IEvent");
+                throw new Exception(string.Format("The message type '{0}' is not eligible. Please use ICommand or IEvent", messageType));
         }
 
         protected override string GetCommandsPipelineName(Type messageType)
