@@ -19,8 +19,8 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
              });
 
 
-            PipelineFactory = new RabbitMqPipelineFactory(session, settings.PipelineNameConvention);
-            EndpointFactory = new RabbitMqEndpointFactory(session, settings.EndpointNameConvention);
+            PipelineFactory = new RabbitMqPipelineFactory(session, settings);
+            EndpointFactory = new RabbitMqEndpointFactory(session, settings);
         }
         public IEndpointFactory EndpointFactory { get; private set; }
 
