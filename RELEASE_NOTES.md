@@ -1,3 +1,7 @@
+#### 3.0.1 - 01.12.2016
+* Add setting for specifying admin port
+* Adds a Virtual Host, if such not present in RabbitMQ, and assigning permissions for the user passed to the initial settings 
+
 #### 3.0.1-beta0002 - 01.12.2016
 * Add setting for specifying admin port
 
