@@ -148,7 +148,6 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Management
             return GetUser(userInfo.GetName());
         }
 
-
         private void Put(string path)
         {
             var request = CreateRequestForPath(path);
@@ -157,7 +156,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Management
 
             using (var response = (HttpWebResponse)request.GetResponse())
             {
-                // The "Cowboy" server in 3.7.0's Management Client returns 201 Created. 
+                // The "Cowboy" server in 3.7.0's Management Client returns 201 Created.
                 // "MochiWeb/1.1 WebMachine/1.10.0 (never breaks eye contact)" in 3.6.1 and previous return 204 No Content
                 // Also acceptable for a PUT response is 200 OK
                 // See also http://stackoverflow.com/questions/797834/should-a-restful-put-operation-return-something
@@ -179,7 +178,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Management
 
             using (var response = (HttpWebResponse)request.GetResponse())
             {
-                // The "Cowboy" server in 3.7.0's Management Client returns 201 Created. 
+                // The "Cowboy" server in 3.7.0's Management Client returns 201 Created.
                 // "MochiWeb/1.1 WebMachine/1.10.0 (never breaks eye contact)" in 3.6.1 and previous return 204 No Content
                 // Also acceptable for a PUT response is 200 OK
                 // See also http://stackoverflow.com/questions/797834/should-a-restful-put-operation-return-something
@@ -276,7 +275,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Management
 
             if (runningOnMono)
             {
-                // unsightly hack to fix path. 
+                // unsightly hack to fix path.
                 // The default vHost in RabbitMQ is named '/' which causes all sorts of problems :(
                 // We need to escape it to %2f, but System.Uri then unescapes it back to '/'
                 // The horrible fix is to reset the path field to the original path value, after it's
@@ -336,8 +335,5 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Management
             }
             return queryStringBuilder.ToString();
         }
-
-
     }
 }
-

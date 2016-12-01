@@ -21,7 +21,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 
         public IEndpoint CreateEndpoint(EndpointDefinition definition)
         {
-            var managmentClient = new RabbitMqManagementClient(transportSettings.Server, transportSettings.Username, transportSettings.Password, transportSettings.Port);
+            var managmentClient = new RabbitMqManagementClient(transportSettings.Server, transportSettings.Username, transportSettings.Password, transportSettings.AdminPort);
 
             if (!managmentClient.GetVHosts().Any(vh => vh.Name == transportSettings.VirtualHost))
             {
@@ -43,7 +43,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 
         public IEndpoint CreateTopicEndpoint(EndpointDefinition definition)
         {
-            var managmentClient = new RabbitMqManagementClient(transportSettings.Server, transportSettings.Username, transportSettings.Password, transportSettings.Port);
+            var managmentClient = new RabbitMqManagementClient(transportSettings.Server, transportSettings.Username, transportSettings.Password, transportSettings.AdminPort);
 
             if (!managmentClient.GetVHosts().Any(vh => vh.Name == transportSettings.VirtualHost))
             {

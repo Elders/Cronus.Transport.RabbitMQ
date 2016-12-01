@@ -27,7 +27,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
         {
             if (!pipes.ContainsKey(pipelineName))
             {
-                var managmentClient = new RabbitMqManagementClient(transportSettings.Server, transportSettings.Username, transportSettings.Password, transportSettings.Port);
+                var managmentClient = new RabbitMqManagementClient(transportSettings.Server, transportSettings.Username, transportSettings.Password, transportSettings.AdminPort);
 
                 if (!managmentClient.GetVHosts().Any(vh => vh.Name == transportSettings.VirtualHost))
                 {
