@@ -16,6 +16,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
     {
         string Server { get; set; }
         int Port { get; set; }
+        int AdminPort { get; set; }
         string Username { get; set; }
         string Password { get; set; }
         string VirtualHost { get; set; }
@@ -31,6 +32,8 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
         string IRabbitMqTransportSettings.Password { get; set; }
 
         int IRabbitMqTransportSettings.Port { get; set; }
+
+        int IRabbitMqTransportSettings.AdminPort { get; set; }
 
         string IRabbitMqTransportSettings.Server { get; set; }
 
@@ -74,6 +77,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
         {
             self.Server = "localhost";
             self.Port = 5672;
+            self.AdminPort = 15672;
             self.Username = ConnectionFactory.DefaultUser;
             self.Password = ConnectionFactory.DefaultPass;
             self.VirtualHost = ConnectionFactory.DefaultVHost;
