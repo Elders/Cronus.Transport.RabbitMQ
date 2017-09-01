@@ -179,11 +179,8 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
             {
                 lock (safeChannel)
                 {
-                    if (ReferenceEquals(null, safeChannel) == false)
-                    {
-                        safeChannel.Close();
-                        safeChannel = null;
-                    }
+                    safeChannel?.Close();
+                    safeChannel = null;
                 }
             }
         }

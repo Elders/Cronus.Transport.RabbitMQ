@@ -1,12 +1,15 @@
+#### 3.0.2 - 01.09.2017
+* To be honest there is a problem in the public interface and the way we use endpoints has a memory leak unless you Open/Close the endpoint.
+
 #### 3.0.1 - 01.12.2016
 * Add setting for specifying admin port
-* Adds a Virtual Host, if such not present in RabbitMQ, and assigning permissions for the user passed to the initial settings 
+* Adds a Virtual Host, if such not present in RabbitMQ, and assigning permissions for the user passed to the initial settings
 
 #### 3.0.1-beta0002 - 01.12.2016
 * Add setting for specifying admin port
 
 #### 3.0.1-beta0001 - 01.12.2016
-* Adds a Virtual Host, if such not present in RabbitMQ, and assigning permissions for the user passed to the initial settings 
+* Adds a Virtual Host, if such not present in RabbitMQ, and assigning permissions for the user passed to the initial settings
 
 #### 3.0.0 - 08.09.2016
 * Adds support for IScheduleMessages sent to pipelines

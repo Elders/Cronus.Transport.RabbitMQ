@@ -26,6 +26,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
             this.session = session;
             RoutingKey = endpointDefinition.RoutingKey;
             Name = endpointDefinition.EndpointName;
+            dequeuedMessages = new Dictionary<EndpointMessage, BasicDeliverEventArgs>();
         }
 
         public IDictionary<string, object> RoutingHeaders { get; set; }
@@ -80,11 +81,9 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 
         public void Close()
         {
-            if (safeChannel != null)
-            {
-                safeChannel.Close();
-                safeChannel = null;
-            }
+            safeChannel?.Close();
+            safeChannel = null;
+
             dequeuedMessages.Clear();
         }
 
@@ -109,8 +108,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 
         public void Dispose()
         {
-            if (safeChannel != null)
-                safeChannel.Close();
+            Close();
         }
 
         public void Declare()
@@ -125,12 +123,19 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 
         public void Open()
         {
-            safeChannel = session.OpenSafeChannel();
-            safeChannel.Channel.BasicQos(0, 1500, false);
-            consumer = new QueueingBasicConsumer(safeChannel.Channel);
+            if (safeChannel == null)
+            {
+                safeChannel = session.OpenSafeChannel();
+                safeChannel.Channel.BasicQos(0, 1500, false);
+                consumer = new QueueingBasicConsumer(safeChannel.Channel);
 
-            safeChannel.Channel.BasicConsume(Name, false, consumer);
-            dequeuedMessages = new Dictionary<EndpointMessage, BasicDeliverEventArgs>();
+                safeChannel.Channel.BasicConsume(Name, false, consumer);
+                dequeuedMessages.Clear();
+            }
+            else
+            {
+                safeChannel.Reconnect();
+            }
         }
 
         public bool BlockDequeue(uint timeoutInMiliseconds, out EndpointMessage msg)
