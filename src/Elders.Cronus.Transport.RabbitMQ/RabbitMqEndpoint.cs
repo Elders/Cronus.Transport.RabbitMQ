@@ -1,161 +1,104 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
+using Elders.Cronus.Serializer;
+using Elders.Multithreading.Scheduler;
 
 namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 {
     public class RabbitMqEndpoint : IEndpoint, IDisposable
     {
-        private RabbitMqSafeChannel safeChannel;
+        private readonly ISerializer _serializer;
+        private readonly RabbitMqSession _session;
+        private readonly int _numberOfWorkers;
+        private readonly MessageThreshold _messageThreshold;
 
-        private QueueingBasicConsumer consumer;
-
-        private Dictionary<EndpointMessage, BasicDeliverEventArgs> dequeuedMessages;
-
-        private RabbitMqSession session;
-
-        public RabbitMqEndpoint(EndpointDefinition endpointDefinition, RabbitMqSession session)
-        {
-            RoutingHeaders = new Dictionary<string, object>(endpointDefinition.RoutingHeaders);
-            AutoDelete = false;
-            Exclusive = false;
-            Durable = true;
-            this.session = session;
-            RoutingKey = endpointDefinition.RoutingKey;
-            Name = endpointDefinition.EndpointName;
-            dequeuedMessages = new Dictionary<EndpointMessage, BasicDeliverEventArgs>();
-        }
-
-        public IDictionary<string, object> RoutingHeaders { get; set; }
+        private WorkPool _pool = null;
+        private bool _started = false;
+        private Action<CronusMessage> _onMessageHandler = null;
 
         public bool AutoDelete { get; set; }
-
         public bool Durable { get; private set; }
-
         public bool Exclusive { get; private set; }
-
         public string Name { get; private set; }
+        public Dictionary<string, object> RoutingHeaders { get; set; }
 
-        public string RoutingKey { get; set; }
-
-        public void Acknowledge(EndpointMessage message)
+        public RabbitMqEndpoint(ISerializer serializer, EndpointDefinition endpointDefinition, RabbitMqSession session, Config.IRabbitMqTransportSettings settings)
         {
-            try
-            {
-                safeChannel.Channel.BasicAck(dequeuedMessages[message].DeliveryTag, false);
-                dequeuedMessages.Remove(message);
-            }
-            catch (EndOfStreamException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (AlreadyClosedException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (OperationInterruptedException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (Exception) { Close(); throw; }
-        }
+            this.Name = endpointDefinition.EndpointName;
+            this._session = session;
+            this._serializer = serializer;
+            this.AutoDelete = false;
+            this.Exclusive = false;
+            this.Durable = true;
+            this._numberOfWorkers = Math.Max(1, settings.NumberOfWorkers);
+            this._messageThreshold = settings.MessageTreshold ?? new MessageThreshold();
 
-        public void Acknowledge(IEnumerable<EndpointMessage> messages)
-        {
-            foreach (EndpointMessage message in messages)
+            this.RoutingHeaders = new Dictionary<string, object>();
+            foreach (var messageType in endpointDefinition.WatchMessageTypes)
             {
-                Acknowledge(message);
+                this.RoutingHeaders.Add(messageType, string.Empty);
             }
         }
 
-        public void AcknowledgeAll()
+        public void OnMessage(Action<CronusMessage> action)
         {
-            try
+            if (_started)
             {
-                foreach (KeyValuePair<EndpointMessage, BasicDeliverEventArgs> dequeuedMessage in dequeuedMessages)
-                {
-                    safeChannel.Channel.BasicAck(dequeuedMessage.Value.DeliveryTag, false);
-                }
-                dequeuedMessages.Clear();
-
+                throw new Exception("Cannot assign 'onMessageHandler' handler when endpoint was started already");
             }
-            catch (EndOfStreamException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (AlreadyClosedException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (OperationInterruptedException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (Exception) { Close(); throw; }
+
+            _onMessageHandler = action;
         }
 
-        public void Close()
+        public void Start()
         {
-            safeChannel?.Close();
-            safeChannel = null;
+            if (_started)
+            {
+                throw new Exception("Cannot start endpoint because it's already started");
+            }
 
-            dequeuedMessages.Clear();
+            if (_onMessageHandler == null)
+            {
+                throw new Exception("Cannot start endpoint because onMessageHandler handler was not specified yet!");
+            }
+
+            _started = true;
+
+            var poolName = String.Format("Workpool {0}", this.Name);
+            _pool = new WorkPool(poolName, this._numberOfWorkers);
+            for (int i = 0; i < this._numberOfWorkers; i++)
+            {
+                _pool.AddWork(new RabbitMqEndpointWork(Name, _serializer, _messageThreshold, _onMessageHandler, _session));
+            }
+
+            _pool.StartCrawlers();
         }
 
-        public EndpointMessage DequeueNoWait()
+        public void Stop()
         {
-            if (consumer == null) throw new EndpointClosedException(String.Format("The Endpoint '{0}' is closed", Name));
-
-            try
+            if (!_started)
             {
-                var result = consumer.Queue.DequeueNoWait(null);
-                if (result == null)
-                    return null;
-                var msg = new EndpointMessage(result.Body, result.RoutingKey, result.BasicProperties.Headers);
-                dequeuedMessages.Add(msg, result);
-                return msg;
+                throw new Exception("Cannot stop endpoint because it was not started!");
             }
-            catch (EndOfStreamException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (AlreadyClosedException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (OperationInterruptedException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (Exception ex) { Close(); throw ex; }
+
+            _pool.Stop();
+
+            _started = false;
         }
 
         public void Dispose()
         {
-            Close();
+            if (_started)
+            {
+                this.Stop();
+            }
         }
 
         public void Declare()
         {
-            if (safeChannel == null)
-                safeChannel = session.OpenSafeChannel();
-
-            safeChannel.Channel.QueueDeclare(Name, Durable, Exclusive, AutoDelete, RoutingHeaders);
+            var safeChannel = _session.OpenSafeChannel();
+            safeChannel.Channel.QueueDeclare(Name, Durable, Exclusive, AutoDelete, this.RoutingHeaders);
             safeChannel.Close();
-            safeChannel = null;
-        }
-
-        public void Open()
-        {
-            if (safeChannel == null)
-            {
-                safeChannel = session.OpenSafeChannel();
-                safeChannel.Channel.BasicQos(0, 1500, false);
-                consumer = new QueueingBasicConsumer(safeChannel.Channel);
-
-                safeChannel.Channel.BasicConsume(Name, false, consumer);
-                dequeuedMessages.Clear();
-            }
-            else
-            {
-                safeChannel.Reconnect();
-            }
-        }
-
-        public bool BlockDequeue(uint timeoutInMiliseconds, out EndpointMessage msg)
-        {
-            msg = null;
-            BasicDeliverEventArgs result;
-            if (consumer == null) throw new EndpointClosedException(String.Format("The Endpoint '{0}' is closed", Name));
-
-            try
-            {
-                if (consumer.Queue.Dequeue((int)timeoutInMiliseconds, out result) == false)
-                    return false;
-                msg = new EndpointMessage(result.Body, result.RoutingKey, result.BasicProperties.Headers);
-                dequeuedMessages.Add(msg, result);
-                return true;
-            }
-            catch (EndOfStreamException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (AlreadyClosedException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (OperationInterruptedException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (Exception) { Close(); throw; }
         }
 
         public bool Equals(IEndpoint other)
