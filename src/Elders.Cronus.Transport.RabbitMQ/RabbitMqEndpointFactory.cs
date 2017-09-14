@@ -34,7 +34,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
                 managmentClient.CreatePermission(permissionInfo);
             }
 
-            var endpoint = new RabbitMqEndpoint(_serializer, definition, _session, _settings);
+            var endpoint = new RabbitMqEndpoint(_serializer, definition, _session);
             endpoint.RoutingHeaders.Add("x-match", "any");
             endpoint.Declare();
 
@@ -56,7 +56,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
                 managmentClient.CreatePermission(permissionInfo);
             }
 
-            var endpoint = new RabbitMqEndpoint(_serializer, definition, _session, _settings);
+            var endpoint = new RabbitMqEndpoint(_serializer, definition, _session);
             endpoint.Declare();
 
             var pipeLine = new RabbitMqPipeline(_serializer, definition.PipelineName, _session, PipelineType.Topics);

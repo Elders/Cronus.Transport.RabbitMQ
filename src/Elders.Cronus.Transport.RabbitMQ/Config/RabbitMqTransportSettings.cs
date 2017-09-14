@@ -14,8 +14,6 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
         string Username { get; set; }
         string Password { get; set; }
         string VirtualHost { get; set; }
-        int NumberOfWorkers { get; set; }
-        MessageThreshold MessageTreshold { get; set; }
     }
 
     public class RabbitMqTransportSettings : SettingsBuilder, IRabbitMqTransportSettings
@@ -23,8 +21,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
         public RabbitMqTransportSettings(ISettingsBuilder settingsBuilder) : base(settingsBuilder)
         {
             this
-                .WithDefaultConnectionSettings()
-                .SetNumberOfConsumerThreads(1); //each endpoint will have separate thread
+                .WithDefaultConnectionSettings(); //each endpoint will have separate thread
         }
 
         string IRabbitMqTransportSettings.Password { get; set; }
@@ -38,10 +35,6 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
         string IRabbitMqTransportSettings.Username { get; set; }
 
         string IRabbitMqTransportSettings.VirtualHost { get; set; }
-
-        int IRabbitMqTransportSettings.NumberOfWorkers { get; set; }
-
-        MessageThreshold IRabbitMqTransportSettings.MessageTreshold { get; set; }
 
         IEndpointNameConvention IPipelineTransportSettings.EndpointNameConvention { get; set; }
 
@@ -88,18 +81,6 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
             self.Username = ConnectionFactory.DefaultUser;
             self.Password = ConnectionFactory.DefaultPass;
             self.VirtualHost = ConnectionFactory.DefaultVHost;
-            return self;
-        }
-
-        public static T SetNumberOfConsumerThreads<T>(this T self, int numberOfConsumers) where T : IRabbitMqTransportSettings
-        {
-            self.NumberOfWorkers = numberOfConsumers;
-            return self;
-        }
-
-        public static T SetMessageThreshold<T>(this T self, uint size, uint delay) where T : IRabbitMqTransportSettings
-        {
-            self.MessageTreshold = new MessageThreshold(size, delay);
             return self;
         }
     }

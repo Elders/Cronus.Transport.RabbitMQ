@@ -108,8 +108,6 @@
     <Compile Include="Management\RabbitMqManagmentClient.cs" />
     <Compile Include="Management\UnexpectedHttpStatusCodeException.cs" />
     <Compile Include="PipelineType.cs" />
-    <Compile Include="MessageThreshold.cs" />
-    <Compile Include="RabbitMqEndpointWork.cs" />
     <Compile Include="RabbitMqTransport.cs" />
     <Compile Include="Config\RabbitMqTransportSettings.cs" />
     <Compile Include="IRabbitMqPipeline.cs" />
