@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Elders.Cronus.Serializer;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
@@ -9,24 +10,31 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 {
     public class RabbitMqEndpoint : IEndpoint, IDisposable
     {
+        private readonly ISerializer _serializer;
+
         private RabbitMqSafeChannel safeChannel;
 
         private QueueingBasicConsumer consumer;
 
-        private Dictionary<EndpointMessage, BasicDeliverEventArgs> dequeuedMessages;
+        private Dictionary<CronusMessage, BasicDeliverEventArgs> dequeuedMessages;
 
         private RabbitMqSession session;
 
-        public RabbitMqEndpoint(EndpointDefinition endpointDefinition, RabbitMqSession session)
+        public RabbitMqEndpoint(ISerializer serializer, EndpointDefinition endpointDefinition, RabbitMqSession session)
         {
-            RoutingHeaders = new Dictionary<string, object>(endpointDefinition.RoutingHeaders);
+            this._serializer = serializer;
             AutoDelete = false;
             Exclusive = false;
             Durable = true;
             this.session = session;
-            RoutingKey = endpointDefinition.RoutingKey;
             Name = endpointDefinition.EndpointName;
-            dequeuedMessages = new Dictionary<EndpointMessage, BasicDeliverEventArgs>();
+            dequeuedMessages = new Dictionary<CronusMessage, BasicDeliverEventArgs>();
+
+            this.RoutingHeaders = new Dictionary<string, object>();
+            foreach (var messageType in endpointDefinition.WatchMessageTypes)
+            {
+                this.RoutingHeaders.Add(messageType, string.Empty);
+            }
         }
 
         public IDictionary<string, object> RoutingHeaders { get; set; }
@@ -39,76 +47,54 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 
         public string Name { get; private set; }
 
-        public string RoutingKey { get; set; }
 
-        public void Acknowledge(EndpointMessage message)
+        public void Acknowledge(CronusMessage message)
         {
             try
             {
                 safeChannel.Channel.BasicAck(dequeuedMessages[message].DeliveryTag, false);
                 dequeuedMessages.Remove(message);
             }
-            catch (EndOfStreamException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (AlreadyClosedException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (OperationInterruptedException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (Exception) { Close(); throw; }
+            catch (EndOfStreamException ex) { Dispose(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
+            catch (AlreadyClosedException ex) { Dispose(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
+            catch (OperationInterruptedException ex) { Dispose(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
+            catch (Exception) { Dispose(); throw; }
         }
 
-        public void Acknowledge(IEnumerable<EndpointMessage> messages)
+        public CronusMessage Dequeue(TimeSpan timeout)
         {
-            foreach (EndpointMessage message in messages)
+            if (!IsInitialized)
             {
-                Acknowledge(message);
+                this.Open();
+                IsInitialized = true;
             }
-        }
 
-        public void AcknowledgeAll()
-        {
+            CronusMessage msg = null;
+            BasicDeliverEventArgs result;
+            if (consumer == null) throw new EndpointClosedException(String.Format("The Endpoint '{0}' is closed", Name));
+
             try
             {
-                foreach (KeyValuePair<EndpointMessage, BasicDeliverEventArgs> dequeuedMessage in dequeuedMessages)
-                {
-                    safeChannel.Channel.BasicAck(dequeuedMessage.Value.DeliveryTag, false);
-                }
-                dequeuedMessages.Clear();
+                if (consumer.Queue.Dequeue((int)timeout.Milliseconds, out result) == false)
+                    return null;
 
+                msg = (CronusMessage)_serializer.DeserializeFromBytes(result.Body);
+                dequeuedMessages.Add(msg, result);
+
+                return msg;
             }
-            catch (EndOfStreamException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (AlreadyClosedException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (OperationInterruptedException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (Exception) { Close(); throw; }
+            catch (EndOfStreamException ex) { Dispose(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
+            catch (AlreadyClosedException ex) { Dispose(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
+            catch (OperationInterruptedException ex) { Dispose(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
+            catch (Exception) { Dispose(); throw; }
         }
 
-        public void Close()
+        public void Dispose()
         {
             safeChannel?.Close();
             safeChannel = null;
 
             dequeuedMessages.Clear();
-        }
-
-        public EndpointMessage DequeueNoWait()
-        {
-            if (consumer == null) throw new EndpointClosedException(String.Format("The Endpoint '{0}' is closed", Name));
-
-            try
-            {
-                var result = consumer.Queue.DequeueNoWait(null);
-                if (result == null)
-                    return null;
-                var msg = new EndpointMessage(result.Body, result.RoutingKey, result.BasicProperties.Headers);
-                dequeuedMessages.Add(msg, result);
-                return msg;
-            }
-            catch (EndOfStreamException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (AlreadyClosedException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (OperationInterruptedException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (Exception ex) { Close(); throw ex; }
-        }
-
-        public void Dispose()
-        {
-            Close();
         }
 
         public void Declare()
@@ -121,6 +107,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
             safeChannel = null;
         }
 
+        private bool IsInitialized = false;
         public void Open()
         {
             if (safeChannel == null)
@@ -138,25 +125,6 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
             }
         }
 
-        public bool BlockDequeue(uint timeoutInMiliseconds, out EndpointMessage msg)
-        {
-            msg = null;
-            BasicDeliverEventArgs result;
-            if (consumer == null) throw new EndpointClosedException(String.Format("The Endpoint '{0}' is closed", Name));
-
-            try
-            {
-                if (consumer.Queue.Dequeue((int)timeoutInMiliseconds, out result) == false)
-                    return false;
-                msg = new EndpointMessage(result.Body, result.RoutingKey, result.BasicProperties.Headers);
-                dequeuedMessages.Add(msg, result);
-                return true;
-            }
-            catch (EndOfStreamException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (AlreadyClosedException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (OperationInterruptedException ex) { Close(); throw new EndpointClosedException(String.Format("The Endpoint '{0}' was closed", Name), ex); }
-            catch (Exception) { Close(); throw; }
-        }
 
         public bool Equals(IEndpoint other)
         {

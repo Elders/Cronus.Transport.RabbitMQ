@@ -1,3 +1,6 @@
+#### 3.1.0 - 31.10.2017
+* There are breaking changes in the transport.
+
 #### 3.0.2 - 01.09.2017
 * To be honest there is a problem in the public interface and the way we use endpoints has a memory leak unless you Open/Close the endpoint.
 

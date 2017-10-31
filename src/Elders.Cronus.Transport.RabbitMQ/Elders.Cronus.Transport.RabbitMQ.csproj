@@ -118,11 +118,6 @@
     <Compile Include="RabbitMqSafeChannel.cs" />
     <Compile Include="RabbitMqSession.cs" />
     <Compile Include="RabbitMqSessionFactory.cs" />
-    <Compile Include="Strategy\EndpointPerHandler.cs" />
-    <Compile Include="Strategy\PortEndpointPerHandler.cs" />
-    <Compile Include="Strategy\ProjectionEndpointPerHandler.cs" />
-    <Compile Include="Strategy\RabbitMqEndpointPerConsumer.cs" />
-    <Compile Include="Strategy\RabbitMqPipelinePerApplication.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">
