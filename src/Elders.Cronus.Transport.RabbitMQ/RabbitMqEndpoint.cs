@@ -63,11 +63,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 
         public CronusMessage Dequeue(TimeSpan timeout)
         {
-            if (!IsInitialized)
-            {
-                this.Open();
-                IsInitialized = true;
-            }
+            this.Open();
 
             CronusMessage msg = null;
             BasicDeliverEventArgs result;
@@ -107,8 +103,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
             safeChannel = null;
         }
 
-        private bool IsInitialized = false;
-        public void Open()
+        private void Open()
         {
             if (safeChannel == null)
             {
