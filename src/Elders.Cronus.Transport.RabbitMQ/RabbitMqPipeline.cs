@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Elders.Cronus.DomainModeling;
+using Elders.Cronus;
 using Elders.Cronus.Serializer;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
@@ -76,7 +76,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
         public SchedulerPipeline(ISerializer serializer, string pipelineName, RabbitMqSession session, PipelineType pipelineType)
             : base(serializer, pipelineName, session, pipelineType)
         { }
-        
+
         public override void Declare()
         {
             Open();

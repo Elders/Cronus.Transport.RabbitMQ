@@ -4,7 +4,7 @@ using Elders.Cronus.Serializer;
 
 namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
 {
-    public class RabbitMqTransport : IPipelineTransport, ITransport, IDisposable
+    public class RabbitMqTransport : IPipelTransport, ITransport, IDisposable
     {
         static ConcurrentDictionary<string, RabbitMqSession> sessions = new ConcurrentDictionary<string, RabbitMqSession>();
 
