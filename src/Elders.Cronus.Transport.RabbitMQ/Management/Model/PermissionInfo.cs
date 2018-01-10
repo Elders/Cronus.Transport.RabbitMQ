@@ -1,4 +1,4 @@
-﻿namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Management.Model
+﻿namespace Elders.Cronus.Transport.RabbitMQ.Management.Model
 {
     public class PermissionInfo
     {

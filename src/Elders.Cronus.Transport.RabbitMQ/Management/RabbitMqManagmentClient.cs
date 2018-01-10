@@ -5,23 +5,26 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using Elders.Cronus.Pipeline.Transport.RabbitMQ.Config;
+using Elders.Cronus.Transport.RabbitMQ.Management.Model;
 using Newtonsoft.Json;
-using Elders.Cronus.Pipeline.Transport.RabbitMQ.Management.Model;
 
-namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Management
+namespace Elders.Cronus.Transport.RabbitMQ.Management
 {
     public class RabbitMqManagementClient
     {
-        private readonly string hostUrl;
-        private readonly string username;
-        private readonly string password;
-        private readonly int portNumber;
-        private readonly JsonSerializerSettings Settings;
+        readonly string hostUrl;
+        readonly string username;
+        readonly string password;
+        readonly int portNumber;
+        readonly JsonSerializerSettings Settings;
 
-        private readonly bool runningOnMono;
-        private readonly Action<HttpWebRequest> configureRequest;
-        private readonly TimeSpan defaultTimeout = TimeSpan.FromSeconds(20);
-        private readonly TimeSpan timeout;
+        readonly bool runningOnMono;
+        readonly Action<HttpWebRequest> configureRequest;
+        readonly TimeSpan defaultTimeout = TimeSpan.FromSeconds(20);
+        readonly TimeSpan timeout;
+
+        public RabbitMqManagementClient(IRabbitMqTransportSettings settings) : this(settings.Server, settings.Username, settings.Password) { }
 
         public RabbitMqManagementClient(
                 string hostUrl,
@@ -40,7 +43,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Management
                 throw new ArgumentException("hostUrl is null or empty");
             }
 
-            if (hostUrl.StartsWith("https://"))
+            if (hostUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
                 ssl = true;
 
             if (ssl)

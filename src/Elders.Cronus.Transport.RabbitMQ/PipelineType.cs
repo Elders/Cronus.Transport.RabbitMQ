@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
+namespace Elders.Cronus.Transport.RabbitMQ
 {
     public sealed class PipelineType
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Management.Model
+namespace Elders.Cronus.Transport.RabbitMQ.Management.Model
 {
     public class UserInfo
     {

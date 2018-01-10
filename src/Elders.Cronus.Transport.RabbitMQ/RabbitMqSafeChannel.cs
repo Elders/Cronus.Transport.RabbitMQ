@@ -3,7 +3,7 @@ using System.IO;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 
-namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
+namespace Elders.Cronus.Transport.RabbitMQ
 {
     public class RabbitMqSafeChannel
     {

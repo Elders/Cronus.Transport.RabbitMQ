@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json.Serialization;
 using System.Text.RegularExpressions;
 
-namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Management
+namespace Elders.Cronus.Transport.RabbitMQ.Management
 {
     public class RabbitContractResolver : DefaultContractResolver
     {

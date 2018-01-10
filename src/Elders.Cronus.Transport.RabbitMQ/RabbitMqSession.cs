@@ -1,7 +1,7 @@
 using System;
 using RabbitMQ.Client;
 
-namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
+namespace Elders.Cronus.Transport.RabbitMQ
 {
     public sealed class RabbitMqSession : IDisposable
     {
