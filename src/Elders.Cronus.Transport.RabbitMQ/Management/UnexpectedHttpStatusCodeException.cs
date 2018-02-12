@@ -2,7 +2,7 @@
 using System.Net;
 using System.Runtime.Serialization;
 
-namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Management
+namespace Elders.Cronus.Transport.RabbitMQ.Management
 {
     [Serializable]
     public class UnexpectedHttpStatusCodeException : Exception
@@ -17,9 +17,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Management
         public HttpStatusCode StatusCode { get; private set; }
         public int StatusCodeNumber { get; private set; }
 
-        public UnexpectedHttpStatusCodeException()
-        {
-        }
+        public UnexpectedHttpStatusCodeException() { }
 
         public UnexpectedHttpStatusCodeException(HttpStatusCode statusCode) :
             base(string.Format("Unexpected Status Code: {0} {1}", (int)statusCode, statusCode))
@@ -28,18 +26,10 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Management
             StatusCodeNumber = (int)statusCode;
         }
 
-        public UnexpectedHttpStatusCodeException(string message) : base(message)
-        {
-        }
+        public UnexpectedHttpStatusCodeException(string message) : base(message) { }
 
-        public UnexpectedHttpStatusCodeException(string message, Exception inner) : base(message, inner)
-        {
-        }
+        public UnexpectedHttpStatusCodeException(string message, Exception inner) : base(message, inner) { }
 
-        protected UnexpectedHttpStatusCodeException(
-            SerializationInfo info,
-            StreamingContext context) : base(info, context)
-        {
-        }
+        protected UnexpectedHttpStatusCodeException(SerializationInfo info, StreamingContext context) : base(info, context) { }
     }
 }

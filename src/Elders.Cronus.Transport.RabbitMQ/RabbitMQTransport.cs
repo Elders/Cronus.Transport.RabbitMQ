@@ -1,38 +1,61 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using Elders.Cronus.MessageProcessing;
+using Elders.Cronus.Pipeline;
+using Elders.Cronus.Pipeline.Transport.RabbitMQ.Config;
 using Elders.Cronus.Serializer;
+using Elders.Cronus.Transport.RabbitMQ.Management;
+using Elders.Cronus.Transport.RabbitMQ.Management.Model;
+using RabbitMQ.Client;
 
-namespace Elders.Cronus.Pipeline.Transport.RabbitMQ
+namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class RabbitMqTransport : IPipelineTransport, ITransport, IDisposable
+    public class RabbitMqTransport : ITransport
     {
-        static ConcurrentDictionary<string, RabbitMqSession> sessions = new ConcurrentDictionary<string, RabbitMqSession>();
+        private readonly IConnectionFactory connectionFactory;
 
-        string connectionString;
+        static ConcurrentDictionary<string, ConnectionFactory> connectionFactories = new ConcurrentDictionary<string, ConnectionFactory>();
 
-        public RabbitMqTransport(ISerializer serializer, Elders.Cronus.Pipeline.Transport.RabbitMQ.Config.IRabbitMqTransportSettings settings)
+        public RabbitMqTransport(IRabbitMqTransportSettings settings)
         {
-            connectionString = settings.Server + settings.Port + settings.Username + settings.Password + settings.VirtualHost;
-            var session = sessions.GetOrAdd(connectionString, x =>
-             {
-                 var rabbitSessionFactory = new RabbitMqSessionFactory(settings.Server, settings.Port, settings.Username, settings.Password, settings.VirtualHost);
-                 return rabbitSessionFactory.OpenSession();
-             });
+            var connectionString = settings.Server + settings.Port + settings.Username + settings.Password + settings.VirtualHost;
 
+            CreateVirtualHostDefinedInSettings(settings);
 
-            PipelineFactory = new RabbitMqPipelineFactory(serializer, session, settings);
-            EndpointFactory = new RabbitMqEndpointFactory(serializer, session, settings);
-        }
-        public IEndpointFactory EndpointFactory { get; private set; }
-
-        public IPipelineFactory<IPipeline> PipelineFactory { get; private set; }
-
-        public void Dispose()
-        {
-            RabbitMqSession session;
-            if (sessions.TryRemove(connectionString, out session))
+            connectionFactory = connectionFactories.GetOrAdd(connectionString, x => new ConnectionFactory
             {
-                session.Dispose();
+                HostName = settings.Server,
+                Port = settings.Port,
+                UserName = settings.Username,
+                Password = settings.Password,
+                VirtualHost = settings.VirtualHost,
+                AutomaticRecoveryEnabled = false
+            });
+        }
+
+        void CreateVirtualHostDefinedInSettings(IRabbitMqTransportSettings settings)
+        {
+            RabbitMqManagementClient managmentClient = new RabbitMqManagementClient(settings);
+            if (!managmentClient.GetVHosts().Any(vh => vh.Name == settings.VirtualHost))
+            {
+                var vhost = managmentClient.CreateVirtualHost(settings.VirtualHost);
+                var rabbitMqUser = managmentClient.GetUsers().SingleOrDefault(x => x.Name == settings.Username);
+                var permissionInfo = new PermissionInfo(rabbitMqUser, vhost);
+                managmentClient.CreatePermission(permissionInfo);
+            }
+        }
+
+        public IPublisher<TMessage> GetPublisher<TMessage>(ISerializer serializer) where TMessage : IMessage
+        {
+            return new RabbitMqPublisher<TMessage>(serializer, connectionFactory);
+        }
+
+        public IEnumerable<IConsumerFactory> GetAvailableConsumers(ISerializer serializer, SubscriptionMiddleware subscriptions, string consumerName)
+        {
+            foreach (var item in subscriptions.Subscribers)
+            {
+                yield return new RabbitMqContiniousConsumerFactory(item, serializer, connectionFactory, subscriptions);
             }
         }
     }

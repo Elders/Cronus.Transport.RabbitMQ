@@ -1,15 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27004.2006
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elders.Cronus.Transport.RabbitMQ", "Elders.Cronus.Transport.RabbitMQ\Elders.Cronus.Transport.RabbitMQ.csproj", "{32EA2250-01B3-4171-9AE7-214037A0D524}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".build", ".build", "{A55A7E9A-8B9E-4171-95E8-F1C8EA94C444}"
-	ProjectSection(SolutionItems) = preProject
-		..\build.cmd = ..\build.cmd
-		..\RELEASE_NOTES.md = ..\RELEASE_NOTES.md
-	EndProjectSection
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elders.Cronus.Transport.RabbitMQ", "Elders.Cronus.Transport.RabbitMQ\Elders.Cronus.Transport.RabbitMQ.csproj", "{32EA2250-01B3-4171-9AE7-214037A0D524}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,5 +18,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {71FB0B8C-9A71-410D-B4E2-B2DA1679719A}
 	EndGlobalSection
 EndGlobal
