@@ -154,7 +154,7 @@ namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
             var builder = this as ISettingsBuilder;
             Func<ITransport> transport = () => builder.Container.Resolve<ITransport>(builder.Name);
             Func<ISerializer> serializer = () => builder.Container.Resolve<ISerializer>();
-            builder.Container.RegisterSingleton<IPublisher<TContract>>(() => (transport() as RabbitMqTransport).GetPublisher<TContract>(serializer()), builder.Name);
+            builder.Container.RegisterSingleton<IPublisher<TContract>>(() => transport().GetPublisher<TContract>(serializer()), builder.Name);
         }
     }
 

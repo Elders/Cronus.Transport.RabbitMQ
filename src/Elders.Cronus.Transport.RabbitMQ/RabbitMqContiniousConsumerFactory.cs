@@ -22,7 +22,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public ContinuousConsumer CreateConsumer()
         {
-            return new RabbitMqContiniousConsumer(subscriber, serializer, connectionFactory, middleware);
+            return new RabbitMqContinuousConsumer(subscriber, serializer, connectionFactory, middleware);
         }
     }
 }

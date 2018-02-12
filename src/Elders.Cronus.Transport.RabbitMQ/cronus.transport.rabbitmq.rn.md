@@ -1,4 +1,7 @@
- #### 3.1.1 - 07.12.2017
+#### 4.0.0 - 12.02.2017
+* dotnetstandard20 support
+
+#### 3.1.1 - 07.12.2017
 * Fixed issue where we are not reconnecting to RabbitMq when the connection is dropped
 
 #### 3.1.0 - 31.10.2017

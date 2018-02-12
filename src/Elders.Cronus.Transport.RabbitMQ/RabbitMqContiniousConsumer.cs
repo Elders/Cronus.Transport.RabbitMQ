@@ -10,46 +10,68 @@ using RabbitMQ.Client.Events;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class RabbitMqContiniousConsumer : ContinuousConsumer
+    public class RabbitMqContinuousConsumer : ContinuousConsumer
     {
         private readonly ISerializer serializer;
 
-        private readonly QueueingBasicConsumerWithManagedConnection consumer;
+        private Dictionary<Guid, ulong> deliveryTags;
 
-        public RabbitMqContiniousConsumer(ISubscriber subscriber, ISerializer serializer, IConnectionFactory connectionFactory, SubscriptionMiddleware middleware) : base(middleware)
+        private QueueingBasicConsumerWithManagedConnection consumer;
+
+        public RabbitMqContinuousConsumer(ISubscriber subscriber, ISerializer serializer, IConnectionFactory connectionFactory, SubscriptionMiddleware middleware) : base(middleware)
         {
+            this.deliveryTags = new Dictionary<Guid, ulong>();
             this.serializer = serializer;
             this.consumer = new QueueingBasicConsumerWithManagedConnection(connectionFactory, subscriber);
         }
 
         protected override CronusMessage GetMessage()
         {
+            if (ReferenceEquals(null, consumer))
+                return null;
+
             return consumer.Do((consumer, subscriber) =>
             {
                 BasicDeliverEventArgs dequeuedMessage = null;
                 consumer.Queue.Dequeue((int)30, out dequeuedMessage);
-
-                var cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(dequeuedMessage.Body);
-                cronusMessage.Headers.Add("rmq-deliverytag", dequeuedMessage.DeliveryTag.ToString());
-                return cronusMessage;
+                if (ReferenceEquals(null, dequeuedMessage) == false)
+                {
+                    var cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(dequeuedMessage.Body);
+                    deliveryTags[cronusMessage.Id] = dequeuedMessage.DeliveryTag;
+                    return cronusMessage;
+                }
+                return null;
             });
         }
 
         protected override void MessageConsumed(CronusMessage message)
         {
-            consumer.Do((consumer, subscriber) =>
+            if (ReferenceEquals(null, consumer)) return;
+            try
             {
-                ulong deliveryTag = ulong.Parse(message.Headers["rmq-deliverytag"]);
-                consumer.Model.BasicAck(deliveryTag, false);
-                return true;
-            });
+                consumer.Do((consumer, subscriber) =>
+                {
+                    ulong deliveryTag;
+                    if (deliveryTags.TryGetValue(message.Id, out deliveryTag))
+                        consumer.Model.BasicAck(deliveryTag, false);
+                    return true;
+                });
+            }
+            finally
+            {
+                deliveryTags.Remove(message.Id);
+            }
+
         }
 
         protected override void WorkStart() { }
 
         protected override void WorkStop()
         {
-            consumer.Abort();
+            consumer?.Abort();
+            consumer = null;
+            deliveryTags?.Clear();
+            deliveryTags = null;
         }
 
         class QueueingBasicConsumerWithManagedConnection
@@ -95,17 +117,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
 
             /// <summary>
-            /// Reinitializes the consumer if it is not running or forced.
+            /// Ensures that we have a running consumer
             /// </summary>
-            /// <param name="force"></param>
-            /// <returns>Returns TRUE only if the consumer was reinitialized./></returns>
-            bool EnsureHealthyConsumerForSubscriber(bool force = false)
+            void EnsureHealthyConsumerForSubscriber()
             {
                 RecoverConnection();
                 RecoverModel();
                 RecoverConsumer();
-
-                return false;
             }
 
             /// <summary>
@@ -136,13 +154,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
                     var routingHeaders = new Dictionary<string, object>();
                     routingHeaders.Add("x-match", "any");
-                    foreach (var msgType in subscriber.MessageTypes.Distinct().Select(x => x.GetContractId()).ToList())
+                    foreach (var msgType in subscriber.GetInvolvedMessageTypes().Distinct().Select(x => x.GetContractId()).ToList())
                     {
                         routingHeaders.Add(msgType, null);
                     }
                     model.QueueDeclare(subscriber.Id, true, false, false, routingHeaders);
 
-                    var exchanges = subscriber.MessageTypes.GroupBy(x => RabbitMqNamer.GetExchangeName(x)).Distinct();
+                    var exchanges = subscriber.GetInvolvedMessageTypes().GroupBy(x => RabbitMqNamer.GetExchangeName(x)).Distinct();
                     foreach (var item in exchanges)
                     {
                         model.ExchangeDeclare(item.Key, PipelineType.Headers.ToString(), true);
