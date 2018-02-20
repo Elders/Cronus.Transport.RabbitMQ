@@ -1,3 +1,6 @@
+#### 4.0.1 - 20.02.2017
+* Targets dotnetstandard20 and .NET 4.5.1
+
 #### 4.0.0 - 12.02.2017
 * dotnetstandard20 support
 

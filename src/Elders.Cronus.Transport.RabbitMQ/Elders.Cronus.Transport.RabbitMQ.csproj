@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
+        <TargetFrameworks>netstandard2.0;net451</TargetFrameworks>
     </PropertyGroup>
     <PropertyGroup>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -9,7 +9,7 @@
         <PackageProjectUrl>http://Elders.github.io/Cronus</PackageProjectUrl>
         <PackageTags>CQRS DDD ES Event store sourcing</PackageTags>
         <RepositoryUrl>https://github.com/Elders/Cronus</RepositoryUrl>
-        <PackageIconUrl>https://github.com/Elders/logo/blob/master/cronus/black.png</PackageIconUrl>
+        <PackageIconUrl>https://raw.githubusercontent.com/Elders/logo/master/cronus/frame.png</PackageIconUrl>
         <RepositoryType>Framework</RepositoryType>
         <Authors>Elders</Authors>
     </PropertyGroup>
@@ -17,8 +17,8 @@
         <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;LIBLOG_PORTABLE</DefineConstants>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Cronus" Version="4.0.0" />
-        <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+        <PackageReference Include="Cronus" Version="4.0.4" />
+        <PackageReference Include="Newtonsoft.Json" Version="11.0.1" />
         <PackageReference Include="RabbitMQ.Client" Version="5.0.1" />
     </ItemGroup>
 </Project>
