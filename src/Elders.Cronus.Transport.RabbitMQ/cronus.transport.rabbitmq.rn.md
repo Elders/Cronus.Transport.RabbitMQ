@@ -1,3 +1,6 @@
+#### 4.0.2 - 20.02.2017
+* Downgrades Newtonsoft.Json to 10.0.3 
+
 #### 4.0.1 - 20.02.2017
 * Targets dotnetstandard20 and .NET 4.5.1
 
