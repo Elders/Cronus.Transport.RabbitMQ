@@ -26,7 +26,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             return GetBoundedContext(messageType).ProductNamespace + ".Events";
         }
 
-        private static BoundedContextAttribute GetBoundedContext(Type messageType)
+        public static BoundedContextAttribute GetBoundedContext(Type messageType)
         {
             var boundedContext = messageType.GetBoundedContext();
 

@@ -53,9 +53,10 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public IEnumerable<IConsumerFactory> GetAvailableConsumers(ISerializer serializer, SubscriptionMiddleware subscriptions, string consumerName)
         {
-            foreach (var item in subscriptions.Subscribers)
+            var name = RabbitMqNamer.GetBoundedContext(subscriptions.Subscribers.FirstOrDefault().GetInvolvedMessageTypes().FirstOrDefault()) + "." + consumerName;
+            //foreach (var item in subscriptions.Subscribers)
             {
-                yield return new RabbitMqContiniousConsumerFactory(item, serializer, connectionFactory, subscriptions);
+                yield return new RabbitMqContiniousConsumerFactory(name, serializer, connectionFactory, subscriptions);
             }
         }
     }

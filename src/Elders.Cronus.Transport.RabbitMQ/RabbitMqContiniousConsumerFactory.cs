@@ -7,14 +7,14 @@ namespace Elders.Cronus.Transport.RabbitMQ
 {
     public class RabbitMqContiniousConsumerFactory : IConsumerFactory
     {
-        private readonly ISubscriber subscriber;
+        private readonly string consumerName;
         private readonly ISerializer serializer;
         private readonly IConnectionFactory connectionFactory;
         private readonly SubscriptionMiddleware middleware;
 
-        public RabbitMqContiniousConsumerFactory(ISubscriber subscriber, ISerializer serializer, IConnectionFactory connectionFactory, SubscriptionMiddleware middleware)
+        public RabbitMqContiniousConsumerFactory(string consumerName, ISerializer serializer, IConnectionFactory connectionFactory, SubscriptionMiddleware middleware)
         {
-            this.subscriber = subscriber;
+            this.consumerName = consumerName;
             this.serializer = serializer;
             this.connectionFactory = connectionFactory;
             this.middleware = middleware;
@@ -22,7 +22,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public ContinuousConsumer CreateConsumer()
         {
-            return new RabbitMqContinuousConsumer(subscriber, serializer, connectionFactory, middleware);
+            return new RabbitMqContinuousConsumer(consumerName, serializer, connectionFactory, middleware);
         }
     }
 }

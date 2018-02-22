@@ -17,8 +17,8 @@
         <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;LIBLOG_PORTABLE</DefineConstants>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Cronus" Version="4.0.4" />
         <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+        <PackageReference Include="Cronus" Version="4.0.6" />
         <PackageReference Include="RabbitMQ.Client" Version="5.0.1" />
     </ItemGroup>
 </Project>

@@ -1,3 +1,6 @@
+#### 4.0.3 - 22.02.2017
+* Fixes how we consume messages
+
 #### 4.0.2 - 20.02.2017
 * Downgrades Newtonsoft.Json to 10.0.3 
 
