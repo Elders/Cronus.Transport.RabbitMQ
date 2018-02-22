@@ -19,4 +19,5 @@ build_script:
   - git config --global user.email "mynkow@gmail.com"
   - git config --global user.name "mynkow"
   - build.cmd %nuget_key%
+  - build-myget.cmd %myget_key%
 
