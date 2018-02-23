@@ -1,3 +1,6 @@
+#### 4.0.4 - 23.02.2017
+* Fixes how we construct exschange and queue names
+
 #### 4.0.3 - 22.02.2017
 * Fixes how we consume messages
 
