@@ -1,3 +1,6 @@
+#### 4.0.5 - 26.02.2017
+* Updates Cronus
+
 #### 4.0.4 - 23.02.2017
 * Fixes how we construct exschange and queue names
 
