@@ -1,3 +1,6 @@
+#### 4.0.6 - 28.02.2017
+* Updates Cronus
+
 #### 4.0.5 - 26.02.2017
 * Updates Cronus
 
