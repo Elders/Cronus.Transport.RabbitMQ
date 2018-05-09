@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Elders.Cronus.MessageProcessing;
@@ -11,9 +12,9 @@ using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class RabbitMqTransport : ITransport
+    public class RabbitMqTransport : ITransport, IDisposable
     {
-        private readonly IConnectionFactory connectionFactory;
+        private IConnectionFactory connectionFactory;
 
         static ConcurrentDictionary<string, ConnectionFactory> connectionFactories = new ConcurrentDictionary<string, ConnectionFactory>();
 
@@ -59,6 +60,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 yield return new RabbitMqContiniousConsumerFactory(name, serializer, connectionFactory, subscriptions);
             }
+        }
+
+        public void Dispose()
+        {
+            connectionFactories?.Clear();
+            connectionFactories = null;
+            connectionFactory = null;
         }
     }
 }

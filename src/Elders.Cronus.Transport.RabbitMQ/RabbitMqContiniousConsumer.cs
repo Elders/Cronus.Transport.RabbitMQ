@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Elders.Cronus.MessageProcessing;
 using Elders.Cronus.Pipeline;
@@ -40,6 +39,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     deliveryTags[cronusMessage.Id] = dequeuedMessage.DeliveryTag;
                     return cronusMessage;
                 }
+
                 return null;
             });
         }
@@ -61,7 +61,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 deliveryTags.Remove(message.Id);
             }
-
         }
 
         protected override void WorkStart() { }
@@ -83,6 +82,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             private readonly SubscriptionMiddleware middleware;
             private readonly string consumerName;
             private QueueingBasicConsumer consumer;
+            private bool aborting;
 
             public QueueingBasicConsumerWithManagedConnection(IConnectionFactory connectionFactory, SubscriptionMiddleware middleware, string consumerName)
             {
@@ -109,12 +109,15 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 lock (connectionFactory)
                 {
-                    model?.Abort();
-                    connection?.Abort();
+                    aborting = true;
 
-                    connection = null;
-                    model = null;
                     consumer = null;
+
+                    model?.Abort();
+                    model = null;
+
+                    connection?.Abort();
+                    connection = null;
                 }
             }
 
@@ -134,10 +137,16 @@ namespace Elders.Cronus.Transport.RabbitMQ
             /// </summary>
             void RecoverConnection()
             {
+                if (aborting)
+                    return;
+
                 if (ReferenceEquals(null, connection) || connection.IsOpen == false)
                 {
                     lock (connectionFactory)
                     {
+                        if (aborting)
+                            return;
+
                         if (ReferenceEquals(null, connection) || connection.IsOpen == false)
                         {
                             connection?.Abort();
@@ -150,8 +159,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             void RecoverModel()
             {
+                if (aborting)
+                    return;
+
                 if (model == null || model.IsClosed)
                 {
+                    model?.Abort();
                     model = connection.CreateModel();
 
                     var routingHeaders = new Dictionary<string, object>();
@@ -189,6 +202,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             void RecoverConsumer()
             {
+                if (aborting)
+                    return;
+
                 if (consumer == null || consumer.IsRunning == false)
                 {
                     if ((DateTime.UtcNow - timestampSinceConsumerIsNotWorking).TotalSeconds > 5)

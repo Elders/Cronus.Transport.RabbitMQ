@@ -1,3 +1,6 @@
+#### 5.0.0-beta0001 - 09.05.2018
+* Properly closing RabbitMQ connections
+
 #### 4.0.6 - 28.02.2017
 * Updates Cronus
 

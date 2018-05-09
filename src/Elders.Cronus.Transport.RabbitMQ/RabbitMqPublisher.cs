@@ -5,8 +5,10 @@ using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class RabbitMqPublisher<TMessage> : Publisher<TMessage> where TMessage : IMessage
+    public class RabbitMqPublisher<TMessage> : Publisher<TMessage>, IDisposable where TMessage : IMessage
     {
+        bool stoped = false;
+
         private readonly ISerializer serializer;
 
         private static IConnection connection;
@@ -25,6 +27,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             try
             {
+                if (stoped)
+                    return false;
+
                 if (ReferenceEquals(null, connection) || connection.IsOpen == false)
                 {
                     lock (connectionFactory)
@@ -65,14 +70,25 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
             catch (Exception ex)
             {
-                publishModel?.Abort();
-                connection?.Abort();
-
-                connection = null;
-                publishModel = null;
+                Close();
 
                 return false;
             }
+        }
+
+        private void Close()
+        {
+            stoped = true;
+            publishModel?.Abort();
+            connection?.Abort();
+
+            connection = null;
+            publishModel = null;
+        }
+
+        public void Dispose()
+        {
+            Close();
         }
     }
 }
