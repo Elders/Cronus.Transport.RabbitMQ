@@ -18,7 +18,7 @@
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-        <PackageReference Include="Cronus" Version="5.0.0-beta0013" />
+        <PackageReference Include="Cronus" Version="5.0.0-beta0026" />
         <PackageReference Include="RabbitMQ.Client" Version="5.0.1" />
     </ItemGroup>
 </Project>

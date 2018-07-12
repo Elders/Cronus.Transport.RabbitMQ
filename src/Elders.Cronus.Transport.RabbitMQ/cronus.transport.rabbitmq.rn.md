@@ -1,3 +1,6 @@
+#### 5.0.0-beta0002 - 12.07.2018
+* Updates Cronus to 5.0.0-beta0026
+
 #### 5.0.0-beta0001 - 09.05.2018
 * Properly closing RabbitMQ connections
 
