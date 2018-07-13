@@ -195,7 +195,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                         }
                         model.QueueBind(consumerName, item.Key, string.Empty, bindHeaders);
                         model.QueueBind(consumerName, item.Key + ".Scheduler", string.Empty, bindHeaders);
-                        model.BasicQos(0, 1500, false);
+                        model.BasicQos(0, 1, false);
                     }
                 }
             }
