@@ -1,3 +1,6 @@
+#### 5.0.0-beta0003 - 13.07.2018
+* Prefetch only one message at a time
+
 #### 5.0.0-beta0002 - 12.07.2018
 * Updates Cronus to 5.0.0-beta0026
 
