@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Elders.Cronus.Serializer;
 using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ

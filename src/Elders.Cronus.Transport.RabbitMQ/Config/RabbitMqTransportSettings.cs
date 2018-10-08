@@ -1,7 +1,6 @@
 using System;
 using Elders.Cronus.IocContainer;
 using Elders.Cronus.Pipeline.Config;
-using Elders.Cronus.Serializer;
 using Elders.Cronus.Transport.RabbitMQ;
 using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
