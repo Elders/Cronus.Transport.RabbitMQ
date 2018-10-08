@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Elders.Cronus.MessageProcessing;
 using Elders.Cronus.Pipeline;
-using Elders.Cronus.Serializer;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -99,7 +98,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     TResult result = consumerAction(consumer, middleware);
                     return result;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     return default(TResult);
                 }
@@ -151,7 +150,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
                         {
                             connection?.Abort();
                             connection = connectionFactory.CreateConnection();
-                            connection.AutoClose = false;
                         }
                     }
                 }

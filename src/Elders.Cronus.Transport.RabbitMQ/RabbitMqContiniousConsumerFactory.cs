@@ -1,6 +1,5 @@
 ﻿using Elders.Cronus.MessageProcessing;
 using Elders.Cronus.Pipeline;
-using Elders.Cronus.Serializer;
 using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
