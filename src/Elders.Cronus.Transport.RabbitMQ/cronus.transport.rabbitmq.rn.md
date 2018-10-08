@@ -1,3 +1,6 @@
+#### 5.0.0-discovery0002 - 08.10.2018
+* Updates Cronus
+
 #### 5.0.0-discovery0001 - 08.10.2018
 * Adds RabbitMqTransportDiscovery
 
