@@ -1,3 +1,9 @@
+#### 5.0.0-discovery0001 - 08.10.2018
+* Adds RabbitMqTransportDiscovery
+
+#### 5.0.0-beta0003 - 13.07.2018
+* Prefetch only one message at a time
+
 #### 5.0.0-beta0003 - 13.07.2018
 * Prefetch only one message at a time
 
