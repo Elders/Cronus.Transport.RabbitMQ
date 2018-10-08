@@ -31,7 +31,6 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management
                 string username,
                 string password,
                 int portNumber = 15672,
-                bool runningOnMono = false,
                 TimeSpan? timeout = null,
                 Action<HttpWebRequest> configureRequest = null,
                 bool ssl = false)
@@ -79,13 +78,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management
             this.password = password;
             this.portNumber = portNumber;
             this.timeout = timeout ?? defaultTimeout;
-            this.runningOnMono = runningOnMono;
             this.configureRequest = configureRequest;
-
-            if (!runningOnMono)
-            {
-                LeaveDotsAndSlashesEscaped(ssl);
-            }
 
             Settings = new JsonSerializerSettings
             {
@@ -218,27 +211,6 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management
             {
                 writer.Write(body);
             }
-        }
-
-        private void LeaveDotsAndSlashesEscaped(bool useSsl)
-        {
-            var getSyntaxMethod =
-                typeof(UriParser).GetMethod("GetSyntax", BindingFlags.Static | BindingFlags.NonPublic);
-            if (getSyntaxMethod == null)
-            {
-                throw new MissingMethodException("UriParser", "GetSyntax");
-            }
-
-            var uriParser = getSyntaxMethod.Invoke(null, new object[] { useSsl ? "https" : "http" });
-
-            var setUpdatableFlagsMethod =
-                uriParser.GetType().GetMethod("SetUpdatableFlags", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (setUpdatableFlagsMethod == null)
-            {
-                throw new MissingMethodException("UriParser", "SetUpdatableFlags");
-            }
-
-            setUpdatableFlagsMethod.Invoke(uriParser, new object[] { 0 });
         }
 
         private string SanitiseVhostName(string vhostName)

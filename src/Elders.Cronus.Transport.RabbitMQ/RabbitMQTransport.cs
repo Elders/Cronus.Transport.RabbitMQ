@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using Elders.Cronus.Discoveries;
 using Elders.Cronus.MessageProcessing;
 using Elders.Cronus.Pipeline;
 using Elders.Cronus.Pipeline.Transport.RabbitMQ.Config;
