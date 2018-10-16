@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using Elders.Cronus.MessageProcessing;
-using Elders.Cronus.Pipeline;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class RabbitMqContinuousConsumer : ContinuousConsumer
+    public class RabbitMqContinuousConsumer<T> : ContinuousConsumer<T>
     {
         private readonly ISerializer serializer;
 
@@ -16,7 +15,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private QueueingBasicConsumerWithManagedConnection consumer;
 
-        public RabbitMqContinuousConsumer(string consumerName, ISerializer serializer, IConnectionFactory connectionFactory, SubscriptionMiddleware middleware) : base(middleware)
+        public RabbitMqContinuousConsumer(string consumerName, ISerializer serializer, IConnectionFactory connectionFactory, ISubscriptionMiddleware<T> middleware) : base(middleware)
         {
             this.deliveryTags = new Dictionary<Guid, ulong>();
             this.serializer = serializer;
@@ -78,19 +77,19 @@ namespace Elders.Cronus.Transport.RabbitMQ
             private IModel model;
             private static IConnection connection;
             private readonly IConnectionFactory connectionFactory;
-            private readonly SubscriptionMiddleware middleware;
+            private readonly ISubscriptionMiddleware<T> middleware;
             private readonly string consumerName;
             private QueueingBasicConsumer consumer;
             private bool aborting;
 
-            public QueueingBasicConsumerWithManagedConnection(IConnectionFactory connectionFactory, SubscriptionMiddleware middleware, string consumerName)
+            public QueueingBasicConsumerWithManagedConnection(IConnectionFactory connectionFactory, ISubscriptionMiddleware<T> middleware, string consumerName)
             {
                 this.connectionFactory = connectionFactory;
                 this.middleware = middleware;
                 this.consumerName = consumerName;
             }
 
-            public TResult Do<TResult>(Func<QueueingBasicConsumer, SubscriptionMiddleware, TResult> consumerAction)
+            public TResult Do<TResult>(Func<QueueingBasicConsumer, ISubscriptionMiddleware<T>, TResult> consumerAction)
             {
                 try
                 {

@@ -1,23 +1,39 @@
 ﻿using System.Collections.Generic;
 using Elders.Cronus.Discoveries;
+using Elders.Cronus.Pipeline;
 using Elders.Cronus.Pipeline.Transport.RabbitMQ.Config;
+using Microsoft.Extensions.DependencyInjection;
+using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class RabbitMqTransportDiscovery : DiscoveryBasedOnExecutingDirAssemblies<ITransport>
+    public class RabbitMqTransportDiscovery : DiscoveryBasedOnExecutingDirAssemblies<IPublisher<IMessage>>
     {
-        IEnumerable<DiscoveredModel> GetAllModels()
+        protected override DiscoveryResult<IPublisher<IMessage>> DiscoverFromAssemblies(DiscoveryContext context)
         {
-            yield return new DiscoveredModel(typeof(IRabbitMqTransportSettings), typeof(RabbitMqSettings));
-            yield return new DiscoveredModel(typeof(ITransport), typeof(RabbitMqTransport));
+            return new DiscoveryResult<IPublisher<IMessage>>(GetModels());
         }
 
-        protected override DiscoveryResult<ITransport> DiscoverFromAssemblies(DiscoveryContext context)
+        IEnumerable<DiscoveredModel> GetModels()
         {
-            var result = new DiscoveryResult<ITransport>();
-            result.Models.AddRange(GetAllModels());
+            yield return new DiscoveredModel(typeof(IRabbitMqSettings), typeof(RabbitMqSettings), ServiceLifetime.Transient);
+            yield return new DiscoveredModel(typeof(IConnectionFactory), typeof(RabbitMqConnectionFactory), ServiceLifetime.Singleton);
+            yield return new DiscoveredModel(typeof(IPublisher<>), typeof(RabbitMqPublisher<>));
+        }
+    }
 
-            return result;
+    public class RabbitMqConsumerDiscovery : DiscoveryBasedOnExecutingDirAssemblies<IConsumer<object>>
+    {
+        protected override DiscoveryResult<IConsumer<object>> DiscoverFromAssemblies(DiscoveryContext context)
+        {
+            return new DiscoveryResult<IConsumer<object>>(GetModels());
+        }
+
+        IEnumerable<DiscoveredModel> GetModels()
+        {
+            yield return new DiscoveredModel(typeof(IRabbitMqSettings), typeof(RabbitMqSettings), ServiceLifetime.Transient);
+            yield return new DiscoveredModel(typeof(IConnectionFactory), typeof(RabbitMqConnectionFactory), ServiceLifetime.Singleton);
+            yield return new DiscoveredModel(typeof(IConsumer<object>), typeof(RabbitMqConsumer<>), ServiceLifetime.Transient);
         }
     }
 }
