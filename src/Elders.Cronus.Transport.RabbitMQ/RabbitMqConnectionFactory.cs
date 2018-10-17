@@ -8,7 +8,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 {
     public class RabbitMqConnectionFactory : ConnectionFactory
     {
-        public RabbitMqConnectionFactory(IRabbitMqSettings settings)
+        public RabbitMqConnectionFactory(RabbitMqSettings settings)
         {
             HostName = settings.Server;
             Port = settings.Port;
@@ -20,7 +20,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             CreateVirtualHostDefinedInSettings(settings);
         }
 
-        void CreateVirtualHostDefinedInSettings(IRabbitMqSettings settings)
+        void CreateVirtualHostDefinedInSettings(RabbitMqSettings settings)
         {
             RabbitMqManagementClient managmentClient = new RabbitMqManagementClient(settings);
             if (!managmentClient.GetVHosts().Any(vh => vh.Name == settings.VirtualHost))

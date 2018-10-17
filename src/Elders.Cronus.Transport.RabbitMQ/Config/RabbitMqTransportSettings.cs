@@ -2,17 +2,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
 {
-    public interface IRabbitMqSettings
-    {
-        string Server { get; set; }
-        int Port { get; set; }
-        int AdminPort { get; set; }
-        string Username { get; set; }
-        string Password { get; set; }
-        string VirtualHost { get; set; }
-    }
-
-    public class RabbitMqSettings : IRabbitMqSettings
+    public class RabbitMqSettings
     {
         public RabbitMqSettings(IConfiguration configuration)
         {
