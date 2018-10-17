@@ -39,7 +39,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         protected virtual void ConsumerStart() { }
         protected virtual void ConsumerStarted() { }
 
-        public IEnumerable<RabbitMqContinuousConsumer<T>> GetAvailableConsumers()
+        public IEnumerable<Func<RabbitMqContinuousConsumer<T>>> GetAvailableConsumers()
         {
             Dictionary<string, ISubscriptionMiddleware<T>> subscriptionsPerBC = new Dictionary<string, ISubscriptionMiddleware<T>>();
 
@@ -61,7 +61,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             foreach (var item in subscriptionsPerBC)
             {
-                yield return new RabbitMqContinuousConsumer<T>(item.Key, serializer, connectionFactory, item.Value);
+                yield return () => new RabbitMqContinuousConsumer<T>(item.Key, serializer, connectionFactory, item.Value);
             }
         }
 
@@ -70,13 +70,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
             ConsumerStart();
             pools.Clear();
 
-            foreach (var consumer in GetAvailableConsumers())
+            foreach (var consumerfactory in GetAvailableConsumers())
             {
-                var poolName = $"cronus: {consumer.Name}";
+                var poolName = $"cronus: {typeof(T).Name}";
                 WorkPool pool = new WorkPool(poolName, numberOfWorkers);
                 for (int i = 0; i < numberOfWorkers; i++)
                 {
-                    pool.AddWork(consumer);
+                    pool.AddWork(consumerfactory());
                 }
                 pools.Add(pool);
                 pool.StartCrawlers();

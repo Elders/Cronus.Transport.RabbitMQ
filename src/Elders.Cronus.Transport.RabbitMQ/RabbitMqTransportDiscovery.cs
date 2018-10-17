@@ -16,9 +16,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         IEnumerable<DiscoveredModel> GetModels()
         {
-            yield return new DiscoveredModel(typeof(IRabbitMqSettings), typeof(RabbitMqSettings), ServiceLifetime.Transient);
+            yield return new DiscoveredModel(typeof(RabbitMqSettings), typeof(RabbitMqSettings), ServiceLifetime.Singleton);
             yield return new DiscoveredModel(typeof(IConnectionFactory), typeof(RabbitMqConnectionFactory), ServiceLifetime.Singleton);
-            yield return new DiscoveredModel(typeof(IPublisher<>), typeof(RabbitMqPublisher<>));
+            yield return new DiscoveredModel(typeof(IPublisher<>), typeof(RabbitMqPublisher<>), ServiceLifetime.Singleton);
         }
     }
 
@@ -31,9 +31,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         IEnumerable<DiscoveredModel> GetModels()
         {
-            yield return new DiscoveredModel(typeof(IRabbitMqSettings), typeof(RabbitMqSettings), ServiceLifetime.Transient);
+            yield return new DiscoveredModel(typeof(RabbitMqSettings), typeof(RabbitMqSettings), ServiceLifetime.Singleton);
             yield return new DiscoveredModel(typeof(IConnectionFactory), typeof(RabbitMqConnectionFactory), ServiceLifetime.Singleton);
-            yield return new DiscoveredModel(typeof(IConsumer<object>), typeof(RabbitMqConsumer<>), ServiceLifetime.Transient);
+            yield return new DiscoveredModel(typeof(IConsumer<>), typeof(RabbitMqConsumer<>), ServiceLifetime.Singleton);
         }
     }
 }
