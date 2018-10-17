@@ -1,4 +1,7 @@
-#### 5.0.0-discovery0002 - 08.10.2018
+#### 5.0.0-discovery0003 - 17.10.2018
+* Updates Cronus
+
+#### 5.0.0-discovery0002 - 16.10.2018
 * Updates Cronus
 
 #### 5.0.0-discovery0001 - 08.10.2018
