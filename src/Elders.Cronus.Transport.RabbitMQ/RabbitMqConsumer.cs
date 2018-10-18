@@ -25,7 +25,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
         public RabbitMqConsumer(IConfiguration configuration, ISubscriptionMiddleware<T> subscriptions, ISerializer serializer, IConnectionFactory connectionFactory)
         {
             if (ReferenceEquals(null, subscriptions)) throw new ArgumentNullException(nameof(subscriptions));
-            if (subscriptions.Subscribers.Any() == false) throw new ArgumentException("A consumer must have at least one subscriber to work properly.", nameof(subscriptions));
             if (ReferenceEquals(null, serializer)) throw new ArgumentNullException(nameof(serializer));
 
             name = typeof(T).Name;
