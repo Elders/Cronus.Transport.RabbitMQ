@@ -27,7 +27,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             if (ReferenceEquals(null, consumer))
                 return null;
 
-            return consumer.Do((consumer, subscriber) =>
+            return consumer.Do((consumer) =>
             {
                 BasicDeliverEventArgs dequeuedMessage = null;
                 consumer.Queue.Dequeue((int)30, out dequeuedMessage);
@@ -47,7 +47,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             if (ReferenceEquals(null, consumer)) return;
             try
             {
-                consumer.Do((consumer, subscriber) =>
+                consumer.Do((consumer) =>
                 {
                     ulong deliveryTag;
                     if (deliveryTags.TryGetValue(message.Id, out deliveryTag))
@@ -89,12 +89,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 this.consumerName = consumerName;
             }
 
-            public TResult Do<TResult>(Func<QueueingBasicConsumer, ISubscriptionMiddleware<T>, TResult> consumerAction)
+            public TResult Do<TResult>(Func<QueueingBasicConsumer, TResult> consumerAction)
             {
                 try
                 {
                     EnsureHealthyConsumerForSubscriber();
-                    TResult result = consumerAction(consumer, middleware);
+                    TResult result = consumerAction(consumer);
                     return result;
                 }
                 catch (Exception)
