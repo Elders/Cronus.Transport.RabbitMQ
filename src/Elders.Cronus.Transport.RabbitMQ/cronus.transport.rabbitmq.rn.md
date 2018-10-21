@@ -1,3 +1,6 @@
+#### 5.0.0-discovery0005 - 21.10.2018
+* Updates Cronus
+
 #### 5.0.0-discovery0004 - 18.10.2018
 * Code cleanup
 
