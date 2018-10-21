@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Elders.Cronus.Multitenancy;
 using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
@@ -16,7 +17,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private IModel publishModel;
 
-        public RabbitMqPublisher(ISerializer serializer, IConnectionFactory connectionFactory)
+        public RabbitMqPublisher(ISerializer serializer, IConnectionFactory connectionFactory, ITenantResolver tenantResolver)
+            : base(tenantResolver)
         {
             this.serializer = serializer;
             this.connectionFactory = connectionFactory;

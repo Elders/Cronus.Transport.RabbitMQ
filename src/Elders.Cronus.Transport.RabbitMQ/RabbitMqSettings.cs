@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Configuration;
 
-namespace Elders.Cronus.Pipeline.Transport.RabbitMQ.Config
+namespace Elders.Cronus.Transport.RabbitMQ
 {
     public class RabbitMqSettings
     {

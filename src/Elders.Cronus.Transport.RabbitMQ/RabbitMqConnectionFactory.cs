@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using Elders.Cronus.Pipeline.Transport.RabbitMQ.Config;
 using Elders.Cronus.Transport.RabbitMQ.Management;
 using Elders.Cronus.Transport.RabbitMQ.Management.Model;
 using RabbitMQ.Client;
