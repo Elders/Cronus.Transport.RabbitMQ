@@ -5,7 +5,6 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using Elders.Cronus.Pipeline.Transport.RabbitMQ.Config;
 using Elders.Cronus.Transport.RabbitMQ.Management.Model;
 using Newtonsoft.Json;
 

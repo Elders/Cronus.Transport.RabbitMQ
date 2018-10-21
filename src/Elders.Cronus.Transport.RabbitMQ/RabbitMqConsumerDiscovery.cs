@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
 using Elders.Cronus.Discoveries;
-using Elders.Cronus.Pipeline;
-using Elders.Cronus.Pipeline.Transport.RabbitMQ.Config;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 
