@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Elders.Cronus.Multitenancy;
+using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
@@ -10,16 +11,17 @@ namespace Elders.Cronus.Transport.RabbitMQ
         bool stoped = false;
 
         private readonly ISerializer serializer;
-
         private static IConnection connection;
-
         private readonly IConnectionFactory connectionFactory;
-
         private IModel publishModel;
 
-        public RabbitMqPublisher(ISerializer serializer, IConnectionFactory connectionFactory, ITenantResolver tenantResolver)
+        private readonly string boundedContext;
+
+
+        public RabbitMqPublisher(IConfiguration configuration, ISerializer serializer, IConnectionFactory connectionFactory, ITenantResolver tenantResolver)
             : base(tenantResolver)
         {
+            this.boundedContext = configuration["cronus_boundedcontext"];
             this.serializer = serializer;
             this.connectionFactory = connectionFactory;
         }
@@ -58,12 +60,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 var publishDelayInMiliseconds = message.GetPublishDelay();
                 if (publishDelayInMiliseconds < 1000)
                 {
-                    var exchangeName = RabbitMqNamer.GetExchangeName(message.Payload.GetType());
+                    var exchangeName = RabbitMqNamer.GetExchangeName(boundedContext, message.Payload.GetType());
                     publishModel.BasicPublish(exchangeName, string.Empty, false, props, body);
                 }
                 else
                 {
-                    var exchangeName = RabbitMqNamer.GetExchangeName(message.Payload.GetType()) + ".Scheduler";
+                    var exchangeName = RabbitMqNamer.GetExchangeName(boundedContext, message.Payload.GetType()) + ".Scheduler";
                     props.Headers.Add("x-delay", message.GetPublishDelay());
                     publishModel.BasicPublish(exchangeName, string.Empty, false, props, body);
                 }
