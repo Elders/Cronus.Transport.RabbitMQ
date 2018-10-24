@@ -15,11 +15,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private QueueingBasicConsumerWithManagedConnection consumer;
 
-        public RabbitMqContinuousConsumer(string consumerName, ISerializer serializer, IConnectionFactory connectionFactory, ISubscriptionMiddleware<T> middleware) : base(middleware)
+        public RabbitMqContinuousConsumer(string boundedContext, ISerializer serializer, IConnectionFactory connectionFactory, SubscriberCollection<T> subscriberCollection)
+            : base(subscriberCollection)
         {
             this.deliveryTags = new Dictionary<Guid, ulong>();
             this.serializer = serializer;
-            this.consumer = new QueueingBasicConsumerWithManagedConnection(connectionFactory, middleware, consumerName);
+            this.consumer = new QueueingBasicConsumerWithManagedConnection(connectionFactory, subscriberCollection, boundedContext);
         }
 
         protected override CronusMessage GetMessage()
@@ -77,16 +78,18 @@ namespace Elders.Cronus.Transport.RabbitMQ
             private IModel model;
             private static IConnection connection;
             private readonly IConnectionFactory connectionFactory;
-            private readonly ISubscriptionMiddleware<T> middleware;
-            private readonly string consumerName;
+            private readonly SubscriberCollection<T> subscriberCollection;
+            private readonly string boundedContext;
             private QueueingBasicConsumer consumer;
             private bool aborting;
+            private readonly string queueName;
 
-            public QueueingBasicConsumerWithManagedConnection(IConnectionFactory connectionFactory, ISubscriptionMiddleware<T> middleware, string consumerName)
+            public QueueingBasicConsumerWithManagedConnection(IConnectionFactory connectionFactory, SubscriberCollection<T> subscriberCollection, string boundedContext)
             {
                 this.connectionFactory = connectionFactory;
-                this.middleware = middleware;
-                this.consumerName = consumerName;
+                this.subscriberCollection = subscriberCollection;
+                this.boundedContext = boundedContext;
+                queueName = $"{boundedContext}.{typeof(T).Name}";
             }
 
             public TResult Do<TResult>(Func<QueueingBasicConsumer, TResult> consumerAction)
@@ -97,7 +100,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     TResult result = consumerAction(consumer);
                     return result;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     return default(TResult);
                 }
@@ -166,16 +169,16 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
                     var routingHeaders = new Dictionary<string, object>();
                     routingHeaders.Add("x-match", "any");
-                    var messageTypes = middleware.Subscribers.SelectMany(x => x.GetInvolvedMessageTypes()).Distinct().ToList();
+                    var messageTypes = subscriberCollection.Subscribers.SelectMany(x => x.GetInvolvedMessageTypes()).Distinct().ToList();
 
-                    foreach (var msgType in messageTypes.Select(x => x.GetContractId()).ToList())
+                    foreach (var msgType in messageTypes.Select(x => x.GetContractId()))
                     {
                         routingHeaders.Add(msgType, null);
                     }
 
-                    model.QueueDeclare(consumerName, true, false, false, routingHeaders);
+                    model.QueueDeclare(queueName, true, false, false, routingHeaders);
 
-                    var exchanges = messageTypes.GroupBy(x => RabbitMqNamer.GetExchangeName(x)).Distinct();
+                    var exchanges = messageTypes.GroupBy(x => RabbitMqNamer.GetExchangeName(boundedContext, x)).Distinct();
                     foreach (var item in exchanges)
                     {
                         model.ExchangeDeclare(item.Key, PipelineType.Headers.ToString(), true);
@@ -186,12 +189,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
                         var bindHeaders = new Dictionary<string, object>();
                         bindHeaders.Add("x-match", "any");
 
-                        foreach (var msgType in item.Distinct().Select(x => x.GetContractId()).ToList())
+                        foreach (var msgType in item.Select(x => x.GetContractId()))
                         {
                             bindHeaders.Add(msgType, null);
                         }
-                        model.QueueBind(consumerName, item.Key, string.Empty, bindHeaders);
-                        model.QueueBind(consumerName, item.Key + ".Scheduler", string.Empty, bindHeaders);
+                        model.QueueBind(queueName, item.Key, string.Empty, bindHeaders);
+                        model.QueueBind(queueName, item.Key + ".Scheduler", string.Empty, bindHeaders);
                         model.BasicQos(0, 1, false);
                     }
                 }
@@ -208,7 +211,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     {
                         timestampSinceConsumerIsNotWorking = DateTime.UtcNow;
                         consumer = new QueueingBasicConsumer(model);
-                        string consumerTag = model.BasicConsume(consumerName, false, consumer);
+                        string consumerTag = model.BasicConsume(queueName, false, consumer);
                     }
                 }
             }

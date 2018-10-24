@@ -9,13 +9,15 @@ namespace Elders.Cronus.Transport.RabbitMQ
     {
         static readonly ILog log = LogProvider.GetLogger(typeof(ContinuousConsumer<>));
 
-        ISubscriptionMiddleware<T> subscriptions;
+        SubscriberCollection<T> subscriberCollection;
 
         bool stopping;
 
-        public ContinuousConsumer(ISubscriptionMiddleware<T> subscriptions)
+        public ContinuousConsumer(SubscriberCollection<T> subscriberCollection)
         {
-            this.subscriptions = subscriptions;
+            if (subscriberCollection is null) throw new ArgumentNullException(nameof(subscriberCollection));
+
+            this.subscriberCollection = subscriberCollection;
         }
 
         public string Name { get; set; }
@@ -40,7 +42,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     if (ReferenceEquals(null, message)) break;
                     try
                     {
-                        var subscribers = subscriptions.GetInterestedSubscribers(message);
+                        var subscribers = subscriberCollection.GetInterestedSubscribers(message);
                         foreach (var subscriber in subscribers)
                         {
                             subscriber.Process(message);
