@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Elders.Cronus.Multitenancy;
+using Elders.Cronus.Transport.RabbitMQ.Logging;
 using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
 
@@ -8,6 +9,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
 {
     public class RabbitMqPublisher<TMessage> : Publisher<TMessage>, IDisposable where TMessage : IMessage
     {
+        static readonly ILog log = LogProvider.GetLogger(typeof(RabbitMqPublisher<>));
+
         bool stoped = false;
 
         private readonly ISerializer serializer;
@@ -73,6 +76,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
             catch (Exception ex)
             {
+                log.WarnException(ex.Message, ex);
+
                 Close();
 
                 return false;
