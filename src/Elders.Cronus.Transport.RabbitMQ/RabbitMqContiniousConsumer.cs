@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Elders.Cronus.MessageProcessing;
+using Elders.Cronus.Transport.RabbitMQ.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -15,7 +16,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private QueueingBasicConsumerWithManagedConnection consumer;
 
-        public RabbitMqContinuousConsumer(string boundedContext, ISerializer serializer, IConnectionFactory connectionFactory, SubscriberCollection<T> subscriberCollection)
+        public RabbitMqContinuousConsumer(BoundedContext boundedContext, ISerializer serializer, IConnectionFactory connectionFactory, SubscriberCollection<T> subscriberCollection)
             : base(subscriberCollection)
         {
             this.deliveryTags = new Dictionary<Guid, ulong>();
@@ -74,17 +75,19 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         class QueueingBasicConsumerWithManagedConnection
         {
+            static readonly ILog log = LogProvider.GetLogger(typeof(QueueingBasicConsumerWithManagedConnection));
+
             private DateTime timestampSinceConsumerIsNotWorking;
             private IModel model;
             private static IConnection connection;
             private readonly IConnectionFactory connectionFactory;
             private readonly SubscriberCollection<T> subscriberCollection;
-            private readonly string boundedContext;
+            private readonly BoundedContext boundedContext;
             private QueueingBasicConsumer consumer;
             private bool aborting;
             private readonly string queueName;
 
-            public QueueingBasicConsumerWithManagedConnection(IConnectionFactory connectionFactory, SubscriberCollection<T> subscriberCollection, string boundedContext)
+            public QueueingBasicConsumerWithManagedConnection(IConnectionFactory connectionFactory, SubscriberCollection<T> subscriberCollection, BoundedContext boundedContext)
             {
                 this.connectionFactory = connectionFactory;
                 this.subscriberCollection = subscriberCollection;
@@ -102,6 +105,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 }
                 catch (Exception ex)
                 {
+                    log.WarnException(ex.Message, ex);
                     return default(TResult);
                 }
             }
@@ -178,7 +182,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
                     model.QueueDeclare(queueName, true, false, false, routingHeaders);
 
-                    var exchanges = messageTypes.GroupBy(x => RabbitMqNamer.GetExchangeName(boundedContext, x)).Distinct();
+                    var exchanges = messageTypes.GroupBy(x => RabbitMqNamer.GetExchangeName(boundedContext.Name, x)).Distinct();
                     foreach (var item in exchanges)
                     {
                         model.ExchangeDeclare(item.Key, PipelineType.Headers.ToString(), true);

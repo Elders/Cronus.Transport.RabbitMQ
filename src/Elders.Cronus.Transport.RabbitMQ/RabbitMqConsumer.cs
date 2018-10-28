@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Elders.Cronus.MessageProcessing;
-using Elders.Cronus.Pipeline;
 using Elders.Cronus.Transport.RabbitMQ.Logging;
 using Elders.Multithreading.Scheduler;
 using Microsoft.Extensions.Configuration;
@@ -14,19 +13,19 @@ namespace Elders.Cronus.Transport.RabbitMQ
     {
         static readonly ILog log = LogProvider.GetLogger(typeof(RabbitMqConsumer<>));
 
-        private readonly string boundedContext;
+        private readonly BoundedContext boundedContext;
         private readonly int numberOfWorkers;
         private readonly SubscriberCollection<T> subscriberCollection;
         private readonly List<WorkPool> pools;
         private readonly ISerializer serializer;
         private readonly IConnectionFactory connectionFactory;
 
-        public RabbitMqConsumer(IConfiguration configuration, SubscriberCollection<T> subscriberCollection, ISerializer serializer, IConnectionFactory connectionFactory)
+        public RabbitMqConsumer(IConfiguration configuration, BoundedContext boundedContext, SubscriberCollection<T> subscriberCollection, ISerializer serializer, IConnectionFactory connectionFactory)
         {
             if (ReferenceEquals(null, subscriberCollection)) throw new ArgumentNullException(nameof(subscriberCollection));
             if (ReferenceEquals(null, serializer)) throw new ArgumentNullException(nameof(serializer));
 
-            boundedContext = configuration["cronus_boundedcontext"];
+            this.boundedContext = boundedContext;
             numberOfWorkers = configuration.GetValue<int>("cronus_transport_rabbimq_consumer_workerscount", 5);
             this.subscriberCollection = subscriberCollection;
             this.serializer = serializer;

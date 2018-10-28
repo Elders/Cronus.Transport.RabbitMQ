@@ -1,3 +1,6 @@
+#### 5.0.0-discovery0007 - 28.10.2018
+* Bump Cronus
+
 #### 5.0.0-discovery0006 - 24.10.2018
 * Removes boundedContext consumers and change how exchanges and queues are named
 
