@@ -1,3 +1,6 @@
+#### 5.0.0-discovery0008 - 02.11.2018
+* Bump Cronus
+
 #### 5.0.0-discovery0007 - 28.10.2018
 * Bump Cronus
 
