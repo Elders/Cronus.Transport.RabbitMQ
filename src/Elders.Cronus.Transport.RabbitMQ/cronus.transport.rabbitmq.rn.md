@@ -1,5 +1,5 @@
-#### 5.0.0-discovery0008 - 02.11.2018
-* Updates Cronus
+#### 5.0.0-discovery0009 - 11.11.2018
+* Improves logging when there are no subscribers for a consumer
 
 #### 5.0.0-discovery0008 - 02.11.2018
 * Bump Cronus
