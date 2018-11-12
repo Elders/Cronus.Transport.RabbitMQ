@@ -40,7 +40,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             if (subscriberCollection.Subscribers.Any() == false)
             {
-                log.Warn($"Consumer {boundedContext} not started because there are no subscribers");
+                log.Warn($"Consumer {boundedContext}.{typeof(T).Name} not started because there are no subscribers");
                 return;
             }
 
