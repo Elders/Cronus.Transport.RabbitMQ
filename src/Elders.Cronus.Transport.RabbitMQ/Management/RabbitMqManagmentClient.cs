@@ -5,7 +5,6 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using Elders.Cronus.Pipeline.Transport.RabbitMQ.Config;
 using Elders.Cronus.Transport.RabbitMQ.Management.Model;
 using Newtonsoft.Json;
 
@@ -24,14 +23,13 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management
         readonly TimeSpan defaultTimeout = TimeSpan.FromSeconds(20);
         readonly TimeSpan timeout;
 
-        public RabbitMqManagementClient(IRabbitMqTransportSettings settings) : this(settings.Server, settings.Username, settings.Password) { }
+        public RabbitMqManagementClient(RabbitMqSettings settings) : this(settings.Server, settings.Username, settings.Password) { }
 
         public RabbitMqManagementClient(
                 string hostUrl,
                 string username,
                 string password,
                 int portNumber = 15672,
-                bool runningOnMono = false,
                 TimeSpan? timeout = null,
                 Action<HttpWebRequest> configureRequest = null,
                 bool ssl = false)
@@ -79,13 +77,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management
             this.password = password;
             this.portNumber = portNumber;
             this.timeout = timeout ?? defaultTimeout;
-            this.runningOnMono = runningOnMono;
             this.configureRequest = configureRequest;
-
-            if (!runningOnMono)
-            {
-                LeaveDotsAndSlashesEscaped(ssl);
-            }
 
             Settings = new JsonSerializerSettings
             {
@@ -218,27 +210,6 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management
             {
                 writer.Write(body);
             }
-        }
-
-        private void LeaveDotsAndSlashesEscaped(bool useSsl)
-        {
-            var getSyntaxMethod =
-                typeof(UriParser).GetMethod("GetSyntax", BindingFlags.Static | BindingFlags.NonPublic);
-            if (getSyntaxMethod == null)
-            {
-                throw new MissingMethodException("UriParser", "GetSyntax");
-            }
-
-            var uriParser = getSyntaxMethod.Invoke(null, new object[] { useSsl ? "https" : "http" });
-
-            var setUpdatableFlagsMethod =
-                uriParser.GetType().GetMethod("SetUpdatableFlags", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (setUpdatableFlagsMethod == null)
-            {
-                throw new MissingMethodException("UriParser", "SetUpdatableFlags");
-            }
-
-            setUpdatableFlagsMethod.Invoke(uriParser, new object[] { 0 });
         }
 
         private string SanitiseVhostName(string vhostName)

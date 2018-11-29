@@ -1,3 +1,10 @@
+#### 5.0.0 - 29.11.2018
+* Improves logging when there are no subscribers for a consumer
+* Removes boundedContext consumers and change how exchanges and queues are named
+* Adds RabbitMqTransportDiscovery
+* Prefetch only one message at a time
+* Properly closing RabbitMQ connections
+
 #### 4.0.6 - 28.02.2017
 * Updates Cronus
 

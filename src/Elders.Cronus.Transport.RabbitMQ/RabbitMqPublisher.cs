@@ -1,22 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
-using Elders.Cronus.Serializer;
+using Elders.Cronus.Multitenancy;
+using Elders.Cronus.Transport.RabbitMQ.Logging;
+using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class RabbitMqPublisher<TMessage> : Publisher<TMessage> where TMessage : IMessage
+    public class RabbitMqPublisher<TMessage> : Publisher<TMessage>, IDisposable where TMessage : IMessage
     {
+        static readonly ILog log = LogProvider.GetLogger(typeof(RabbitMqPublisher<>));
+
+        bool stoped = false;
+
         private readonly ISerializer serializer;
-
         private static IConnection connection;
-
         private readonly IConnectionFactory connectionFactory;
-
         private IModel publishModel;
 
-        public RabbitMqPublisher(ISerializer serializer, IConnectionFactory connectionFactory)
+        private readonly string boundedContext;
+
+
+        public RabbitMqPublisher(IConfiguration configuration, ISerializer serializer, IConnectionFactory connectionFactory, ITenantResolver tenantResolver)
+            : base(tenantResolver)
         {
+            this.boundedContext = configuration["cronus_boundedcontext"];
             this.serializer = serializer;
             this.connectionFactory = connectionFactory;
         }
@@ -25,6 +33,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             try
             {
+                if (stoped)
+                    return false;
+
                 if (ReferenceEquals(null, connection) || connection.IsOpen == false)
                 {
                     lock (connectionFactory)
@@ -52,12 +63,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 var publishDelayInMiliseconds = message.GetPublishDelay();
                 if (publishDelayInMiliseconds < 1000)
                 {
-                    var exchangeName = RabbitMqNamer.GetExchangeName(message.Payload.GetType());
+                    var exchangeName = RabbitMqNamer.GetExchangeName(boundedContext, message.Payload.GetType());
                     publishModel.BasicPublish(exchangeName, string.Empty, false, props, body);
                 }
                 else
                 {
-                    var exchangeName = RabbitMqNamer.GetExchangeName(message.Payload.GetType()) + ".Scheduler";
+                    var exchangeName = RabbitMqNamer.GetExchangeName(boundedContext, message.Payload.GetType()) + ".Scheduler";
                     props.Headers.Add("x-delay", message.GetPublishDelay());
                     publishModel.BasicPublish(exchangeName, string.Empty, false, props, body);
                 }
@@ -65,14 +76,27 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
             catch (Exception ex)
             {
-                publishModel?.Abort();
-                connection?.Abort();
+                log.WarnException(ex.Message, ex);
 
-                connection = null;
-                publishModel = null;
+                Close();
 
                 return false;
             }
+        }
+
+        private void Close()
+        {
+            stoped = true;
+            publishModel?.Abort();
+            connection?.Abort();
+
+            connection = null;
+            publishModel = null;
+        }
+
+        public void Dispose()
+        {
+            Close();
         }
     }
 }

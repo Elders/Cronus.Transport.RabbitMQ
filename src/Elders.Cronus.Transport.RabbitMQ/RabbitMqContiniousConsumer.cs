@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Elders.Cronus.MessageProcessing;
-using Elders.Cronus.Pipeline;
-using Elders.Cronus.Serializer;
+using Elders.Cronus.Transport.RabbitMQ.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class RabbitMqContinuousConsumer : ContinuousConsumer
+    public class RabbitMqContinuousConsumer<T> : ContinuousConsumer<T>
     {
         private readonly ISerializer serializer;
 
@@ -18,11 +16,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private QueueingBasicConsumerWithManagedConnection consumer;
 
-        public RabbitMqContinuousConsumer(string consumerName, ISerializer serializer, IConnectionFactory connectionFactory, SubscriptionMiddleware middleware) : base(middleware)
+        public RabbitMqContinuousConsumer(BoundedContext boundedContext, ISerializer serializer, IConnectionFactory connectionFactory, SubscriberCollection<T> subscriberCollection)
+            : base(subscriberCollection)
         {
             this.deliveryTags = new Dictionary<Guid, ulong>();
             this.serializer = serializer;
-            this.consumer = new QueueingBasicConsumerWithManagedConnection(connectionFactory, middleware, consumerName);
+            this.consumer = new QueueingBasicConsumerWithManagedConnection(connectionFactory, subscriberCollection, boundedContext);
         }
 
         protected override CronusMessage GetMessage()
@@ -30,7 +29,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             if (ReferenceEquals(null, consumer))
                 return null;
 
-            return consumer.Do((consumer, subscriber) =>
+            return consumer.Do((consumer) =>
             {
                 BasicDeliverEventArgs dequeuedMessage = null;
                 consumer.Queue.Dequeue((int)30, out dequeuedMessage);
@@ -40,6 +39,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     deliveryTags[cronusMessage.Id] = dequeuedMessage.DeliveryTag;
                     return cronusMessage;
                 }
+
                 return null;
             });
         }
@@ -49,7 +49,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             if (ReferenceEquals(null, consumer)) return;
             try
             {
-                consumer.Do((consumer, subscriber) =>
+                consumer.Do((consumer) =>
                 {
                     ulong deliveryTag;
                     if (deliveryTags.TryGetValue(message.Id, out deliveryTag))
@@ -61,7 +61,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 deliveryTags.Remove(message.Id);
             }
-
         }
 
         protected override void WorkStart() { }
@@ -76,31 +75,37 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         class QueueingBasicConsumerWithManagedConnection
         {
+            static readonly ILog log = LogProvider.GetLogger(typeof(QueueingBasicConsumerWithManagedConnection));
+
             private DateTime timestampSinceConsumerIsNotWorking;
             private IModel model;
             private static IConnection connection;
             private readonly IConnectionFactory connectionFactory;
-            private readonly SubscriptionMiddleware middleware;
-            private readonly string consumerName;
+            private readonly SubscriberCollection<T> subscriberCollection;
+            private readonly BoundedContext boundedContext;
             private QueueingBasicConsumer consumer;
+            private bool aborting;
+            private readonly string queueName;
 
-            public QueueingBasicConsumerWithManagedConnection(IConnectionFactory connectionFactory, SubscriptionMiddleware middleware, string consumerName)
+            public QueueingBasicConsumerWithManagedConnection(IConnectionFactory connectionFactory, SubscriberCollection<T> subscriberCollection, BoundedContext boundedContext)
             {
                 this.connectionFactory = connectionFactory;
-                this.middleware = middleware;
-                this.consumerName = consumerName;
+                this.subscriberCollection = subscriberCollection;
+                this.boundedContext = boundedContext;
+                queueName = $"{boundedContext}.{typeof(T).Name}";
             }
 
-            public TResult Do<TResult>(Func<QueueingBasicConsumer, SubscriptionMiddleware, TResult> consumerAction)
+            public TResult Do<TResult>(Func<QueueingBasicConsumer, TResult> consumerAction)
             {
                 try
                 {
                     EnsureHealthyConsumerForSubscriber();
-                    TResult result = consumerAction(consumer, middleware);
+                    TResult result = consumerAction(consumer);
                     return result;
                 }
                 catch (Exception ex)
                 {
+                    log.WarnException(ex.Message, ex);
                     return default(TResult);
                 }
             }
@@ -109,12 +114,15 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 lock (connectionFactory)
                 {
-                    model?.Abort();
-                    connection?.Abort();
+                    aborting = true;
 
-                    connection = null;
-                    model = null;
                     consumer = null;
+
+                    model?.Abort();
+                    model = null;
+
+                    connection?.Abort();
+                    connection = null;
                 }
             }
 
@@ -134,15 +142,20 @@ namespace Elders.Cronus.Transport.RabbitMQ
             /// </summary>
             void RecoverConnection()
             {
+                if (aborting)
+                    return;
+
                 if (ReferenceEquals(null, connection) || connection.IsOpen == false)
                 {
                     lock (connectionFactory)
                     {
+                        if (aborting)
+                            return;
+
                         if (ReferenceEquals(null, connection) || connection.IsOpen == false)
                         {
                             connection?.Abort();
                             connection = connectionFactory.CreateConnection();
-                            connection.AutoClose = false;
                         }
                     }
                 }
@@ -150,22 +163,26 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             void RecoverModel()
             {
+                if (aborting)
+                    return;
+
                 if (model == null || model.IsClosed)
                 {
+                    model?.Abort();
                     model = connection.CreateModel();
 
                     var routingHeaders = new Dictionary<string, object>();
                     routingHeaders.Add("x-match", "any");
-                    var messageTypes = middleware.Subscribers.SelectMany(x => x.GetInvolvedMessageTypes()).Distinct().ToList();
+                    var messageTypes = subscriberCollection.Subscribers.SelectMany(x => x.GetInvolvedMessageTypes()).Distinct().ToList();
 
-                    foreach (var msgType in messageTypes.Select(x => x.GetContractId()).ToList())
+                    foreach (var msgType in messageTypes.Select(x => x.GetContractId()))
                     {
                         routingHeaders.Add(msgType, null);
                     }
 
-                    model.QueueDeclare(consumerName, true, false, false, routingHeaders);
+                    model.QueueDeclare(queueName, true, false, false, routingHeaders);
 
-                    var exchanges = messageTypes.GroupBy(x => RabbitMqNamer.GetExchangeName(x)).Distinct();
+                    var exchanges = messageTypes.GroupBy(x => RabbitMqNamer.GetExchangeName(boundedContext.Name, x)).Distinct();
                     foreach (var item in exchanges)
                     {
                         model.ExchangeDeclare(item.Key, PipelineType.Headers.ToString(), true);
@@ -176,26 +193,29 @@ namespace Elders.Cronus.Transport.RabbitMQ
                         var bindHeaders = new Dictionary<string, object>();
                         bindHeaders.Add("x-match", "any");
 
-                        foreach (var msgType in item.Distinct().Select(x => x.GetContractId()).ToList())
+                        foreach (var msgType in item.Select(x => x.GetContractId()))
                         {
                             bindHeaders.Add(msgType, null);
                         }
-                        model.QueueBind(consumerName, item.Key, string.Empty, bindHeaders);
-                        model.QueueBind(consumerName, item.Key + ".Scheduler", string.Empty, bindHeaders);
-                        model.BasicQos(0, 1500, false);
+                        model.QueueBind(queueName, item.Key, string.Empty, bindHeaders);
+                        model.QueueBind(queueName, item.Key + ".Scheduler", string.Empty, bindHeaders);
+                        model.BasicQos(0, 1, false);
                     }
                 }
             }
 
             void RecoverConsumer()
             {
+                if (aborting)
+                    return;
+
                 if (consumer == null || consumer.IsRunning == false)
                 {
                     if ((DateTime.UtcNow - timestampSinceConsumerIsNotWorking).TotalSeconds > 5)
                     {
                         timestampSinceConsumerIsNotWorking = DateTime.UtcNow;
                         consumer = new QueueingBasicConsumer(model);
-                        string consumerTag = model.BasicConsume(consumerName, false, consumer);
+                        string consumerTag = model.BasicConsume(queueName, false, consumer);
                     }
                 }
             }
