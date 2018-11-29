@@ -1,40 +1,8 @@
-#### 5.0.0-discovery0009 - 11.11.2018
+#### 5.0.0 - 29.11.2018
 * Improves logging when there are no subscribers for a consumer
-
-#### 5.0.0-discovery0008 - 02.11.2018
-* Bump Cronus
-
-#### 5.0.0-discovery0007 - 28.10.2018
-* Bump Cronus
-
-#### 5.0.0-discovery0006 - 24.10.2018
 * Removes boundedContext consumers and change how exchanges and queues are named
-
-#### 5.0.0-discovery0005 - 21.10.2018
-* Updates Cronus
-
-#### 5.0.0-discovery0004 - 18.10.2018
-* Code cleanup
-
-#### 5.0.0-discovery0003 - 17.10.2018
-* Updates Cronus
-
-#### 5.0.0-discovery0002 - 16.10.2018
-* Updates Cronus
-
-#### 5.0.0-discovery0001 - 08.10.2018
 * Adds RabbitMqTransportDiscovery
-
-#### 5.0.0-beta0003 - 13.07.2018
 * Prefetch only one message at a time
-
-#### 5.0.0-beta0003 - 13.07.2018
-* Prefetch only one message at a time
-
-#### 5.0.0-beta0002 - 12.07.2018
-* Updates Cronus to 5.0.0-beta0026
-
-#### 5.0.0-beta0001 - 09.05.2018
 * Properly closing RabbitMQ connections
 
 #### 4.0.6 - 28.02.2017
