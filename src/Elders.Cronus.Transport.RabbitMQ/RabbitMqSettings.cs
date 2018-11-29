@@ -6,11 +6,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
     {
         public RabbitMqSettings(IConfiguration configuration)
         {
-            Server = configuration["cronus_transport_rabbimq_server"];
+            Server = configuration.GetValue("cronus_transport_rabbimq_server", "127.0.0.1");
             Port = configuration.GetValue<int>("cronus_transport_rabbimq_port", 5672);
-            VirtualHost = configuration["cronus_transport_rabbimq_vhost"];
-            Username = configuration["cronus_transport_rabbimq_username"];
-            Password = configuration["cronus_transport_rabbimq_password"];
+            VirtualHost = configuration.GetValue("cronus_transport_rabbimq_vhost", "/");
+            Username = configuration.GetValue("cronus_transport_rabbimq_username", "guest");
+            Password = configuration.GetValue("cronus_transport_rabbimq_password", "guest");
             AdminPort = configuration.GetValue<int>("cronus_transport_rabbimq_adminport");
         }
 
