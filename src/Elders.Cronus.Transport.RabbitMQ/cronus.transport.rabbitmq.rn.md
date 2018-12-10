@@ -1,3 +1,6 @@
+#### 5.1.0 - 10.12.2018
+* Updates to DNC 2.2
+
 #### 5.0.0 - 29.11.2018
 * Improves logging when there are no subscribers for a consumer
 * Removes boundedContext consumers and change how exchanges and queues are named
