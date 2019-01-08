@@ -5,7 +5,7 @@ using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class RabbitMqPublisherDiscovery : DiscoveryBasedOnExecutingDirAssemblies<IPublisher<IMessage>>
+    public class RabbitMqPublisherDiscovery : DiscoveryBase<IPublisher<IMessage>>
     {
         protected override DiscoveryResult<IPublisher<IMessage>> DiscoverFromAssemblies(DiscoveryContext context)
         {
