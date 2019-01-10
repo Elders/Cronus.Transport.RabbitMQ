@@ -9,11 +9,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
     {
         static readonly ILog log = LogProvider.GetLogger(typeof(ContinuousConsumer<>));
 
-        SubscriberCollection<T> subscriberCollection;
+        ISubscriberCollection<T> subscriberCollection;
 
         bool stopping;
 
-        public ContinuousConsumer(SubscriberCollection<T> subscriberCollection)
+        public ContinuousConsumer(ISubscriberCollection<T> subscriberCollection)
         {
             if (subscriberCollection is null) throw new ArgumentNullException(nameof(subscriberCollection));
 

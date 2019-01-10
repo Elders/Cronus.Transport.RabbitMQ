@@ -15,12 +15,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private readonly BoundedContext boundedContext;
         private readonly int numberOfWorkers;
-        private readonly SubscriberCollection<T> subscriberCollection;
+        private readonly ISubscriberCollection<T> subscriberCollection;
         private readonly List<WorkPool> pools;
         private readonly ISerializer serializer;
         private readonly IConnectionFactory connectionFactory;
 
-        public RabbitMqConsumer(IConfiguration configuration, BoundedContext boundedContext, SubscriberCollection<T> subscriberCollection, ISerializer serializer, IConnectionFactory connectionFactory)
+        public RabbitMqConsumer(IConfiguration configuration, BoundedContext boundedContext, ISubscriberCollection<T> subscriberCollection, ISerializer serializer, IConnectionFactory connectionFactory)
         {
             if (ReferenceEquals(null, subscriberCollection)) throw new ArgumentNullException(nameof(subscriberCollection));
             if (ReferenceEquals(null, serializer)) throw new ArgumentNullException(nameof(serializer));

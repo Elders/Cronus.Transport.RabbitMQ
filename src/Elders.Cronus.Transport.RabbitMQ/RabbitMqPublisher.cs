@@ -11,7 +11,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
     {
         static readonly ILog log = LogProvider.GetLogger(typeof(RabbitMqPublisher<>));
 
-        bool stoped = false;
+        bool isStopped = false;
 
         private readonly ISerializer serializer;
         private static IConnection connection;
@@ -33,14 +33,17 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             try
             {
-                if (stoped)
+                if (isStopped)
+                {
+                    log.Warn("Failed to publish a message. Publisher is stopped/disposed.");
                     return false;
+                }
 
-                if (ReferenceEquals(null, connection) || connection.IsOpen == false)
+                if (connection is null || connection.IsOpen == false)
                 {
                     lock (connectionFactory)
                     {
-                        if (ReferenceEquals(null, connection) || connection.IsOpen == false)
+                        if (connection is null || connection.IsOpen == false)
                         {
                             connection?.Abort();
                             connection = connectionFactory.CreateConnection();
@@ -86,7 +89,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private void Close()
         {
-            stoped = true;
+            isStopped = true;
             publishModel?.Abort();
             connection?.Abort();
 

@@ -1,3 +1,7 @@
+#### 5.2.0
+* Uses ISubscriberCollection interface instead of SubscriberCollection
+* Adds a warn log when a client tries to publish a message and the publisher is stopped/disposed
+
 #### 5.1.0 - 10.12.2018
 * Updates to DNC 2.2
 

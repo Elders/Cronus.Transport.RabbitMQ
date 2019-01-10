@@ -16,7 +16,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private QueueingBasicConsumerWithManagedConnection consumer;
 
-        public RabbitMqContinuousConsumer(BoundedContext boundedContext, ISerializer serializer, IConnectionFactory connectionFactory, SubscriberCollection<T> subscriberCollection)
+        public RabbitMqContinuousConsumer(BoundedContext boundedContext, ISerializer serializer, IConnectionFactory connectionFactory, ISubscriberCollection<T> subscriberCollection)
             : base(subscriberCollection)
         {
             this.deliveryTags = new Dictionary<Guid, ulong>();
@@ -81,13 +81,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
             private IModel model;
             private static IConnection connection;
             private readonly IConnectionFactory connectionFactory;
-            private readonly SubscriberCollection<T> subscriberCollection;
+            private readonly ISubscriberCollection<T> subscriberCollection;
             private readonly BoundedContext boundedContext;
             private QueueingBasicConsumer consumer;
             private bool aborting;
             private readonly string queueName;
 
-            public QueueingBasicConsumerWithManagedConnection(IConnectionFactory connectionFactory, SubscriberCollection<T> subscriberCollection, BoundedContext boundedContext)
+            public QueueingBasicConsumerWithManagedConnection(IConnectionFactory connectionFactory, ISubscriberCollection<T> subscriberCollection, BoundedContext boundedContext)
             {
                 this.connectionFactory = connectionFactory;
                 this.subscriberCollection = subscriberCollection;

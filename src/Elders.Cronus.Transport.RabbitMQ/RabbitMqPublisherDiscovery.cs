@@ -5,7 +5,7 @@ using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class RabbitMqPublisherDiscovery : DiscoveryBasedOnExecutingDirAssemblies<IPublisher<IMessage>>
+    public class RabbitMqPublisherDiscovery : DiscoveryBase<IPublisher<IMessage>>
     {
         protected override DiscoveryResult<IPublisher<IMessage>> DiscoverFromAssemblies(DiscoveryContext context)
         {
@@ -16,7 +16,10 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             yield return new DiscoveredModel(typeof(RabbitMqSettings), typeof(RabbitMqSettings), ServiceLifetime.Singleton);
             yield return new DiscoveredModel(typeof(IConnectionFactory), typeof(RabbitMqConnectionFactory), ServiceLifetime.Singleton);
-            yield return new DiscoveredModel(typeof(IPublisher<>), typeof(RabbitMqPublisher<>), ServiceLifetime.Singleton);
+
+            var publisherModel = new DiscoveredModel(typeof(IPublisher<>), typeof(RabbitMqPublisher<>), ServiceLifetime.Singleton);
+            publisherModel.CanOverrideDefaults = true;
+            yield return publisherModel;
         }
     }
 }
