@@ -81,7 +81,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 log.WarnException(ex.Message, ex);
 
-                Close();
+                publishModel?.Abort();
+                connection?.Abort();
+
+                connection = null;
+                publishModel = null;
 
                 return false;
             }
