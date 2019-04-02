@@ -1,3 +1,6 @@
+#### 5.2.1
+* Fixes a (re)connection issue
+
 #### 5.2.0
 * Uses ISubscriberCollection interface instead of SubscriberCollection
 * Adds a warn log when a client tries to publish a message and the publisher is stopped/disposed
