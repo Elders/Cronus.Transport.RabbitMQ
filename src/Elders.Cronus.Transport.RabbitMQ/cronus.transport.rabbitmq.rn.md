@@ -1,3 +1,6 @@
+#### 6.0.0-beta0001 - 29.10.2019
+* Updates packages
+
 #### 5.2.2
 * Added support for connecting to cluster/multiple endpoints
 
