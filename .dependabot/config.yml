@@ -16,6 +16,9 @@ update_configs:
       dependency_type: direct
   automerged_updates:
   - match:
-      dependency_name: Cronus.*
-      dependency_type: development
+      dependency_name: Cronus*
+      dependency_type: all
+      update_type: all
+  - match:
+      dependency_type: production
       update_type: all
