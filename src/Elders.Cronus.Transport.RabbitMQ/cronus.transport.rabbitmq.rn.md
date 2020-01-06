@@ -1,3 +1,6 @@
+#### 5.2.2
+* Added support for connecting to cluster/multiple endpoints
+
 #### 5.2.1
 * Fixes a (re)connection issue
 
