@@ -1,3 +1,7 @@
+#### 6.0.0-beta0003 - 11.12.2019
+* Fixes a connection termination when publisher fails
+* Updates packages
+
 #### 6.0.0-beta0002 - 11.12.2019
 * Updates packages
 
