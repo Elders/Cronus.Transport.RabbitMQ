@@ -80,13 +80,14 @@ namespace Elders.Cronus.Transport.RabbitMQ
             catch (Exception ex)
             {
                 log.WarnException(ex.Message, ex);
+                lock (connectionFactory)
+                {
+                    publishModel?.Abort();
+                    publishModel = null;
 
-                publishModel?.Abort();
-                connection?.Abort();
-
-                connection = null;
-                publishModel = null;
-
+                    connection?.Abort(5000);
+                    connection = null;
+                }
                 return false;
             }
         }
