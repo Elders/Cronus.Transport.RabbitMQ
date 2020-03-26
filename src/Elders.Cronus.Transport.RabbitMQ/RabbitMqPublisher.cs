@@ -21,8 +21,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private readonly string boundedContext;
 
 
-        public RabbitMqPublisher(IConfiguration configuration, ISerializer serializer, IConnectionFactory connectionFactory, ITenantResolver<IMessage> tenantResolver)
-            : base(tenantResolver)
+        public RabbitMqPublisher(IConfiguration configuration, ISerializer serializer, IConnectionFactory connectionFactory, ITenantResolver<IMessage> tenantResolver, BoundedContext boundedContext)
+            : base(tenantResolver, boundedContext)
         {
             this.boundedContext = configuration["cronus_boundedcontext"];
             this.serializer = serializer;
