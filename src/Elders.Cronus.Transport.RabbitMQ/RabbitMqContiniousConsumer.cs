@@ -183,22 +183,22 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     model.QueueDeclare(queueName, true, false, false, routingHeaders);
 
                     var exchanges = messageTypes.GroupBy(x => RabbitMqNamer.GetExchangeName(boundedContext.Name, x)).Distinct();
-                    foreach (var item in exchanges)
+                    foreach (var exchange in exchanges)
                     {
-                        model.ExchangeDeclare(item.Key, PipelineType.Headers.ToString(), true);
+                        model.ExchangeDeclare(exchange.Key, PipelineType.Headers.ToString(), true);
                         var args = new Dictionary<string, object>();
                         args.Add("x-delayed-type", PipelineType.Headers.ToString());
-                        model.ExchangeDeclare(item.Key + ".Scheduler", "x-delayed-message", true, false, args);
+                        model.ExchangeDeclare(exchange.Key + ".Scheduler", "x-delayed-message", true, false, args);
 
                         var bindHeaders = new Dictionary<string, object>();
                         bindHeaders.Add("x-match", "any");
 
-                        foreach (var msgType in item.Select(x => x.GetContractId()))
+                        foreach (var msgType in exchange.Select(x => x.GetContractId()))
                         {
                             bindHeaders.Add(msgType, null);
                         }
-                        model.QueueBind(queueName, item.Key, string.Empty, bindHeaders);
-                        model.QueueBind(queueName, item.Key + ".Scheduler", string.Empty, bindHeaders);
+                        model.QueueBind(queueName, exchange.Key, string.Empty, bindHeaders);
+                        model.QueueBind(queueName, exchange.Key + ".Scheduler", string.Empty, bindHeaders);
                         model.BasicQos(0, 1, false);
                     }
                 }
