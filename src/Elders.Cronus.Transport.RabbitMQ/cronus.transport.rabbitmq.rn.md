@@ -1,3 +1,7 @@
+#### 6.0.0-beta0004 - 26.03.2020
+* Fixes a connection management issue
+* Updates packages
+
 #### 6.0.0-beta0003 - 11.12.2019
 * Fixes a connection termination when publisher fails
 * Updates packages
