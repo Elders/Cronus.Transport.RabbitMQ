@@ -95,11 +95,14 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private void Close()
         {
             isStopped = true;
-            publishModel?.Abort();
-            connection?.Abort();
+            lock (connectionFactory)
+            {
+                publishModel?.Abort();
+                connection?.Abort(5000);
 
-            connection = null;
-            publishModel = null;
+                connection = null;
+                publishModel = null;
+            }
         }
 
         public void Dispose()
