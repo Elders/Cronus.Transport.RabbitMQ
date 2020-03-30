@@ -1,3 +1,8 @@
+#### 6.0.0-beta0006 - 30.03.2020
+* The transport layer is now fully aware of the bounded context
+* Fixes hangs related to connection issues
+* Updates packages
+
 #### 6.0.0-beta0005 - 27.03.2020
 * Updates packages
 
