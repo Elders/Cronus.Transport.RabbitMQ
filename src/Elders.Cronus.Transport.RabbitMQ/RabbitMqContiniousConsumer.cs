@@ -117,8 +117,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 lock (connectionFactory)
                 {
                     if (aborting) return;
-                    aborting = true;
 
+                    aborting = true;
                     consumer = null;
 
                     model?.Abort();
@@ -178,9 +178,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     routingHeaders.Add("x-match", "any");
                     var messageTypes = subscriberCollection.Subscribers.SelectMany(x => x.GetInvolvedMessageTypes()).Distinct().ToList();
 
-                    foreach (var msgType in messageTypes.Select(x => x.GetContractId()))
+                    foreach (var msgType in messageTypes)
                     {
-                        routingHeaders.Add(msgType, null);
+                        routingHeaders.Add(msgType.GetContractId(), msgType.GetBoundedContext(boundedContext.Name));
                     }
 
                     model.QueueDeclare(queueName, true, false, false, routingHeaders);
@@ -196,9 +196,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
                         var bindHeaders = new Dictionary<string, object>();
                         bindHeaders.Add("x-match", "any");
 
-                        foreach (var msgType in exchange.Select(x => x.GetContractId()))
+                        foreach (var msgType in exchange)
                         {
-                            bindHeaders.Add(msgType, null);
+                            bindHeaders.Add(msgType.GetContractId(), msgType.GetBoundedContext(boundedContext.Name));
                         }
                         model.QueueBind(queueName, exchange.Key, string.Empty, bindHeaders);
                         model.QueueBind(queueName, exchange.Key + ".Scheduler", string.Empty, bindHeaders);
