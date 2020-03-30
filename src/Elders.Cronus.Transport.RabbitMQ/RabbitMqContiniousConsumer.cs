@@ -112,8 +112,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             public void Abort()
             {
+                if (aborting) return;
+
                 lock (connectionFactory)
                 {
+                    if (aborting) return;
                     aborting = true;
 
                     consumer = null;
@@ -121,7 +124,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     model?.Abort();
                     model = null;
 
-                    connection?.Abort();
+                    connection?.Abort(5000);
                     connection = null;
                 }
             }
