@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Elders.Cronus.Multitenancy;
 using Elders.Cronus.Transport.RabbitMQ.Logging;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
@@ -21,8 +22,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
         //private readonly string boundedContext;
 
 
-        public RabbitMqPublisher(IConfiguration configuration, ISerializer serializer, IConnectionFactory connectionFactory, ITenantResolver<IMessage> tenantResolver, BoundedContext boundedContext)
-            : base(tenantResolver, boundedContext)
+        public RabbitMqPublisher(ISerializer serializer, IConnectionFactory connectionFactory, ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext)
+            : base(tenantResolver, boundedContext.CurrentValue)
         {
             this.serializer = serializer;
             this.connectionFactory = connectionFactory;
