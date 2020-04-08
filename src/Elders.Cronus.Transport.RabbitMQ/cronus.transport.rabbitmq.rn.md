@@ -1,3 +1,6 @@
+#### 6.0.0-beta0007 - 08.04.2020
+* Rework the RabbitMqOptions to use options pattern
+
 #### 6.0.0-beta0006 - 30.03.2020
 * The transport layer is now fully aware of the bounded context
 * Fixes hangs related to connection issues
