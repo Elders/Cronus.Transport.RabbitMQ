@@ -23,7 +23,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management
         readonly TimeSpan defaultTimeout = TimeSpan.FromSeconds(20);
         readonly TimeSpan timeout;
 
-        public RabbitMqManagementClient(RabbitMqSettings settings) : this(settings.Server, settings.Username, settings.Password) { }
+        public RabbitMqManagementClient(RabbitMqOptions settings) : this(settings.Server, settings.Username, settings.Password) { }
 
         public RabbitMqManagementClient(
                 string hostUrl,

@@ -8,25 +8,25 @@ namespace Elders.Cronus.Transport.RabbitMQ
 {
     public class RabbitMqConnectionFactory : ConnectionFactory
     {
-        public RabbitMqConnectionFactory(RabbitMqSettings settings)
+        public RabbitMqConnectionFactory(RabbitMqOptions settings)
         {
             HostName = settings.Server;
             Port = settings.Port;
             UserName = settings.Username;
             Password = settings.Password;
-            VirtualHost = settings.VirtualHost;
+            VirtualHost = settings.VHost;
             AutomaticRecoveryEnabled = false;
             EndpointResolverFactory = (x) => { return new MultipleEndpointResolver(settings); };
 
             CreateVirtualHostDefinedInSettings(settings);
         }
 
-        void CreateVirtualHostDefinedInSettings(RabbitMqSettings settings)
+        void CreateVirtualHostDefinedInSettings(RabbitMqOptions settings)
         {
             RabbitMqManagementClient managmentClient = new RabbitMqManagementClient(settings);
-            if (!managmentClient.GetVHosts().Any(vh => vh.Name == settings.VirtualHost))
+            if (!managmentClient.GetVHosts().Any(vh => vh.Name == settings.VHost))
             {
-                var vhost = managmentClient.CreateVirtualHost(settings.VirtualHost);
+                var vhost = managmentClient.CreateVirtualHost(settings.VHost);
                 var rabbitMqUser = managmentClient.GetUsers().SingleOrDefault(x => x.Name == settings.Username);
                 var permissionInfo = new PermissionInfo(rabbitMqUser, vhost);
                 managmentClient.CreatePermission(permissionInfo);
