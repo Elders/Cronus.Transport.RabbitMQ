@@ -1,3 +1,6 @@
+#### 6.0.0-beta0008 - 09.04.2020
+* Fixes options registration
+
 #### 6.0.0-beta0007 - 08.04.2020
 * Rework the RabbitMqOptions to use options pattern
 
