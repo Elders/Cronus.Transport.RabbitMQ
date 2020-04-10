@@ -1,22 +1,23 @@
 ﻿using System.Linq;
 using Elders.Cronus.Transport.RabbitMQ.Management;
 using Elders.Cronus.Transport.RabbitMQ.Management.Model;
+using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
     public class RabbitMqConnectionFactory : ConnectionFactory
     {
-        public RabbitMqConnectionFactory(RabbitMqOptions settings)
+        public RabbitMqConnectionFactory(IOptionsMonitor<RabbitMqOptions> settings)
         {
-            HostName = settings.Server;
-            Port = settings.Port;
-            UserName = settings.Username;
-            Password = settings.Password;
-            VirtualHost = settings.VHost;
+            HostName = settings.CurrentValue.Server;
+            Port = settings.CurrentValue.Port;
+            UserName = settings.CurrentValue.Username;
+            Password = settings.CurrentValue.Password;
+            VirtualHost = settings.CurrentValue.VHost;
             AutomaticRecoveryEnabled = false;
 
-            CreateVirtualHostDefinedInSettings(settings);
+            CreateVirtualHostDefinedInSettings(settings.CurrentValue);
         }
 
         void CreateVirtualHostDefinedInSettings(RabbitMqOptions settings)
