@@ -9,12 +9,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
     {
         protected override DiscoveryResult<IPublisher<IMessage>> DiscoverFromAssemblies(DiscoveryContext context)
         {
-            return new DiscoveryResult<IPublisher<IMessage>>(GetModels());
+            return new DiscoveryResult<IPublisher<IMessage>>(GetModels(), services => services.AddOptions<RabbitMqOptions, RabbitMqOptionsProvider>());
         }
 
         IEnumerable<DiscoveredModel> GetModels()
         {
-            yield return new DiscoveredModel(typeof(RabbitMqOptions), typeof(RabbitMqOptions), ServiceLifetime.Singleton);
             yield return new DiscoveredModel(typeof(IConnectionFactory), typeof(RabbitMqConnectionFactory), ServiceLifetime.Singleton);
 
             var publisherModel = new DiscoveredModel(typeof(IPublisher<>), typeof(RabbitMqPublisher<>), ServiceLifetime.Singleton);

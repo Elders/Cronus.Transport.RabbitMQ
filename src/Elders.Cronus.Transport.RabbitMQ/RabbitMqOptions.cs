@@ -19,7 +19,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
     public class RabbitMqOptionsProvider : CronusOptionsProviderBase<RabbitMqOptions>
     {
-        public const string SettingKey = "cronus:transport:rabbimq";
+        public const string SettingKey = "cronus:transport:rabbitmq";
 
         public RabbitMqOptionsProvider(IConfiguration configuration) : base(configuration) { }
 
