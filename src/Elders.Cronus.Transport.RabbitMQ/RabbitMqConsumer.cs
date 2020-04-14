@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using Elders.Cronus.MessageProcessing;
-using Elders.Cronus.Transport.RabbitMQ.Logging;
 using Elders.Multithreading.Scheduler;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 
@@ -12,7 +12,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 {
     public class RabbitMqConsumer<T> : IConsumer<T>
     {
-        static readonly ILog log = LogProvider.GetLogger(typeof(RabbitMqConsumer<>));
+        static readonly ILogger logger = CronusLogger.CreateLogger(typeof(RabbitMqConsumer<>));
 
         private readonly BoundedContext boundedContext;
         private readonly int numberOfWorkers;
@@ -41,7 +41,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             if (subscriberCollection.Subscribers.Any() == false)
             {
-                log.Warn($"Consumer {boundedContext}.{typeof(T).Name} not started because there are no subscribers");
+                logger.Warn($"Consumer {boundedContext}.{typeof(T).Name} not started because there are no subscribers");
                 return;
             }
 
