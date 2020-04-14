@@ -1,13 +1,13 @@
 ﻿using System;
 using Elders.Cronus.MessageProcessing;
-using Elders.Cronus.Transport.RabbitMQ.Logging;
 using Elders.Multithreading.Scheduler;
+using Microsoft.Extensions.Logging;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
     public abstract class ContinuousConsumer<T> : IWork
     {
-        static readonly ILog log = LogProvider.GetLogger(typeof(ContinuousConsumer<>));
+        static readonly ILogger logger = CronusLogger.CreateLogger(typeof(ContinuousConsumer<>));
 
         ISubscriberCollection<T> subscriberCollection;
 
@@ -50,7 +50,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     }
                     catch (Exception ex)
                     {
-                        log.ErrorException("Failed to process message.", ex);
+                        logger.ErrorException("Failed to process message.", ex);
                     }
                     finally
                     {
@@ -60,7 +60,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
             catch (Exception ex)
             {
-                log.ErrorException("Unexpected Exception.", ex);
+                logger.ErrorException("Unexpected Exception.", ex);
             }
             finally
             {

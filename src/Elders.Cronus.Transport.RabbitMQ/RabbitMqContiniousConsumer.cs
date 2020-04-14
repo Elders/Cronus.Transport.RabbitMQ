@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Elders.Cronus.MessageProcessing;
-using Elders.Cronus.Transport.RabbitMQ.Logging;
+using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -75,7 +75,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         class QueueingBasicConsumerWithManagedConnection
         {
-            static readonly ILog log = LogProvider.GetLogger(typeof(QueueingBasicConsumerWithManagedConnection));
+            static readonly ILogger logger = CronusLogger.CreateLogger(typeof(QueueingBasicConsumerWithManagedConnection));
 
             private DateTime timestampSinceConsumerIsNotWorking;
             private IModel model;
@@ -105,7 +105,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 }
                 catch (Exception ex)
                 {
-                    log.WarnException(ex.Message, ex);
+                    logger.WarnException(ex.Message, ex);
                     return default(TResult);
                 }
             }
