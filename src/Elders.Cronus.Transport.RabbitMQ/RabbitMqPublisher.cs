@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Elders.Cronus.Multitenancy;
-using Elders.Cronus.Transport.RabbitMQ.Logging;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 
@@ -10,7 +9,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 {
     public class RabbitMqPublisher<TMessage> : Publisher<TMessage>, IDisposable where TMessage : IMessage
     {
-        static readonly ILog log = LogProvider.GetLogger(typeof(RabbitMqPublisher<>));
+        static readonly ILogger logger = CronusLogger.CreateLogger(typeof(RabbitMqPublisher<>));
 
         bool isStopped = false;
 
@@ -35,7 +34,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 if (isStopped)
                 {
-                    log.Warn("Failed to publish a message. Publisher is stopped/disposed.");
+                    logger.Warn("Failed to publish a message. Publisher is stopped/disposed.");
                     return false;
                 }
 
@@ -79,7 +78,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
             catch (Exception ex)
             {
-                log.WarnException(ex.Message, ex);
+                logger.WarnException(ex.Message, ex);
                 lock (connectionFactory)
                 {
                     publishModel?.Abort();
