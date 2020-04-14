@@ -1,3 +1,6 @@
+#### 6.0.0-beta0011 - 15.04.2020
+* Replaces LibLog with CronusLogger
+
 #### 6.0.0-beta0010 - 13.04.2020
 * Overrides IConsumer service
 
