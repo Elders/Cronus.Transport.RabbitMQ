@@ -9,7 +9,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
     {
         protected override DiscoveryResult<IConsumer<object>> DiscoverFromAssemblies(DiscoveryContext context)
         {
-            return new DiscoveryResult<IConsumer<object>>(GetModels(), services => services.AddOptions<RabbitMqOptions, RabbitMqOptionsProvider>());
+            return new DiscoveryResult<IConsumer<object>>(GetModels(), services => services.AddOptions<RabbitMqOptions, RabbitMqOptionsProvider>()
+                                                                                           .AddOptions<RabbitMqConsumerOptions, RabbitMqConsumerOptionsProvider>());
         }
 
         IEnumerable<DiscoveredModel> GetModels()
