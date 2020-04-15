@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elders.Cronus.Transport.Rab
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{D147CC47-3968-44CE-9330-121DC48F10E4}"
 	ProjectSection(SolutionItems) = preProject
-		Configuration.md = Configuration.md
+		..\docs\Configuration.md = ..\docs\Configuration.md
 	EndProjectSection
 EndProject
 Global
