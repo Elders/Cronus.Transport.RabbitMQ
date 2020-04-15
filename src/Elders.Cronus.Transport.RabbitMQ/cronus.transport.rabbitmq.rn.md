@@ -1,3 +1,6 @@
+#### 6.0.0-beta0013 - 15.04.2020
+* Introduced Cronus:Transport:RabbitMq:Consumer:WorkersCount
+
 #### 6.0.0-beta0012 - 15.04.2020
 * Updates packages
 
