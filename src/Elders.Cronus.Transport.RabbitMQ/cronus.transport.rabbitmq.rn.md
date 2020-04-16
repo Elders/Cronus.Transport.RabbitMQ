@@ -1,45 +1,13 @@
-#### 6.0.0-beta0013 - 15.04.2020
+#### 6.0.0 - 16.04.2020
 * Introduced Cronus:Transport:RabbitMq:Consumer:WorkersCount
-
-#### 6.0.0-beta0012 - 15.04.2020
-* Updates packages
-
-#### 6.0.0-beta0011 - 15.04.2020
 * Replaces LibLog with CronusLogger
-
-#### 6.0.0-beta0010 - 13.04.2020
 * Overrides IConsumer service
-
-#### 6.0.0-beta0009 - 10.04.2020
 * Fixes options registration
-
-#### 6.0.0-beta0008 - 09.04.2020
-* Fixes options registration
-
-#### 6.0.0-beta0007 - 08.04.2020
 * Rework the RabbitMqOptions to use options pattern
-
-#### 6.0.0-beta0006 - 30.03.2020
 * The transport layer is now fully aware of the bounded context
 * Fixes hangs related to connection issues
-* Updates packages
-
-#### 6.0.0-beta0005 - 27.03.2020
-* Updates packages
-
-#### 6.0.0-beta0004 - 26.03.2020
 * Fixes a connection management issue
-* Updates packages
-
-#### 6.0.0-beta0003 - 11.12.2019
 * Fixes a connection termination when publisher fails
-* Updates packages
-
-#### 6.0.0-beta0002 - 11.12.2019
-* Updates packages
-
-#### 6.0.0-beta0001 - 29.10.2019
-* Updates packages
 
 #### 5.2.2
 * Added support for connecting to cluster/multiple endpoints
