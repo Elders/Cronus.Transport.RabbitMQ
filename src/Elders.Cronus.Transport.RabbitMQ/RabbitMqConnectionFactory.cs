@@ -36,11 +36,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private class MultipleEndpointResolver : IEndpointResolver
         {
-            RabbitMqSettings settings;
+            RabbitMqOptions settings;
 
-            public MultipleEndpointResolver(RabbitMqSettings settings)
+            public MultipleEndpointResolver(IOptionsMonitor<RabbitMqOptions> settings)
             {
-                this.settings = settings;
+                this.settings = settings.CurrentValue;
             }
 
             public IEnumerable<AmqpTcpEndpoint> All()
