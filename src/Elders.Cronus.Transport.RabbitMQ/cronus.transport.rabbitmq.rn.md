@@ -1,3 +1,14 @@
+#### 6.0.0 - 16.04.2020
+* Introduced Cronus:Transport:RabbitMq:Consumer:WorkersCount
+* Replaces LibLog with CronusLogger
+* Overrides IConsumer service
+* Fixes options registration
+* Rework the RabbitMqOptions to use options pattern
+* The transport layer is now fully aware of the bounded context
+* Fixes hangs related to connection issues
+* Fixes a connection management issue
+* Fixes a connection termination when publisher fails
+
 #### 5.2.2
 * Added support for connecting to cluster/multiple endpoints
 
@@ -31,7 +42,7 @@
 * Fixes how we consume messages
 
 #### 4.0.2 - 20.02.2017
-* Downgrades Newtonsoft.Json to 10.0.3 
+* Downgrades Newtonsoft.Json to 10.0.3
 
 #### 4.0.1 - 20.02.2017
 * Targets dotnetstandard20 and .NET 4.5.1

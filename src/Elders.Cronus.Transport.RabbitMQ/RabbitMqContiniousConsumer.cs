@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Elders.Cronus.MessageProcessing;
-using Elders.Cronus.Transport.RabbitMQ.Logging;
+using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -75,7 +75,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         class QueueingBasicConsumerWithManagedConnection
         {
-            static readonly ILog log = LogProvider.GetLogger(typeof(QueueingBasicConsumerWithManagedConnection));
+            static readonly ILogger logger = CronusLogger.CreateLogger(typeof(QueueingBasicConsumerWithManagedConnection));
 
             private DateTime timestampSinceConsumerIsNotWorking;
             private IModel model;
@@ -105,23 +105,26 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 }
                 catch (Exception ex)
                 {
-                    log.WarnException(ex.Message, ex);
+                    logger.WarnException(ex.Message, ex);
                     return default(TResult);
                 }
             }
 
             public void Abort()
             {
+                if (aborting) return;
+
                 lock (connectionFactory)
                 {
-                    aborting = true;
+                    if (aborting) return;
 
+                    aborting = true;
                     consumer = null;
 
                     model?.Abort();
                     model = null;
 
-                    connection?.Abort();
+                    connection?.Abort(5000);
                     connection = null;
                 }
             }
@@ -154,7 +157,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
                         if (ReferenceEquals(null, connection) || connection.IsOpen == false)
                         {
-                            connection?.Abort();
+                            connection?.Abort(5000);
                             connection = connectionFactory.CreateConnection();
                         }
                     }
@@ -175,30 +178,30 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     routingHeaders.Add("x-match", "any");
                     var messageTypes = subscriberCollection.Subscribers.SelectMany(x => x.GetInvolvedMessageTypes()).Distinct().ToList();
 
-                    foreach (var msgType in messageTypes.Select(x => x.GetContractId()))
+                    foreach (var msgType in messageTypes)
                     {
-                        routingHeaders.Add(msgType, null);
+                        routingHeaders.Add(msgType.GetContractId(), msgType.GetBoundedContext(boundedContext.Name));
                     }
 
                     model.QueueDeclare(queueName, true, false, false, routingHeaders);
 
                     var exchanges = messageTypes.GroupBy(x => RabbitMqNamer.GetExchangeName(boundedContext.Name, x)).Distinct();
-                    foreach (var item in exchanges)
+                    foreach (var exchange in exchanges)
                     {
-                        model.ExchangeDeclare(item.Key, PipelineType.Headers.ToString(), true);
+                        model.ExchangeDeclare(exchange.Key, PipelineType.Headers.ToString(), true);
                         var args = new Dictionary<string, object>();
                         args.Add("x-delayed-type", PipelineType.Headers.ToString());
-                        model.ExchangeDeclare(item.Key + ".Scheduler", "x-delayed-message", true, false, args);
+                        model.ExchangeDeclare(exchange.Key + ".Scheduler", "x-delayed-message", true, false, args);
 
                         var bindHeaders = new Dictionary<string, object>();
                         bindHeaders.Add("x-match", "any");
 
-                        foreach (var msgType in item.Select(x => x.GetContractId()))
+                        foreach (var msgType in exchange)
                         {
-                            bindHeaders.Add(msgType, null);
+                            bindHeaders.Add(msgType.GetContractId(), msgType.GetBoundedContext(boundedContext.Name));
                         }
-                        model.QueueBind(queueName, item.Key, string.Empty, bindHeaders);
-                        model.QueueBind(queueName, item.Key + ".Scheduler", string.Empty, bindHeaders);
+                        model.QueueBind(queueName, exchange.Key, string.Empty, bindHeaders);
+                        model.QueueBind(queueName, exchange.Key + ".Scheduler", string.Empty, bindHeaders);
                         model.BasicQos(0, 1, false);
                     }
                 }

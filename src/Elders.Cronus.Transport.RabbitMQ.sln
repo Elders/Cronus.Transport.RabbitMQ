@@ -1,9 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27004.2006
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29926.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Elders.Cronus.Transport.RabbitMQ", "Elders.Cronus.Transport.RabbitMQ\Elders.Cronus.Transport.RabbitMQ.csproj", "{32EA2250-01B3-4171-9AE7-214037A0D524}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{D147CC47-3968-44CE-9330-121DC48F10E4}"
+	ProjectSection(SolutionItems) = preProject
+		..\docs\Configuration.md = ..\docs\Configuration.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using Elders.Cronus.Multitenancy;
-using Elders.Cronus.Transport.RabbitMQ.Logging;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
     public class RabbitMqPublisher<TMessage> : Publisher<TMessage>, IDisposable where TMessage : IMessage
     {
-        static readonly ILog log = LogProvider.GetLogger(typeof(RabbitMqPublisher<>));
+        static readonly ILogger logger = CronusLogger.CreateLogger(typeof(RabbitMqPublisher<>));
 
         bool isStopped = false;
 
@@ -18,13 +18,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private readonly IConnectionFactory connectionFactory;
         private IModel publishModel;
 
-        private readonly string boundedContext;
+        //private readonly string boundedContext;
 
 
-        public RabbitMqPublisher(IConfiguration configuration, ISerializer serializer, IConnectionFactory connectionFactory, ITenantResolver tenantResolver)
-            : base(tenantResolver)
+        public RabbitMqPublisher(ISerializer serializer, IConnectionFactory connectionFactory, ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext)
+            : base(tenantResolver, boundedContext.CurrentValue)
         {
-            this.boundedContext = configuration["cronus_boundedcontext"];
             this.serializer = serializer;
             this.connectionFactory = connectionFactory;
         }
@@ -35,7 +34,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 if (isStopped)
                 {
-                    log.Warn("Failed to publish a message. Publisher is stopped/disposed.");
+                    logger.Warn("Failed to publish a message. Publisher is stopped/disposed.");
                     return false;
                 }
 
@@ -56,7 +55,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     publishModel = connection.CreateModel();
 
                 IBasicProperties props = publishModel.CreateBasicProperties();
-                props.Headers = new Dictionary<string, object>() { { message.Payload.GetType().GetContractId(), string.Empty } };
+                props.Headers = new Dictionary<string, object>() { { message.Payload.GetType().GetContractId(), message.Headers[MessageHeader.BoundedContext] } };
 
                 props.Persistent = true;
                 props.Priority = 9;
@@ -66,12 +65,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 var publishDelayInMiliseconds = message.GetPublishDelay();
                 if (publishDelayInMiliseconds < 1000)
                 {
-                    var exchangeName = RabbitMqNamer.GetExchangeName(boundedContext, message.Payload.GetType());
+                    var exchangeName = RabbitMqNamer.GetExchangeName(message.Headers[MessageHeader.BoundedContext], message.Payload.GetType());
                     publishModel.BasicPublish(exchangeName, string.Empty, false, props, body);
                 }
                 else
                 {
-                    var exchangeName = RabbitMqNamer.GetExchangeName(boundedContext, message.Payload.GetType()) + ".Scheduler";
+                    var exchangeName = RabbitMqNamer.GetExchangeName(message.Headers[MessageHeader.BoundedContext], message.Payload.GetType()) + ".Scheduler";
                     props.Headers.Add("x-delay", message.GetPublishDelay());
                     publishModel.BasicPublish(exchangeName, string.Empty, false, props, body);
                 }
@@ -79,14 +78,15 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
             catch (Exception ex)
             {
-                log.WarnException(ex.Message, ex);
+                logger.WarnException(ex.Message, ex);
+                lock (connectionFactory)
+                {
+                    publishModel?.Abort();
+                    publishModel = null;
 
-                publishModel?.Abort();
-                connection?.Abort();
-
-                connection = null;
-                publishModel = null;
-
+                    connection?.Abort(5000);
+                    connection = null;
+                }
                 return false;
             }
         }
@@ -94,11 +94,14 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private void Close()
         {
             isStopped = true;
-            publishModel?.Abort();
-            connection?.Abort();
+            lock (connectionFactory)
+            {
+                publishModel?.Abort();
+                connection?.Abort(5000);
 
-            connection = null;
-            publishModel = null;
+                connection = null;
+                publishModel = null;
+            }
         }
 
         public void Dispose()
