@@ -1,3 +1,7 @@
+#### 6.0.1 - 23.04.2020
+* Check if the WorkPool is initialized before stopping it
+* Restart the consumer only if the options have changed
+
 #### 6.0.0 - 16.04.2020
 * Introduced Cronus:Transport:RabbitMq:Consumer:WorkersCount
 * Replaces LibLog with CronusLogger
