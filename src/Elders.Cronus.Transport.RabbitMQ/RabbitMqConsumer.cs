@@ -67,11 +67,16 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public void Stop()
         {
-            pool.Stop();
+            pool?.Stop();
         }
 
         private void OptionsChanged(RabbitMqConsumerOptions options)
         {
+            if (this.options == options)
+                return;
+
+            logger.LogDebug($"{nameof(RabbitMqConsumerOptions)} options changed from '{this.options}' to '{options}'.");
+
             this.options = options;
 
             Stop();
