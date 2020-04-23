@@ -67,7 +67,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public void Stop()
         {
-            pool.Stop();
+            pool?.Stop();
         }
 
         private void OptionsChanged(RabbitMqConsumerOptions options)
