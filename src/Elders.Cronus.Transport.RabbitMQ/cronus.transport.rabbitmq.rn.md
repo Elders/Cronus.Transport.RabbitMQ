@@ -1,3 +1,6 @@
+#### 6.1.0-beta0001 - 29.04.2020
+* Adds infrastructure support for public events and comminication channel between bounded contexts
+
 #### 6.0.1 - 23.04.2020
 * Check if the WorkPool is initialized before stopping it
 * Restart the consumer only if the options have changed
