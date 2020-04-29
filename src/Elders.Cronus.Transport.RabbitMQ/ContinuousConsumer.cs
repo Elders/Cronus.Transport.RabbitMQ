@@ -50,7 +50,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     }
                     catch (Exception ex)
                     {
-                        logger.ErrorException("Failed to process message.", ex);
+                        logger.ErrorException(ex, () => "Failed to process message.");
                     }
                     finally
                     {
@@ -60,7 +60,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
             catch (Exception ex)
             {
-                logger.ErrorException("Unexpected Exception.", ex);
+                logger.ErrorException(ex, () => "Unexpected Exception.");
             }
             finally
             {

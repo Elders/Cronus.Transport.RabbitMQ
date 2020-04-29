@@ -1,19 +1,54 @@
-﻿using System;
+﻿using Microsoft.Extensions.Options;
+using System;
+using System.Collections.Generic;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public static class RabbitMqNamer
+    public interface IRabbitMqNamer
     {
-        public static string GetExchangeName(string boundedContext, Type messageType)
+        /// <summary>
+        /// Returns all possible exchange names this message must be published to.
+        /// </summary>
+        /// <param name="messageType">The message type.</param>
+        /// <returns>The exchange names.</returns>
+        IEnumerable<string> GetExchangeNames(Type messageType);
+    }
+
+    public sealed class BoundedContextRabbitMqNamer : IRabbitMqNamer
+    {
+        BoundedContext boundedContext;
+
+        public BoundedContextRabbitMqNamer(IOptionsMonitor<BoundedContext> options)
         {
+            boundedContext = options.CurrentValue;
+        }
+
+        public IEnumerable<string> GetExchangeNames(Type messageType)
+        {
+            string bc = messageType.GetBoundedContext(boundedContext.Name);
+
             if (typeof(ICommand).IsAssignableFrom(messageType))
-                return $"{boundedContext}.Commands";
-            else if (typeof(IEvent).IsAssignableFrom(messageType))
-                return $"{boundedContext}.Events";
-            else if (typeof(IScheduledMessage).IsAssignableFrom(messageType))
-                return $"{boundedContext}.Events";
-            else
-                return $"{boundedContext}.Custom";
+                yield return $"{bc}.Commands";
+
+            if (typeof(IEvent).IsAssignableFrom(messageType))
+                yield return $"{bc}.Events";
+
+            if (typeof(IScheduledMessage).IsAssignableFrom(messageType))
+                yield return $"{bc}.Events";
+
+            if (typeof(IPublicEvent).IsAssignableFrom(messageType))
+                yield return $"{bc}.PublicEvents";
+        }
+    }
+
+
+    public sealed class PublicMessagesRabbitMqNamer : IRabbitMqNamer
+    {
+        public IEnumerable<string> GetExchangeNames(Type messageType)
+        {
+            if (typeof(IPublicEvent).IsAssignableFrom(messageType))
+                yield return $"PublicEvents";
         }
     }
 }
+

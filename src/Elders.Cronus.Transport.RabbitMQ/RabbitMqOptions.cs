@@ -2,7 +2,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class RabbitMqOptions
+    public class RabbitMqOptions : IRabbitMqOptions
     {
         public string Server { get; set; } = "127.0.0.1";
 
@@ -15,6 +15,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
         public string Password { get; set; } = "guest";
 
         public int AdminPort { get; set; } = 5672;
+
+        public string ApiAddress { get; set; }
     }
 
     public class RabbitMqOptionsProvider : CronusOptionsProviderBase<RabbitMqOptions>

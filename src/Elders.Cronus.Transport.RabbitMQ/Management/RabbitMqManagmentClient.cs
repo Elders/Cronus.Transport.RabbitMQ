@@ -1,106 +1,98 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
 using Elders.Cronus.Transport.RabbitMQ.Management.Model;
-using Newtonsoft.Json;
 
 namespace Elders.Cronus.Transport.RabbitMQ.Management
 {
-    public class RabbitMqManagementClient
+    public sealed class RabbitMqManagementClient
     {
-        readonly string hostUrl;
+        private static readonly Regex UrlRegex = new Regex(@"^(http|https):\/\/.+\w$");
+
         readonly string username;
         readonly string password;
         readonly int portNumber;
-        readonly JsonSerializerSettings Settings;
+        readonly JsonSerializerOptions settings;
 
         readonly bool runningOnMono;
         readonly Action<HttpWebRequest> configureRequest;
         readonly TimeSpan defaultTimeout = TimeSpan.FromSeconds(20);
         readonly TimeSpan timeout;
 
-        public RabbitMqManagementClient(RabbitMqOptions settings) : this(settings.Server, settings.Username, settings.Password) { }
+        private readonly List<string> apiAddressCollection;
+        private string lastKnownApiAddress;
 
-        public RabbitMqManagementClient(
-                string hostUrl,
-                string username,
-                string password,
-                int portNumber = 15672,
-                TimeSpan? timeout = null,
-                Action<HttpWebRequest> configureRequest = null,
-                bool ssl = false)
+        public RabbitMqManagementClient(IRabbitMqOptions settings) : this(settings.ApiAddress ?? settings.Server, settings.Username, settings.Password) { }
+
+        public RabbitMqManagementClient(string apiAddresses, string username, string password, int portNumber = 15672, TimeSpan? timeout = null, Action<HttpWebRequest> configureRequest = null)
         {
-            var urlRegex = new Regex(@"^(http|https):\/\/.+\w$");
-            Uri urlUri = null;
-            if (string.IsNullOrEmpty(hostUrl))
+            this.portNumber = portNumber;
+            this.apiAddressCollection = new List<string>();
+            string[] parsedAddresses = apiAddresses.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var apiAddress in parsedAddresses)
             {
-                throw new ArgumentException("hostUrl is null or empty");
+                TryInitializeApiHostName(apiAddress);
             }
+            if (apiAddressCollection.Any() == false) throw new ArgumentException("Invalid API addresses", nameof(apiAddresses));
 
-            if (hostUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-                ssl = true;
+            if (string.IsNullOrEmpty(username)) throw new ArgumentException("username is null or empty");
+            if (string.IsNullOrEmpty(password)) throw new ArgumentException("password is null or empty");
 
-            if (ssl)
-            {
-                if (hostUrl.Contains("http://"))
-                    throw new ArgumentException("hostUrl is illegal");
-                hostUrl = hostUrl.Contains("https://") ? hostUrl : "https://" + hostUrl;
-            }
-            else
-            {
-                if (hostUrl.Contains("https://"))
-                    throw new ArgumentException("hostUrl is illegal");
-                hostUrl = hostUrl.Contains("http://") ? hostUrl : "http://" + hostUrl;
-            }
-            if (!urlRegex.IsMatch(hostUrl) || !Uri.TryCreate(hostUrl, UriKind.Absolute, out urlUri))
-            {
-                throw new ArgumentException("hostUrl is illegal");
-            }
-            if (string.IsNullOrEmpty(username))
-            {
-                throw new ArgumentException("username is null or empty");
-            }
-            if (string.IsNullOrEmpty(password))
-            {
-                throw new ArgumentException("password is null or empty");
-            }
             if (configureRequest == null)
             {
                 configureRequest = x => { };
             }
-            this.hostUrl = hostUrl;
+
             this.username = username;
             this.password = password;
-            this.portNumber = portNumber;
+
             this.timeout = timeout ?? defaultTimeout;
             this.configureRequest = configureRequest;
-
-            Settings = new JsonSerializerSettings
+            this.settings = new JsonSerializerOptions
             {
-                ContractResolver = new RabbitContractResolver(),
-                NullValueHandling = NullValueHandling.Ignore,
+                IgnoreNullValues = true,
+                PropertyNameCaseInsensitive = true
             };
+        }
+
+        private void TryInitializeApiHostName(string address)
+        {
+            string result = $"{address.Trim()}:{portNumber}";
+            bool useSsl = false;
+
+            if (string.IsNullOrEmpty(result)) return;
+
+            if (result.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                useSsl = true;
+
+            if (useSsl == false)
+                result = result.Contains("http://") ? result : "http://" + result;
+            if (UrlRegex.IsMatch(result) && Uri.TryCreate(result, UriKind.Absolute, out _))
+            {
+                apiAddressCollection.Add(result);
+            }
         }
 
         public Vhost CreateVirtualHost(string virtualHostName)
         {
-            if (string.IsNullOrEmpty(virtualHostName))
-            {
-                throw new ArgumentException("virtualHostName is null or empty");
-            }
+            if (string.IsNullOrEmpty(virtualHostName)) throw new ArgumentException("virtualHostName is null or empty");
 
-            Put(string.Format("vhosts/{0}", virtualHostName));
+            Put($"vhosts/{virtualHostName}");
 
             return GetVhost(virtualHostName);
         }
 
         public Vhost GetVhost(string vhostName)
         {
-            return Get<Vhost>(string.Format("vhosts/{0}", SanitiseVhostName(vhostName)));
+            string vhost = SanitiseVhostName(vhostName);
+            return Get<Vhost>($"vhosts/{vhost}");
         }
 
         public IEnumerable<Vhost> GetVHosts()
@@ -110,15 +102,21 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management
 
         public void CreatePermission(PermissionInfo permissionInfo)
         {
-            if (permissionInfo == null)
-            {
-                throw new ArgumentNullException("permissionInfo");
-            }
+            if (permissionInfo is null) throw new ArgumentNullException("permissionInfo");
 
-            Put(string.Format("permissions/{0}/{1}",
-                   SanitiseVhostName(permissionInfo.GetVirtualHostName()),
-                    permissionInfo.GetUserName()),
-                permissionInfo);
+            string vhost = SanitiseVhostName(permissionInfo.GetVirtualHostName());
+            string username = permissionInfo.GetUserName();
+            Put($"permissions/{vhost}/{username}", permissionInfo);
+        }
+
+        public void CreateFederatedExchange(FederatedExchange exchange, string ownerVhost)
+        {
+            Put($"parameters/federation-upstream/{ownerVhost}/{exchange.Name}", exchange);
+        }
+
+        public void CreatePolicy(Policy policy, string ownerVhost)
+        {
+            Put($"policies/{ownerVhost}/{policy.Name}", policy);
         }
 
         public IEnumerable<User> GetUsers()
@@ -133,12 +131,11 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management
 
         public User CreateUser(UserInfo userInfo)
         {
-            if (userInfo == null)
-            {
-                throw new ArgumentNullException("userInfo");
-            }
+            if (userInfo is null) throw new ArgumentNullException("userInfo");
 
-            Put(string.Format("users/{0}", userInfo.GetName()), userInfo);
+            string username = userInfo.GetName();
+
+            Put($"users/{username}", userInfo);
 
             return GetUser(userInfo.GetName());
         }
@@ -204,7 +201,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management
         {
             request.ContentType = "application/json";
 
-            var body = JsonConvert.SerializeObject(item, Settings);
+            var body = JsonSerializer.Serialize(item, settings);
             using (var requestStream = request.GetRequestStream())
             using (var writer = new StreamWriter(requestStream))
             {
@@ -212,15 +209,12 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management
             }
         }
 
-        private string SanitiseVhostName(string vhostName)
-        {
-            return vhostName.Replace("/", "%2f");
-        }
+        private string SanitiseVhostName(string vhostName) => vhostName.Replace("/", "%2f");
 
         private T DeserializeResponse<T>(HttpWebResponse response)
         {
             var responseBody = GetBodyFromResponse(response);
-            return JsonConvert.DeserializeObject<T>(responseBody);
+            return JsonSerializer.Deserialize<T>(responseBody, settings);
         }
 
         private static string GetBodyFromResponse(HttpWebResponse response)
@@ -278,7 +272,47 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management
 
         private string BuildEndpointAddress(string path)
         {
-            return string.Format("{0}:{1}/api/{2}", hostUrl, portNumber, path);
+            if (string.IsNullOrEmpty(lastKnownApiAddress) == false)
+            {
+                if (IsHostResponding(lastKnownApiAddress))
+                    return string.Format("{0}/api/{1}", lastKnownApiAddress, path);
+            }
+
+            foreach (var apiAddress in apiAddressCollection)
+            {
+                if (IsHostResponding(apiAddress))
+                {
+                    lastKnownApiAddress = apiAddress;
+                    return string.Format("{0}/api/{1}", apiAddress, path);
+                }
+            }
+
+            throw new Exception("Unable to connect to any of the provided API hosts.");
+        }
+
+        private bool IsHostResponding(string address)
+        {
+            try
+            {
+                HttpWebRequest myRequest = (HttpWebRequest)WebRequest.Create(address);
+                myRequest.Timeout = 500;
+                HttpWebResponse response = (HttpWebResponse)myRequest.GetResponse();
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    response.Close();
+                    return true;
+                }
+                else
+                {
+                    response.Close();
+                    return false;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         private string BuildQueryString(object[] queryObjects)
