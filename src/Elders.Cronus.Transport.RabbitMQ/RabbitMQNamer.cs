@@ -38,6 +38,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             if (typeof(IPublicEvent).IsAssignableFrom(messageType))
                 yield return $"{bc}.PublicEvents";
+
+            if (typeof(ISignal).IsAssignableFrom(messageType))
+                yield return $"{bc}.Signals";
         }
     }
 

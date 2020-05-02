@@ -8,7 +8,7 @@ using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class RabbitMqConsumer<T> : IConsumer<T>
+    public class RabbitMqConsumer<T> : IConsumer<T> where T : IMessageHandler
     {
         static readonly ILogger logger = CronusLogger.CreateLogger(typeof(RabbitMqConsumer<>));
 
