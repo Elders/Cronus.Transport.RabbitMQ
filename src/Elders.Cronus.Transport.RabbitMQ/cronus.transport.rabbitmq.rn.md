@@ -1,3 +1,6 @@
+#### 6.1.0-beta0002 - 03.05.2020
+* Adds support for consuming signal messages
+
 #### 6.1.0-beta0001 - 29.04.2020
 * Adds infrastructure support for public events and comminication channel between bounded contexts
 
