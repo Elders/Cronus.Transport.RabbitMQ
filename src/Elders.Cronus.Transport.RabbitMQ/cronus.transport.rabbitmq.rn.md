@@ -1,3 +1,7 @@
+#### 6.1.0-beta0003 - 22.05.2020
+* Allows to configure federated exchange max hops (#243)
+* Updates Cronus to 6.1.0-beta0007
+
 #### 6.1.0-beta0002 - 03.05.2020
 * Adds support for consuming signal messages
 
