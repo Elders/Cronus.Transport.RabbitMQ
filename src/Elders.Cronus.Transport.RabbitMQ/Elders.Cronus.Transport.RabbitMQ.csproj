@@ -27,7 +27,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.1.3" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.1.3" />
     <PackageReference Include="Multithreading.Scheduler" Version="3.0.0" />
-    <PackageReference Include="Cronus" Version="6.1.0-beta0003" />
+    <PackageReference Include="Cronus" Version="6.1.0-beta0007" />
     <PackageReference Include="RabbitMQ.Client" Version="5.1.2" />
   </ItemGroup>
 </Project>
