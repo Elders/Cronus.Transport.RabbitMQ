@@ -10,7 +10,8 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management.Model
     //  "uri": "amqp://node1/unicom-public",
     //  "ack-mode": "on-confirm",
     //  "trust-user-id": false,
-    //  "exchange": "PublicEvents"
+    //  "exchange": "PublicEvents",
+    //  "max-hops": 2
     // }
     //}
     public class FederatedExchange
@@ -40,6 +41,9 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management.Model
 
             [JsonPropertyName("exchange")]
             public string Exchange { get; set; }
+
+            [JsonPropertyName("max-hops")]
+            public int MaxHops { get; set; }
         }
     }
 }

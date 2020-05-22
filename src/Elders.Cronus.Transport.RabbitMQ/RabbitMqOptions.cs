@@ -17,6 +17,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
         public int AdminPort { get; set; } = 5672;
 
         public string ApiAddress { get; set; }
+
+        public FederatedExchangeOptions FederatedExchange { get; set; }
     }
 
     public class RabbitMqOptionsProvider : CronusOptionsProviderBase<RabbitMqOptions>

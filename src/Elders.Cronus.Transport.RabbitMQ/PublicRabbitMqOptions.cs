@@ -20,10 +20,17 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public string ApiAddress { get; set; }
 
+        public FederatedExchangeOptions FederatedExchange { get; set; } = new FederatedExchangeOptions();
+
         public string GetUpstreamUri()
         {
             return string.Join(' ', AmqpTcpEndpoint.ParseMultiple(Server).Select(x => $"{x}/{VHost}"));
         }
+    }
+
+    public class FederatedExchangeOptions
+    {
+        public int MaxHops { get; set; } = 1;
     }
 
     public class PublicRabbitMqOptionsProvider : CronusOptionsProviderBase<PublicRabbitMqOptions>

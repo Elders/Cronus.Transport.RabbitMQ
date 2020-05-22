@@ -33,7 +33,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
                 RabbitMqManagementClient pub = new RabbitMqManagementClient(publicOptions);
                 CreateVHost(pub, publicOptions);
-                CreatePublishedLanguageConnection(pub);
+                CreatePublishedLanguageConnection(pub, publicOptions);
             }
             catch (Exception ex)
             {
@@ -52,7 +52,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
         }
 
-        private void CreatePublishedLanguageConnection(RabbitMqManagementClient client)
+        private void CreatePublishedLanguageConnection(RabbitMqManagementClient client, PublicRabbitMqOptions publicOptions)
         {
             IEnumerable<string> publicExchangeNames = rabbitMqNamer.GetExchangeNames(typeof(IPublicEvent));
             foreach (var exchange in publicExchangeNames)
@@ -63,7 +63,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     Value = new FederatedExchange.ValueParameters()
                     {
                         Uri = publicOptions.GetUpstreamUri(),
-                        Exchange = exchange
+                        Exchange = exchange,
+                        MaxHops = publicOptions.FederatedExchange.MaxHops
                     }
                 };
                 client.CreateFederatedExchange(federatedExchange, options.VHost);
