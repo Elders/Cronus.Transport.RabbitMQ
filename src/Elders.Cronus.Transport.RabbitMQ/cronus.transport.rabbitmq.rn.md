@@ -1,3 +1,6 @@
+#### 6.1.0-beta0004 - 26.05.2020
+* Logs the message which has failed to be processed
+
 #### 6.1.0-beta0003 - 22.05.2020
 * Allows to configure federated exchange max hops (#243)
 * Updates Cronus to 6.1.0-beta0007
