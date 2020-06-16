@@ -1,3 +1,6 @@
+#### 5.0.0-beta0004 - 16.06.2020
+* Added support for connecting to cluster/multiple endpoints
+
 #### 5.0.0-beta0003 - 13.07.2018
 * Prefetch only one message at a time
 

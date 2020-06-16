@@ -31,7 +31,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 UserName = settings.Username,
                 Password = settings.Password,
                 VirtualHost = settings.VirtualHost,
-                AutomaticRecoveryEnabled = false
+                AutomaticRecoveryEnabled = false,
+                EndpointResolverFactory = (e) => { return new MultipleEndpointResolver(settings); }
             });
         }
 
@@ -67,6 +68,21 @@ namespace Elders.Cronus.Transport.RabbitMQ
             connectionFactories?.Clear();
             connectionFactories = null;
             connectionFactory = null;
+        }
+
+        private class MultipleEndpointResolver : IEndpointResolver
+        {
+            IRabbitMqTransportSettings settings;
+
+            public MultipleEndpointResolver(IRabbitMqTransportSettings settings)
+            {
+                this.settings = settings;
+            }
+
+            public IEnumerable<AmqpTcpEndpoint> All()
+            {
+                return AmqpTcpEndpoint.ParseMultiple(settings.Server);
+            }
         }
     }
 }
