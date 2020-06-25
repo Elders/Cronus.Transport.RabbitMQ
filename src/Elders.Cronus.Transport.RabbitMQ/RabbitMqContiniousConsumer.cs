@@ -11,17 +11,16 @@ namespace Elders.Cronus.Transport.RabbitMQ
     public class RabbitMqContinuousConsumer<T> : ContinuousConsumer<T>
     {
         private readonly ISerializer serializer;
-
         private Dictionary<Guid, ulong> deliveryTags;
 
         private QueueingBasicConsumerWithManagedConnection consumer;
 
-        public RabbitMqContinuousConsumer(BoundedContext boundedContext, ISerializer serializer, IConnectionFactory connectionFactory, ISubscriberCollection<T> subscriberCollection, BoundedContextRabbitMqNamer bcRabbitMqNamer)
+        public RabbitMqContinuousConsumer(BoundedContext boundedContext, ISerializer serializer, IConnectionFactory connectionFactory, ISubscriberCollection<T> subscriberCollection, BoundedContextRabbitMqNamer bcRabbitMqNamer, bool useFanoutMode)
             : base(subscriberCollection)
         {
             this.deliveryTags = new Dictionary<Guid, ulong>();
             this.serializer = serializer;
-            this.consumer = new QueueingBasicConsumerWithManagedConnection(connectionFactory, subscriberCollection, boundedContext, bcRabbitMqNamer);
+            this.consumer = new QueueingBasicConsumerWithManagedConnection(connectionFactory, subscriberCollection, boundedContext, bcRabbitMqNamer, useFanoutMode);
         }
 
         protected override CronusMessage GetMessage()
@@ -92,13 +91,27 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 IConnectionFactory connectionFactory,
                 ISubscriberCollection<T> subscriberCollection,
                 BoundedContext boundedContext,
-                BoundedContextRabbitMqNamer bcRabbitMqNamer)
+                BoundedContextRabbitMqNamer bcRabbitMqNamer,
+                bool useFanoutMode)
             {
                 this.connectionFactory = connectionFactory;
                 this.subscriberCollection = subscriberCollection;
                 this.boundedContext = boundedContext;
                 this.bcRabbitMqNamer = bcRabbitMqNamer;
-                queueName = $"{boundedContext}.{typeof(T).Name}";
+                queueName = GetQueueName(boundedContext.Name, useFanoutMode);
+            }
+
+            private string GetQueueName(string boundedContext, bool useFanoutMode = false)
+            {
+                if (useFanoutMode)
+                {
+                    return $"{boundedContext}.{typeof(T).Name}.{Environment.MachineName}";
+                }
+                else
+                {
+                    // This is the default
+                    return $"{boundedContext}.{typeof(T).Name}";
+                }
             }
 
             public TResult Do<TResult>(Func<QueueingBasicConsumer, TResult> consumerAction)

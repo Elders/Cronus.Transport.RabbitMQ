@@ -1,3 +1,6 @@
+#### 6.1.0-beta0005 - 25.06.2020
+* Added support for Fanout Mode. In this Mode the message will be delivered to all consumers.
+
 #### 6.1.0-beta0004 - 26.05.2020
 * Logs the message which has failed to be processed
 
