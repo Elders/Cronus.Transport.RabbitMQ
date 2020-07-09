@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
@@ -8,6 +9,7 @@ using System.Text.RegularExpressions;
 using Elders.Cronus.Pipeline.Transport.RabbitMQ.Config;
 using Elders.Cronus.Transport.RabbitMQ.Management.Model;
 using Newtonsoft.Json;
+using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ.Management
 {
@@ -36,29 +38,37 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management
                 Action<HttpWebRequest> configureRequest = null,
                 bool ssl = false)
         {
-            var urlRegex = new Regex(@"^(http|https):\/\/.+\w$");
-            Uri urlUri = null;
-            if (string.IsNullOrEmpty(hostUrl))
+            var parsedEndpoints = AmqpTcpEndpoint.ParseMultiple(hostUrl);
+            if (parsedEndpoints.Any() == false)
             {
                 throw new ArgumentException("hostUrl is null or empty");
             }
 
-            if (hostUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            var parsedUrl = parsedEndpoints.First().HostName;
+
+            var urlRegex = new Regex(@"^(http|https):\/\/.+\w$");
+            Uri urlUri = null;
+            if (string.IsNullOrEmpty(parsedUrl))
+            {
+                throw new ArgumentException("hostUrl is null or empty");
+            }
+
+            if (parsedUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
                 ssl = true;
 
             if (ssl)
             {
-                if (hostUrl.Contains("http://"))
+                if (parsedUrl.Contains("http://"))
                     throw new ArgumentException("hostUrl is illegal");
-                hostUrl = hostUrl.Contains("https://") ? hostUrl : "https://" + hostUrl;
+                parsedUrl = parsedUrl.Contains("https://") ? parsedUrl : "https://" + parsedUrl;
             }
             else
             {
-                if (hostUrl.Contains("https://"))
+                if (parsedUrl.Contains("https://"))
                     throw new ArgumentException("hostUrl is illegal");
-                hostUrl = hostUrl.Contains("http://") ? hostUrl : "http://" + hostUrl;
+                parsedUrl = parsedUrl.Contains("http://") ? parsedUrl : "http://" + parsedUrl;
             }
-            if (!urlRegex.IsMatch(hostUrl) || !Uri.TryCreate(hostUrl, UriKind.Absolute, out urlUri))
+            if (!urlRegex.IsMatch(parsedUrl) || !Uri.TryCreate(parsedUrl, UriKind.Absolute, out urlUri))
             {
                 throw new ArgumentException("hostUrl is illegal");
             }
@@ -74,7 +84,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management
             {
                 configureRequest = x => { };
             }
-            this.hostUrl = hostUrl;
+            this.hostUrl = parsedUrl;
             this.username = username;
             this.password = password;
             this.portNumber = portNumber;

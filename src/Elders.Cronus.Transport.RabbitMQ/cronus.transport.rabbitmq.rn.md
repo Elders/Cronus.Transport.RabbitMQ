@@ -1,3 +1,6 @@
+#### 5.0.0-beta0005 - 09.07.2020
+* Fix virtual host creation when using multiple endpoints
+
 #### 5.0.0-beta0004 - 16.06.2020
 * Added support for connecting to cluster/multiple endpoints
 
