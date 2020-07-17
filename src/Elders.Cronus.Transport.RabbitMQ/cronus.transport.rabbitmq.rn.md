@@ -1,3 +1,6 @@
+#### 5.0.0-beta0006 - 17.07.2020
+* Fix issue where the publisher was not reconnecting after connection to RabbitMQ is restored
+
 #### 5.0.0-beta0005 - 09.07.2020
 * Fix virtual host creation when using multiple endpoints
 
