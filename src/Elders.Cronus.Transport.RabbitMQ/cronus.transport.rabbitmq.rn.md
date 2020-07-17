@@ -1,5 +1,5 @@
 #### 5.0.0-beta0007 - 17.07.2020
-* Added lock and timeout to the publisher when we re closing the connection to RabbitMQ to prevent locking the application
+* Added lock and timeout to the publisher when we are closing the connection to RabbitMQ to prevent locking the application
 
 #### 5.0.0-beta0006 - 17.07.2020
 * Fix issue where the publisher was not reconnecting after connection to RabbitMQ is restored
@@ -32,7 +32,7 @@
 * Fixes how we consume messages
 
 #### 4.0.2 - 20.02.2017
-* Downgrades Newtonsoft.Json to 10.0.3 
+* Downgrades Newtonsoft.Json to 10.0.3
 
 #### 4.0.1 - 20.02.2017
 * Targets dotnetstandard20 and .NET 4.5.1
