@@ -1,3 +1,6 @@
+#### 5.0.0-beta0007 - 17.07.2020
+* Added lock and timeout to the publisher when we re closing the connection to RabbitMQ to prevent locking the application
+
 #### 5.0.0-beta0006 - 17.07.2020
 * Fix issue where the publisher was not reconnecting after connection to RabbitMQ is restored
 
