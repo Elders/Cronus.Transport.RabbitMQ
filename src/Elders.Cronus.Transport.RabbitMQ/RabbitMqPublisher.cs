@@ -76,9 +76,14 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
         }
 
+        private void Stop()
+        {
+            Close();
+            stoped = true;
+        }
+
         private void Close()
         {
-            stoped = true;
             publishModel?.Abort();
             connection?.Abort();
 
@@ -88,7 +93,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public void Dispose()
         {
-            Close();
+            Stop();
         }
     }
 }
