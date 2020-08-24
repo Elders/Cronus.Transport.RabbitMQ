@@ -1,52 +1,39 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Elders.Cronus.Transport.RabbitMQ.Management;
-using Elders.Cronus.Transport.RabbitMQ.Management.Model;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class RabbitMqConnectionFactory : ConnectionFactory
+    public class RabbitMqConnectionFactory<TOptions> : ConnectionFactory
+        where TOptions : IRabbitMqOptions
     {
-        public RabbitMqConnectionFactory(IOptionsMonitor<RabbitMqOptions> settings)
+        static readonly ILogger logger = CronusLogger.CreateLogger(typeof(RabbitMqConnectionFactory<TOptions>));
+
+        private readonly TOptions options;
+
+        public RabbitMqConnectionFactory(IOptionsMonitor<TOptions> settings)
         {
-            HostName = settings.CurrentValue.Server;
-            Port = settings.CurrentValue.Port;
-            UserName = settings.CurrentValue.Username;
-            Password = settings.CurrentValue.Password;
-            VirtualHost = settings.CurrentValue.VHost;
+            options = settings.CurrentValue;
+            logger.Debug(() => "Loaded RabbitMQ options are {@Options}", options);
+            HostName = options.Server;
+            Port = options.Port;
+            UserName = options.Username;
+            Password = options.Password;
+            VirtualHost = options.VHost;
             AutomaticRecoveryEnabled = false;
-            EndpointResolverFactory = (x) => { return new MultipleEndpointResolver(settings); };
-
-            CreateVirtualHostDefinedInSettings(settings.CurrentValue);
+            EndpointResolverFactory = (x) => { return new MultipleEndpointResolver(options); };
         }
 
-        void CreateVirtualHostDefinedInSettings(RabbitMqOptions settings)
+        public override IConnection CreateConnection()
         {
-            RabbitMqManagementClient managmentClient = new RabbitMqManagementClient(settings);
-            if (!managmentClient.GetVHosts().Any(vh => vh.Name == settings.VHost))
-            {
-                var vhost = managmentClient.CreateVirtualHost(settings.VHost);
-                var rabbitMqUser = managmentClient.GetUsers().SingleOrDefault(x => x.Name == settings.Username);
-                var permissionInfo = new PermissionInfo(rabbitMqUser, vhost);
-                managmentClient.CreatePermission(permissionInfo);
-            }
+            return base.CreateConnection(new MultipleEndpointResolver(options).All().ToList());
         }
 
-        private class MultipleEndpointResolver : IEndpointResolver
+        private class MultipleEndpointResolver : DefaultEndpointResolver
         {
-            RabbitMqOptions settings;
-
-            public MultipleEndpointResolver(IOptionsMonitor<RabbitMqOptions> settings)
-            {
-                this.settings = settings.CurrentValue;
-            }
-
-            public IEnumerable<AmqpTcpEndpoint> All()
-            {
-                return AmqpTcpEndpoint.ParseMultiple(settings.Server);
-            }
+            public MultipleEndpointResolver(IRabbitMqOptions options) : base(AmqpTcpEndpoint.ParseMultiple(options.Server)) { }
         }
     }
 }

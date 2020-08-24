@@ -1,3 +1,10 @@
+#### 6.1.0 - 24.08.2020
+* Added support for Fanout Mode. In this Mode the message will be delivered to all consumers.
+* Logs the message which has failed to be processed
+* Allows to configure federated exchange max hops (#243)
+* Adds support for consuming signal messages
+* Adds infrastructure support for public events and comminication channel between bounded contexts
+
 #### 6.0.1 - 23.04.2020
 * Check if the WorkPool is initialized before stopping it
 * Restart the consumer only if the options have changed

@@ -10,6 +10,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
         [Range(1, int.MaxValue, ErrorMessage = "The configuration `Cronus:Transport:RabbitMq:Consumer:WorkersCount` allows values from 1 to 2147483647. For more information see here https://github.com/Elders/Cronus/blob/master/doc/Configuration.md")]
         public int WorkersCount { get; set; } = 5;
 
+        /// <summary>
+        /// Drasticly changes the infrastructure behavior. This will create a separate queue per node and a message will be delivered to every node.
+        /// </summary>
+        public bool FanoutMode { get; set; } = false;
+
         public override string ToString()
         {
             return $"WorkersCount: {WorkersCount}";
@@ -20,7 +25,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             if (other is null)
                 return false;
 
-            return WorkersCount == other.WorkersCount;
+            return WorkersCount == other.WorkersCount && FanoutMode == other.FanoutMode;
         }
 
         public override bool Equals(object obj)
@@ -31,7 +36,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(WorkersCount);
+            return HashCode.Combine(WorkersCount, FanoutMode);
         }
 
         public static bool operator ==(RabbitMqConsumerOptions left, RabbitMqConsumerOptions right)
@@ -42,7 +47,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             if (left is null || right is null)
                 return false;
 
-            return left.WorkersCount == right.WorkersCount;
+            return left.Equals(right);
         }
 
         public static bool operator !=(RabbitMqConsumerOptions left, RabbitMqConsumerOptions right)
@@ -53,13 +58,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
     public class RabbitMqConsumerOptionsProvider : CronusOptionsProviderBase<RabbitMqConsumerOptions>
     {
-        public const string SettingKey = "cronus:transport:rabbitmq:consumer";
+        public const string SectionKey = "cronus:transport:rabbitmq:consumer";
 
         public RabbitMqConsumerOptionsProvider(IConfiguration configuration) : base(configuration) { }
 
         public override void Configure(RabbitMqConsumerOptions options)
         {
-            configuration.GetSection(SettingKey).Bind(options);
+            configuration.GetSection(SectionKey).Bind(options);
         }
     }
 }

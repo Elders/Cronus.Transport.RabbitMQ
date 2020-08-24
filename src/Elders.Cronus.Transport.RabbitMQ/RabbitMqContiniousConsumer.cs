@@ -11,17 +11,16 @@ namespace Elders.Cronus.Transport.RabbitMQ
     public class RabbitMqContinuousConsumer<T> : ContinuousConsumer<T>
     {
         private readonly ISerializer serializer;
-
         private Dictionary<Guid, ulong> deliveryTags;
 
         private QueueingBasicConsumerWithManagedConnection consumer;
 
-        public RabbitMqContinuousConsumer(BoundedContext boundedContext, ISerializer serializer, IConnectionFactory connectionFactory, ISubscriberCollection<T> subscriberCollection)
+        public RabbitMqContinuousConsumer(BoundedContext boundedContext, ISerializer serializer, IConnectionFactory connectionFactory, ISubscriberCollection<T> subscriberCollection, BoundedContextRabbitMqNamer bcRabbitMqNamer, bool useFanoutMode)
             : base(subscriberCollection)
         {
             this.deliveryTags = new Dictionary<Guid, ulong>();
             this.serializer = serializer;
-            this.consumer = new QueueingBasicConsumerWithManagedConnection(connectionFactory, subscriberCollection, boundedContext);
+            this.consumer = new QueueingBasicConsumerWithManagedConnection(connectionFactory, subscriberCollection, boundedContext, bcRabbitMqNamer, useFanoutMode);
         }
 
         protected override CronusMessage GetMessage()
@@ -83,16 +82,36 @@ namespace Elders.Cronus.Transport.RabbitMQ
             private readonly IConnectionFactory connectionFactory;
             private readonly ISubscriberCollection<T> subscriberCollection;
             private readonly BoundedContext boundedContext;
+            private readonly BoundedContextRabbitMqNamer bcRabbitMqNamer;
             private QueueingBasicConsumer consumer;
             private bool aborting;
             private readonly string queueName;
 
-            public QueueingBasicConsumerWithManagedConnection(IConnectionFactory connectionFactory, ISubscriberCollection<T> subscriberCollection, BoundedContext boundedContext)
+            public QueueingBasicConsumerWithManagedConnection(
+                IConnectionFactory connectionFactory,
+                ISubscriberCollection<T> subscriberCollection,
+                BoundedContext boundedContext,
+                BoundedContextRabbitMqNamer bcRabbitMqNamer,
+                bool useFanoutMode)
             {
                 this.connectionFactory = connectionFactory;
                 this.subscriberCollection = subscriberCollection;
                 this.boundedContext = boundedContext;
-                queueName = $"{boundedContext}.{typeof(T).Name}";
+                this.bcRabbitMqNamer = bcRabbitMqNamer;
+                queueName = GetQueueName(boundedContext.Name, useFanoutMode);
+            }
+
+            private string GetQueueName(string boundedContext, bool useFanoutMode = false)
+            {
+                if (useFanoutMode)
+                {
+                    return $"{boundedContext}.{typeof(T).Name}.{Environment.MachineName}";
+                }
+                else
+                {
+                    // This is the default
+                    return $"{boundedContext}.{typeof(T).Name}";
+                }
             }
 
             public TResult Do<TResult>(Func<QueueingBasicConsumer, TResult> consumerAction)
@@ -105,7 +124,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 }
                 catch (Exception ex)
                 {
-                    logger.WarnException(ex.Message, ex);
+                    logger.WarnException(ex, () => ex.Message);
                     return default(TResult);
                 }
             }
@@ -185,23 +204,26 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
                     model.QueueDeclare(queueName, true, false, false, routingHeaders);
 
-                    var exchanges = messageTypes.GroupBy(x => RabbitMqNamer.GetExchangeName(boundedContext.Name, x)).Distinct();
-                    foreach (var exchange in exchanges)
+                    var exchangeGroups = messageTypes
+                        .SelectMany(mt => bcRabbitMqNamer.GetExchangeNames(mt).Select(x => new { Exchange = x, MessageType = mt }))
+                        .GroupBy(x => x.Exchange)
+                        .Distinct();
+                    foreach (var exchangeGroup in exchangeGroups)
                     {
-                        model.ExchangeDeclare(exchange.Key, PipelineType.Headers.ToString(), true);
+                        model.ExchangeDeclare(exchangeGroup.Key, PipelineType.Headers.ToString(), true);
                         var args = new Dictionary<string, object>();
                         args.Add("x-delayed-type", PipelineType.Headers.ToString());
-                        model.ExchangeDeclare(exchange.Key + ".Scheduler", "x-delayed-message", true, false, args);
+                        model.ExchangeDeclare(exchangeGroup.Key + ".Scheduler", "x-delayed-message", true, false, args);
 
                         var bindHeaders = new Dictionary<string, object>();
                         bindHeaders.Add("x-match", "any");
 
-                        foreach (var msgType in exchange)
+                        foreach (Type msgType in exchangeGroup.Select(x => x.MessageType))
                         {
                             bindHeaders.Add(msgType.GetContractId(), msgType.GetBoundedContext(boundedContext.Name));
                         }
-                        model.QueueBind(queueName, exchange.Key, string.Empty, bindHeaders);
-                        model.QueueBind(queueName, exchange.Key + ".Scheduler", string.Empty, bindHeaders);
+                        model.QueueBind(queueName, exchangeGroup.Key, string.Empty, bindHeaders);
+                        model.QueueBind(queueName, exchangeGroup.Key + ".Scheduler", string.Empty, bindHeaders);
                         model.BasicQos(0, 1, false);
                     }
                 }

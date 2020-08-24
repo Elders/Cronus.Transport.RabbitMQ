@@ -1,9 +1,16 @@
-﻿namespace Elders.Cronus.Transport.RabbitMQ.Management.Model
+﻿using System.Text.Json.Serialization;
+
+namespace Elders.Cronus.Transport.RabbitMQ.Management.Model
 {
     public class PermissionInfo
     {
+        [JsonPropertyName("configure")]
         public string Configure { get; private set; }
+
+        [JsonPropertyName("write")]
         public string Write { get; private set; }
+
+        [JsonPropertyName("read")]
         public string Read { get; private set; }
 
         private readonly User user;

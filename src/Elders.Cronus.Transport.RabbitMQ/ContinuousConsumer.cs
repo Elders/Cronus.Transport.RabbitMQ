@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.Json;
 using Elders.Cronus.MessageProcessing;
 using Elders.Multithreading.Scheduler;
 using Microsoft.Extensions.Logging;
@@ -50,7 +51,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     }
                     catch (Exception ex)
                     {
-                        logger.ErrorException("Failed to process message.", ex);
+                        logger.ErrorException(ex, () => "Failed to process message." + Environment.NewLine + JsonSerializer.Serialize(message));
                     }
                     finally
                     {
@@ -60,7 +61,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
             catch (Exception ex)
             {
-                logger.ErrorException("Unexpected Exception.", ex);
+                logger.ErrorException(ex, () => "Unexpected Exception.");
             }
             finally
             {
