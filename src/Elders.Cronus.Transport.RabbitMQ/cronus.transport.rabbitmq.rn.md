@@ -1,17 +1,8 @@
-#### 6.1.0-beta0005 - 25.06.2020
+#### 6.1.0 - 24.08.2020
 * Added support for Fanout Mode. In this Mode the message will be delivered to all consumers.
-
-#### 6.1.0-beta0004 - 26.05.2020
 * Logs the message which has failed to be processed
-
-#### 6.1.0-beta0003 - 22.05.2020
 * Allows to configure federated exchange max hops (#243)
-* Updates Cronus to 6.1.0-beta0007
-
-#### 6.1.0-beta0002 - 03.05.2020
 * Adds support for consuming signal messages
-
-#### 6.1.0-beta0001 - 29.04.2020
 * Adds infrastructure support for public events and comminication channel between bounded contexts
 
 #### 6.0.1 - 23.04.2020
