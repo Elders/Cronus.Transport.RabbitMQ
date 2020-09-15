@@ -236,11 +236,15 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
                 if (consumer == null || consumer.IsRunning == false)
                 {
-                    if ((DateTime.UtcNow - timestampSinceConsumerIsNotWorking).TotalSeconds > 5)
+                    if ((DateTime.UtcNow - timestampSinceConsumerIsNotWorking).TotalSeconds > 50)
                     {
                         timestampSinceConsumerIsNotWorking = DateTime.UtcNow;
+
                         consumer = new QueueingBasicConsumer(model);
                         string consumerTag = model.BasicConsume(queueName, false, consumer);
+
+                        if (consumer.IsRunning == false)
+                            throw new Exception("Unable to start QueueingBasicConsumerWithManagedConnection. Terminating the connection.");
                     }
                 }
             }
