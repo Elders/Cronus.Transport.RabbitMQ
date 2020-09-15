@@ -1,3 +1,6 @@
+#### 6.1.1 - 15.09.2020
+* Fixes a consumer connection management bug
+
 #### 6.1.0 - 24.08.2020
 * Added support for Fanout Mode. In this Mode the message will be delivered to all consumers.
 * Logs the message which has failed to be processed
