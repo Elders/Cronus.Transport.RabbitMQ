@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
@@ -16,6 +15,37 @@ namespace Elders.Cronus.Transport.RabbitMQ
         public RabbitMqConnectionFactory(IOptionsMonitor<TOptions> settings)
         {
             options = settings.CurrentValue;
+            logger.Debug(() => "Loaded RabbitMQ options are {@Options}", options);
+            HostName = options.Server;
+            Port = options.Port;
+            UserName = options.Username;
+            Password = options.Password;
+            VirtualHost = options.VHost;
+            AutomaticRecoveryEnabled = false;
+            EndpointResolverFactory = (x) => { return new MultipleEndpointResolver(options); };
+        }
+
+        public override IConnection CreateConnection()
+        {
+            return base.CreateConnection(new MultipleEndpointResolver(options).All().ToList());
+        }
+
+        private class MultipleEndpointResolver : DefaultEndpointResolver
+        {
+            public MultipleEndpointResolver(IRabbitMqOptions options) : base(AmqpTcpEndpoint.ParseMultiple(options.Server)) { }
+        }
+    }
+
+    public class RabbitMqConnectionFactoryNew<TOptions> : ConnectionFactory
+        where TOptions : IRabbitMqOptions
+    {
+        static readonly ILogger logger = CronusLogger.CreateLogger(typeof(RabbitMqConnectionFactoryNew<TOptions>));
+
+        private readonly TOptions options;
+
+        public RabbitMqConnectionFactoryNew(TOptions options)
+        {
+            this.options = options;
             logger.Debug(() => "Loaded RabbitMQ options are {@Options}", options);
             HostName = options.Server;
             Port = options.Port;

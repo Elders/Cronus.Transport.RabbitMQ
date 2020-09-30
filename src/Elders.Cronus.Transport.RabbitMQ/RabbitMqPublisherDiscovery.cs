@@ -15,6 +15,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         IEnumerable<DiscoveredModel> GetModels()
         {
+            yield return new DiscoveredModel(typeof(RabbitMqConnectionResolver), typeof(RabbitMqConnectionResolver), ServiceLifetime.Singleton);
+
             yield return new DiscoveredModel(typeof(BoundedContextRabbitMqNamer), typeof(BoundedContextRabbitMqNamer), ServiceLifetime.Singleton);
             yield return new DiscoveredModel(typeof(PublicMessagesRabbitMqNamer), typeof(PublicMessagesRabbitMqNamer), ServiceLifetime.Singleton);
 
