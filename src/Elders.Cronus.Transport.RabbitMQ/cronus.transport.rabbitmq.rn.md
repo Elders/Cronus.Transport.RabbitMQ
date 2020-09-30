@@ -1,3 +1,6 @@
+#### 6.2.0 - 30.09.2020
+* Reworks the connection management per bounded context when publishing mesages
+
 #### 6.1.1 - 15.09.2020
 * Fixes a consumer connection management bug
 
