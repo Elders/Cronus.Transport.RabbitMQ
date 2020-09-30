@@ -6,8 +6,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
     public class PrivateRabbitMqPublisher<TMessage> : RabbitMqPublisher<TMessage>
         where TMessage : IMessage
     {
-        public PrivateRabbitMqPublisher(ISerializer serializer, RabbitMqConnectionFactory<RabbitMqOptions> connectionFactory, ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, BoundedContextRabbitMqNamer bcRabbitMqNamer)
-            : base(serializer, connectionFactory, tenantResolver, boundedContext, bcRabbitMqNamer)
+        public PrivateRabbitMqPublisher(ISerializer serializer, RabbitMqConnectionResolver connectionResolver, ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, BoundedContextRabbitMqNamer bcRabbitMqNamer)
+            : base(serializer, connectionResolver, tenantResolver, boundedContext, bcRabbitMqNamer)
         {
         }
     }
