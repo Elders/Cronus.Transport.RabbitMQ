@@ -9,13 +9,20 @@ using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public sealed class RabbitMqConnectionResolver : IDisposable
+    public interface IRabbitMqConnectionResolver<out TOptions> : IDisposable
+        where TOptions : IRabbitMqOptions
     {
-        RabbitMqOptions options;
+        IConnection Resolve(CronusMessage message);
+    }
+
+    public sealed class RabbitMqConnectionResolver<TOptions> : IRabbitMqConnectionResolver<TOptions>
+        where TOptions : IRabbitMqOptions
+    {
+        TOptions options;
 
         ConcurrentDictionary<string, IConnection> connections;
 
-        public RabbitMqConnectionResolver(IOptionsMonitor<RabbitMqOptions> monitor)
+        public RabbitMqConnectionResolver(IOptionsMonitor<TOptions> monitor)
         {
             options = monitor.CurrentValue;
             connections = new ConcurrentDictionary<string, IConnection>();
@@ -37,11 +44,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
             return connection;
         }
 
-        private IConnection GetConnection(string boundedContext, RabbitMqOptions options)
+        private IConnection GetConnection(string boundedContext, TOptions options)
         {
-            RabbitMqOptions currentOptions = options.GetOptionsFor(boundedContext);
+            IRabbitMqOptions currentOptions = options.GetOptionsFor(boundedContext);
 
-            var connectionFactory = new RabbitMqConnectionFactoryNew<RabbitMqOptions>(currentOptions);
+            var connectionFactory = new RabbitMqConnectionFactoryNew(currentOptions);
             var connection = connectionFactory.CreateConnection();
             connection.AutoClose = false;
 
@@ -67,11 +74,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
         bool isStopped = false;
 
         private readonly ISerializer serializer;
-        private readonly RabbitMqConnectionResolver connectionResolver;
+        private readonly IRabbitMqConnectionResolver<IRabbitMqOptions> connectionResolver;
         private readonly IRabbitMqNamer rabbitMqNamer;
         private IModel publishModel;
 
-        public RabbitMqPublisher(ISerializer serializer, RabbitMqConnectionResolver connectionResolver, ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, IRabbitMqNamer rabbitMqNamer)
+        public RabbitMqPublisher(ISerializer serializer, IRabbitMqConnectionResolver<IRabbitMqOptions> connectionResolver, ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, IRabbitMqNamer rabbitMqNamer)
             : base(tenantResolver, boundedContext.CurrentValue)
         {
             this.serializer = serializer;
