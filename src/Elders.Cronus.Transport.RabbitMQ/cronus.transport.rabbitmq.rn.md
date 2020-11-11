@@ -1,3 +1,6 @@
+#### 6.2.1 - 11.11.2020
+* Fixes the Public EventPublisher
+
 #### 6.2.0 - 30.09.2020
 * Reworks the connection management per bounded context when publishing mesages
 
