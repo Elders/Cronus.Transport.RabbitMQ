@@ -36,14 +36,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
         }
     }
 
-    public class RabbitMqConnectionFactoryNew<TOptions> : ConnectionFactory
-        where TOptions : IRabbitMqOptions
+    public class RabbitMqConnectionFactoryNew : ConnectionFactory
     {
-        static readonly ILogger logger = CronusLogger.CreateLogger(typeof(RabbitMqConnectionFactoryNew<TOptions>));
+        static readonly ILogger logger = CronusLogger.CreateLogger(typeof(RabbitMqConnectionFactoryNew));
 
-        private readonly TOptions options;
+        private readonly IRabbitMqOptions options;
 
-        public RabbitMqConnectionFactoryNew(TOptions options)
+        public RabbitMqConnectionFactoryNew(IRabbitMqOptions options)
         {
             this.options = options;
             logger.Debug(() => "Loaded RabbitMQ options are {@Options}", options);

@@ -22,6 +22,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public FederatedExchangeOptions FederatedExchange { get; set; } = new FederatedExchangeOptions();
 
+        public IRabbitMqOptions GetOptionsFor(string boundedContext)
+        {
+            return this;
+        }
+
         public string GetUpstreamUri()
         {
             return string.Join(' ', AmqpTcpEndpoint.ParseMultiple(Server).Select(x => $"{x}/{VHost}"));

@@ -34,7 +34,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         List<RabbitMqOptions> ExternalServices { get; set; }
 
-        public RabbitMqOptions GetOptionsFor(string boundedContext)
+        public IRabbitMqOptions GetOptionsFor(string boundedContext)
         {
             var fromCfg = ExternalServices?.Where(opt => opt.BoundedContext.Equals(boundedContext, System.StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
             if (fromCfg is null == false)
