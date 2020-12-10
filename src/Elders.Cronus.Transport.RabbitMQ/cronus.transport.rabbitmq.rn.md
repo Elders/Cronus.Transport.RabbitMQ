@@ -1,3 +1,7 @@
+#### 6.2.2 - 10.12.2020
+* Handles the recovery of VHost when it is deleted runtime
+* Updates Cronus to 6.2.9
+
 #### 6.2.1 - 11.11.2020
 * Fixes the Public EventPublisher
 
