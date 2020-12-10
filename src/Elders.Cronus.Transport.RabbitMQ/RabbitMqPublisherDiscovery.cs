@@ -34,6 +34,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
             var publicPublisherModel = new DiscoveredModel(typeof(IPublisher<IPublicEvent>), typeof(PublicRabbitMqPublisher), ServiceLifetime.Singleton);
             publicPublisherModel.CanOverrideDefaults = true;
             yield return publicPublisherModel;
+
+            yield return new DiscoveredModel(typeof(RabbitMqInfrastructure), typeof(RabbitMqInfrastructure), ServiceLifetime.Singleton);
         }
     }
 }

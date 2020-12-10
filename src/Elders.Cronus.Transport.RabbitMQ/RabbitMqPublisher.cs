@@ -6,6 +6,7 @@ using Elders.Cronus.Multitenancy;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
@@ -21,11 +22,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
         TOptions options;
 
         ConcurrentDictionary<string, IConnection> connections;
+        private readonly RabbitMqInfrastructure rabbitMqInfrastructure;
 
-        public RabbitMqConnectionResolver(IOptionsMonitor<TOptions> monitor)
+        public RabbitMqConnectionResolver(RabbitMqInfrastructure rabbitMqInfrastructure, IOptionsMonitor<TOptions> monitor)
         {
             options = monitor.CurrentValue;
             connections = new ConcurrentDictionary<string, IConnection>();
+            this.rabbitMqInfrastructure = rabbitMqInfrastructure;
         }
 
         public IConnection Resolve(CronusMessage message)
@@ -36,9 +39,19 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             if (connection is null || connection.IsOpen == false)
             {
-                connection?.Abort(5000);
-                connection = GetConnection(boundedContext, options);
-                connections.TryAdd(boundedContext, connection);
+                try
+                {
+                    connection?.Abort(5000);
+                    connection = GetConnection(boundedContext, options);
+                    connections.TryAdd(boundedContext, connection);
+                }
+                catch (BrokerUnreachableException)
+                {
+                    connection?.Abort(5000);
+                    rabbitMqInfrastructure.Initialize();
+                    connection = GetConnection(boundedContext, options);
+                    connections.TryAdd(boundedContext, connection);
+                }
             }
 
             return connection;

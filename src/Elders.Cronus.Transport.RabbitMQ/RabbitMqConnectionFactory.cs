@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
@@ -11,8 +12,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
         static readonly ILogger logger = CronusLogger.CreateLogger(typeof(RabbitMqConnectionFactory<TOptions>));
 
         private readonly TOptions options;
+        private readonly RabbitMqInfrastructure rabbitMqInfrastructure;
 
-        public RabbitMqConnectionFactory(IOptionsMonitor<TOptions> settings)
+        public RabbitMqConnectionFactory(RabbitMqInfrastructure rabbitMqInfrastructure, IOptionsMonitor<TOptions> settings)
         {
             options = settings.CurrentValue;
             logger.Debug(() => "Loaded RabbitMQ options are {@Options}", options);
@@ -23,11 +25,20 @@ namespace Elders.Cronus.Transport.RabbitMQ
             VirtualHost = options.VHost;
             AutomaticRecoveryEnabled = false;
             EndpointResolverFactory = (x) => { return new MultipleEndpointResolver(options); };
+            this.rabbitMqInfrastructure = rabbitMqInfrastructure;
         }
 
         public override IConnection CreateConnection()
         {
-            return base.CreateConnection(new MultipleEndpointResolver(options).All().ToList());
+            try
+            {
+                return base.CreateConnection(new MultipleEndpointResolver(options).All().ToList());
+            }
+            catch (BrokerUnreachableException)
+            {
+                rabbitMqInfrastructure.Initialize();
+                return base.CreateConnection(new MultipleEndpointResolver(options).All().ToList());
+            }
         }
 
         private class MultipleEndpointResolver : DefaultEndpointResolver

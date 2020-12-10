@@ -177,6 +177,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                         if (ReferenceEquals(null, connection) || connection.IsOpen == false)
                         {
                             connection?.Abort(5000);
+                            
                             connection = connectionFactory.CreateConnection();
                         }
                     }
