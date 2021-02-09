@@ -1,3 +1,7 @@
+#### 6.3.0 - 09.02.2021
+* Updates Cronus to v6.3.0
+* Enables publisher confirms to all models
+
 #### 6.2.2 - 10.12.2020
 * Handles the recovery of VHost when it is deleted runtime
 * Updates Cronus to 6.2.9
