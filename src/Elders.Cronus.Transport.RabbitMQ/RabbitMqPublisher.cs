@@ -113,7 +113,10 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 IConnection connection = connectionResolver.Resolve(message);
 
                 if (publishModel == null || publishModel.IsClosed)
+                {
                     publishModel = connection.CreateModel();
+                    publishModel.ConfirmSelect();
+                }
 
                 IBasicProperties props = publishModel.CreateBasicProperties();
                 props.Headers = new Dictionary<string, object>() { { message.Payload.GetType().GetContractId(), boundedContext } };
