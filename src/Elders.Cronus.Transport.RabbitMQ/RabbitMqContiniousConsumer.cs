@@ -193,6 +193,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 {
                     model?.Abort();
                     model = connection.CreateModel();
+                    model.ConfirmSelect();
 
                     var routingHeaders = new Dictionary<string, object>();
                     routingHeaders.Add("x-match", "any");
