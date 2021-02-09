@@ -1,3 +1,6 @@
+#### 6.3.1 - 09.02.2021
+* Enables publisher confirms to all models including publishers
+
 #### 6.3.0 - 09.02.2021
 * Updates Cronus to v6.3.0
 * Enables publisher confirms to all models
