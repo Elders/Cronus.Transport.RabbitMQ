@@ -1,3 +1,7 @@
+#### 6.4.0-beta0001 - 29.03.2021
+* Updates cronus
+* Adds bindings for Aggregate commits
+
 #### 6.3.1 - 09.02.2021
 * Enables publisher confirms to all models including publishers
 
