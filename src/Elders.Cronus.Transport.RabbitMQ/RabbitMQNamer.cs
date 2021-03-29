@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Elders.Cronus.EventStore;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 
@@ -30,17 +31,23 @@ namespace Elders.Cronus.Transport.RabbitMQ
             if (typeof(ICommand).IsAssignableFrom(messageType))
                 yield return $"{bc}.Commands";
 
-            if (typeof(IEvent).IsAssignableFrom(messageType))
+            else if (typeof(IEvent).IsAssignableFrom(messageType))
                 yield return $"{bc}.Events";
 
-            if (typeof(IScheduledMessage).IsAssignableFrom(messageType))
+            else if (typeof(IScheduledMessage).IsAssignableFrom(messageType))
                 yield return $"{bc}.Events";
 
-            if (typeof(IPublicEvent).IsAssignableFrom(messageType))
+            else if (typeof(IPublicEvent).IsAssignableFrom(messageType))
                 yield return $"{bc}.PublicEvents";
 
-            if (typeof(ISignal).IsAssignableFrom(messageType))
+            else if (typeof(ISignal).IsAssignableFrom(messageType))
                 yield return $"{bc}.Signals";
+
+            else if (typeof(AggregateCommit).IsAssignableFrom(messageType))
+                yield return $"{bc}.AggregateCommits";
+
+            else
+                yield return $"{bc}.{messageType.Name}";
         }
     }
 
