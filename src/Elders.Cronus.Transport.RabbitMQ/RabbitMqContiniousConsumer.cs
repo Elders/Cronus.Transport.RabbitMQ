@@ -86,6 +86,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             private QueueingBasicConsumer consumer;
             private bool aborting;
             private readonly string queueName;
+            bool isSystemQueue = false;
 
             public QueueingBasicConsumerWithManagedConnection(
                 IConnectionFactory connectionFactory,
@@ -99,6 +100,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 this.boundedContext = boundedContext;
                 this.bcRabbitMqNamer = bcRabbitMqNamer;
                 queueName = GetQueueName(boundedContext.Name, useFanoutMode);
+                isSystemQueue = typeof(ISystemHandler).IsAssignableFrom(typeof(T));
             }
 
             private string GetQueueName(string boundedContext, bool useFanoutMode = false)
@@ -109,8 +111,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 }
                 else
                 {
+                    string systemMarker = typeof(ISystemHandler).IsAssignableFrom(typeof(T)) ? "cronus." : string.Empty;
                     // This is the default
-                    return $"{boundedContext}.{typeof(T).Name}";
+                    return $"{boundedContext}.{systemMarker}{typeof(T).Name}";
                 }
             }
 
@@ -177,7 +180,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                         if (ReferenceEquals(null, connection) || connection.IsOpen == false)
                         {
                             connection?.Abort(5000);
-                            
+
                             connection = connectionFactory.CreateConnection();
                         }
                     }
@@ -220,7 +223,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                         var bindHeaders = new Dictionary<string, object>();
                         bindHeaders.Add("x-match", "any");
 
-                        foreach (Type msgType in exchangeGroup.Select(x => x.MessageType))
+                        foreach (Type msgType in exchangeGroup.Select(x => x.MessageType).Where(mt => typeof(ISystemMessage).IsAssignableFrom(mt) == isSystemQueue))
                         {
                             bindHeaders.Add(msgType.GetContractId(), msgType.GetBoundedContext(boundedContext.Name));
                         }
