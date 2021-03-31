@@ -26,28 +26,30 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public IEnumerable<string> GetExchangeNames(Type messageType)
         {
+            string systemMarker = typeof(ISystemMessage).IsAssignableFrom(messageType) ? "cronus." : string.Empty;
+
             string bc = messageType.GetBoundedContext(boundedContext.Name);
 
             if (typeof(ICommand).IsAssignableFrom(messageType))
-                yield return $"{bc}.Commands";
+                yield return $"{bc}.{systemMarker}Commands";
 
             else if (typeof(IEvent).IsAssignableFrom(messageType))
-                yield return $"{bc}.Events";
+                yield return $"{bc}.{systemMarker}Events";
 
             else if (typeof(IScheduledMessage).IsAssignableFrom(messageType))
-                yield return $"{bc}.Events";
+                yield return $"{bc}.{systemMarker}Events";
 
             else if (typeof(IPublicEvent).IsAssignableFrom(messageType))
-                yield return $"{bc}.PublicEvents";
+                yield return $"{bc}.{systemMarker}PublicEvents";
 
             else if (typeof(ISignal).IsAssignableFrom(messageType))
-                yield return $"{bc}.Signals";
+                yield return $"{bc}.{systemMarker}Signals";
 
             else if (typeof(AggregateCommit).IsAssignableFrom(messageType))
-                yield return $"{bc}.AggregateCommits";
+                yield return $"{bc}.{systemMarker}AggregateCommits";
 
             else
-                yield return $"{bc}.{messageType.Name}";
+                yield return $"{bc}.{systemMarker}{messageType.Name}";
         }
     }
 
@@ -56,8 +58,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
     {
         public IEnumerable<string> GetExchangeNames(Type messageType)
         {
+
             if (typeof(IPublicEvent).IsAssignableFrom(messageType))
-                yield return $"PublicEvents";
+            {
+                // No BoundedContext here, because the bounded context is global here
+                string systemMarker = typeof(ISystemMessage).IsAssignableFrom(messageType) ? "cronus." : string.Empty;
+                yield return $"{systemMarker}PublicEvents";
+            }
         }
     }
 }
