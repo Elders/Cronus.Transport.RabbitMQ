@@ -1,3 +1,6 @@
+#### 6.4.0-beta0002 - 31.03.2021
+* Adds support for system queues and exchanges
+
 #### 6.4.0-beta0001 - 29.03.2021
 * Updates cronus
 * Adds bindings for Aggregate commits
