@@ -1,3 +1,6 @@
+#### 6.4.0-beta0003 - 09.04.2021
+* Removes duplicate bindings for System Queues
+
 #### 6.4.0-beta0002 - 31.03.2021
 * Adds support for system queues and exchanges
 
