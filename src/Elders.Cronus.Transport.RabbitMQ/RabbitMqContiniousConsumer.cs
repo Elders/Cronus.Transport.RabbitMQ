@@ -202,7 +202,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     routingHeaders.Add("x-match", "any");
                     var messageTypes = subscriberCollection.Subscribers.SelectMany(x => x.GetInvolvedMessageTypes()).Distinct().ToList();
 
-                    foreach (var msgType in messageTypes)
+                    foreach (var msgType in messageTypes.Where(mt => typeof(ISystemMessage).IsAssignableFrom(mt) == isSystemQueue))
                     {
                         routingHeaders.Add(msgType.GetContractId(), msgType.GetBoundedContext(boundedContext.Name));
                     }
