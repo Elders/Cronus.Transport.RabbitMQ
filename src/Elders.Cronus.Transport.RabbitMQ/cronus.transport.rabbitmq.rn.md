@@ -1,3 +1,6 @@
+#### 6.4.0-beta0004 - 27.04.2021
+* Fixes connection replaceability issue
+
 #### 6.4.0-beta0003 - 09.04.2021
 * Removes duplicate bindings for System Queues
 
