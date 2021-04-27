@@ -43,14 +43,14 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 {
                     connection?.Abort(5000);
                     connection = GetConnection(boundedContext, options);
-                    connections.TryAdd(boundedContext, connection);
+                    connections.AddOrUpdate(boundedContext, connection, (bc, con) => connection);
                 }
                 catch (BrokerUnreachableException)
                 {
                     connection?.Abort(5000);
                     rabbitMqInfrastructure.Initialize();
                     connection = GetConnection(boundedContext, options);
-                    connections.TryAdd(boundedContext, connection);
+                    connections.AddOrUpdate(boundedContext, connection, (bc, con) => connection);
                 }
             }
 
