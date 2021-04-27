@@ -20,6 +20,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         where TOptions : IRabbitMqOptions
     {
         TOptions options;
+        static readonly ILogger logger = CronusLogger.CreateLogger(typeof(RabbitMqConnectionResolver<TOptions>));
 
         ConcurrentDictionary<string, IConnection> connections;
         private readonly RabbitMqInfrastructure rabbitMqInfrastructure;
@@ -41,16 +42,22 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 try
                 {
-                    connection?.Abort(5000);
                     connection = GetConnection(boundedContext, options);
-                    connections.AddOrUpdate(boundedContext, connection, (bc, con) => connection);
+                    connections.AddOrUpdate(boundedContext, connection, (bc, con) =>
+                    {
+                        DisposeConnection(con);
+                        return connection;
+                    });
                 }
                 catch (BrokerUnreachableException)
                 {
-                    connection?.Abort(5000);
                     rabbitMqInfrastructure.Initialize();
                     connection = GetConnection(boundedContext, options);
-                    connections.AddOrUpdate(boundedContext, connection, (bc, con) => connection);
+                    connections.AddOrUpdate(boundedContext, connection, (bc, con) =>
+                    {
+                        DisposeConnection(con);
+                        return connection;
+                    });
                 }
             }
 
@@ -63,17 +70,25 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             var connectionFactory = new RabbitMqConnectionFactoryNew(currentOptions);
             var connection = connectionFactory.CreateConnection();
+            logger.LogInformation("Rabbitmq connection created.");
             connection.AutoClose = false;
 
             return connection;
+        }
+
+        private void DisposeConnection(IConnection connection)
+        {
+            connection?.Abort(5000);
+            connection.Dispose();
+            connection = null;
+            logger.LogInformation("Rabbitmq connection disposed.");
         }
 
         public void Dispose()
         {
             foreach (IConnection connection in connections.Select(x => x.Value))
             {
-                connection?.Abort(5000);
-                connection.Dispose();
+                DisposeConnection(connection);
             }
 
             connections.Clear();
@@ -114,8 +129,14 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
                 if (publishModel == null || publishModel.IsClosed)
                 {
-                    publishModel = connection.CreateModel();
-                    publishModel.ConfirmSelect();
+                    lock (connectionResolver)
+                    {
+                        if (publishModel == null || publishModel.IsClosed)
+                        {
+                            publishModel = connection.CreateModel();
+                            publishModel.ConfirmSelect();
+                        }
+                    }
                 }
 
                 IBasicProperties props = publishModel.CreateBasicProperties();
