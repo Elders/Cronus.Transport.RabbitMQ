@@ -148,6 +148,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
                     connection?.Abort(5000);
                     connection = null;
+
+                    logger.LogInformation("Rabbitmq connection disposed by consumer.");
                 }
             }
 
@@ -182,6 +184,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
                             connection?.Abort(5000);
 
                             connection = connectionFactory.CreateConnection();
+
+                            logger.LogInformation("Rabbitmq connection created by consumer.");
                         }
                     }
                 }
