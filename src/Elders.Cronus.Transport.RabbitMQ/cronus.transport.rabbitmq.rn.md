@@ -1,3 +1,6 @@
+#### 6.4.0-beta0005 - 27.04.2021
+* Adds logging when a connection is established or destroyed
+
 #### 6.4.0-beta0004 - 27.04.2021
 * Fixes connection replaceability issue
 
