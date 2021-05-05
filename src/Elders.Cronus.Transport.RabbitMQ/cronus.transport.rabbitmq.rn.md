@@ -1,4 +1,4 @@
-#### 6.4.0-beta0006 - 05.05.2021
+#### 6.4.0-beta0007 - 05.05.2021
 * Fixes how exchange names are defined
 
 #### 6.4.0-beta0006 - 27.04.2021
