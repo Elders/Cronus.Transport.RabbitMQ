@@ -29,27 +29,48 @@ namespace Elders.Cronus.Transport.RabbitMQ
             string systemMarker = typeof(ISystemMessage).IsAssignableFrom(messageType) ? "cronus." : string.Empty;
 
             string bc = messageType.GetBoundedContext(boundedContext.Name);
+            bool isConventionalMessageType = false;
 
             if (typeof(ICommand).IsAssignableFrom(messageType))
+            {
                 yield return $"{bc}.{systemMarker}Commands";
+                isConventionalMessageType = true;
+            }
 
-            else if (typeof(IEvent).IsAssignableFrom(messageType))
+            if (typeof(IEvent).IsAssignableFrom(messageType))
+            {
                 yield return $"{bc}.{systemMarker}Events";
+                isConventionalMessageType = true;
+            }
 
-            else if (typeof(IScheduledMessage).IsAssignableFrom(messageType))
+            if (typeof(IScheduledMessage).IsAssignableFrom(messageType))
+            {
                 yield return $"{bc}.{systemMarker}Events";
+                isConventionalMessageType = true;
+            }
 
-            else if (typeof(IPublicEvent).IsAssignableFrom(messageType))
+            if (typeof(IPublicEvent).IsAssignableFrom(messageType))
+            {
                 yield return $"{bc}.{systemMarker}PublicEvents";
+                isConventionalMessageType = true;
+            }
 
-            else if (typeof(ISignal).IsAssignableFrom(messageType))
+            if (typeof(ISignal).IsAssignableFrom(messageType))
+            {
                 yield return $"{bc}.{systemMarker}Signals";
+                isConventionalMessageType = true;
+            }
 
-            else if (typeof(AggregateCommit).IsAssignableFrom(messageType))
+            if (typeof(AggregateCommit).IsAssignableFrom(messageType))
+            {
                 yield return $"{bc}.{systemMarker}AggregateCommits";
+                isConventionalMessageType = true;
+            }
 
-            else
+            if (isConventionalMessageType == false)
+            {
                 yield return $"{bc}.{systemMarker}{messageType.Name}";
+            }
         }
     }
 
