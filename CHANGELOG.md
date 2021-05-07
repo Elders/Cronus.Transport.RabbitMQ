@@ -1,3 +1,10 @@
+# [6.4.0-preview.1](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.3.2-preview.1...v6.4.0-preview.1) (2021-05-07)
+
+
+### Features
+
+* Consolidates the release notes ([552792a](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/552792a6201b21ae9ae0831e38bcae36517dd094))
+
 ## [6.3.2-preview.1](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.3.1...v6.3.2-preview.1) (2021-05-07)
 
 #### 6.4.0-beta0007 - 05.05.2021
