@@ -1,3 +1,14 @@
+## [6.3.2-preview.1](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.3.1...v6.3.2-preview.1) (2021-05-07)
+
+
+### Bug Fixes
+
+* Fixes copyright attribute ([e660954](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/e660954b291eca40a73996fd7788e8b52211095c))
+* Fixes how exchange names are defined ([581fb59](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/581fb59858eb6c3945d154477013c1068e9e5704))
+* Removes gitversion ([e8f97cc](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/e8f97cc92a11630fef0f8db1f7de79ee5c03545c))
+* Updates Cronus ([3e0abe3](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/3e0abe3f17f2b9636f6634c77ccc322409d54835))
+* Updates Cronus ([ddc3cea](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/ddc3cea1a9772c61f27d9068e9a40cce59ad7bc8))
+
 # [6.4.0-preview.1](https://github.com/Elders/Cronus/compare/v6.4.0-next.13...v6.4.0-preview.1) (2021-05-05)
 
 
