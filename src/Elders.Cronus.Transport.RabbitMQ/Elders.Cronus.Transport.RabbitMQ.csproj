@@ -28,6 +28,6 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.1.7" />
     <PackageReference Include="Multithreading.Scheduler" Version="3.0.0" />
     <PackageReference Include="RabbitMQ.Client" Version="5.2.0" />
-    <PackageReference Include="Cronus" Version="6.4.0-preview.3" />
+    <PackageReference Include="Cronus" Version="6.4.0-preview.4" />
   </ItemGroup>
 </Project>
