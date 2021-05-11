@@ -1,3 +1,12 @@
+# [6.4.0-preview.2](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.4.0-preview.1...v6.4.0-preview.2) (2021-05-11)
+
+
+### Bug Fixes
+
+* Fixes how the bounded context is resolved on publish ([83f54c1](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/83f54c1b50f9f76324ca0db3ae2c77676c6c68a9))
+* Removes message priority ([0db50a4](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/0db50a4b46612696d8f419647d9a0f33f74f5a11))
+* Updates Cronus ([27c8863](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/27c88631d833072c762317ba499198a24fe098c4))
+
 # [6.4.0-preview.1](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.3.2-preview.1...v6.4.0-preview.1) (2021-05-07)
 
 
