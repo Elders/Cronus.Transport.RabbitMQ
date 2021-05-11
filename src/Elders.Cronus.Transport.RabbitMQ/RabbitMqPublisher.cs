@@ -34,7 +34,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public IConnection Resolve(CronusMessage message)
         {
-            string boundedContext = message.Headers[MessageHeader.BoundedContext];
+            string boundedContext = message.RecipientBoundedContext;
 
             IConnection connection = connections.GetOrAdd(boundedContext, (bc, opt) => GetConnection(bc, opt), options);
 
