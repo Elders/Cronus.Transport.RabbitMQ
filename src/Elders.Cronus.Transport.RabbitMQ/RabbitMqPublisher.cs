@@ -143,7 +143,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 props.Headers = new Dictionary<string, object>() { { message.Payload.GetType().GetContractId(), boundedContext } };
 
                 props.Persistent = true;
-                props.Priority = 9;
 
                 byte[] body = this.serializer.SerializeToBytes(message);
 
