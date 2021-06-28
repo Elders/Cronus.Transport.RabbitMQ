@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Elders.Cronus.MessageProcessing;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
@@ -253,7 +255,15 @@ namespace Elders.Cronus.Transport.RabbitMQ
                         string consumerTag = model.BasicConsume(queueName, false, consumer);
 
                         if (consumer.IsRunning == false)
-                            throw new Exception("Unable to start QueueingBasicConsumerWithManagedConnection. Terminating the connection.");
+                        {
+                            Task.Delay(1000).GetAwaiter().GetResult(); // Give the consumer 1 second to warm up. For some reason it needs it. => https://www.youtube.com/watch?v=xyPaPysxltA
+                            if (consumer.IsRunning == false)
+                            {
+                                Task.Delay(1000).GetAwaiter().GetResult(); // Give the consumer 1 more second to warm up. PRAY => https://www.youtube.com/watch?v=aJbsdoDHUrI
+                                if (consumer.IsRunning == false)
+                                    throw new Exception("Unable to start QueueingBasicConsumerWithManagedConnection. Terminating the connection.");
+                            }
+                        }
                     }
                 }
             }
