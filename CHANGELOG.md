@@ -1,3 +1,11 @@
+# [6.4.0-preview.3](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.4.0-preview.2...v6.4.0-preview.3) (2021-06-28)
+
+
+### Bug Fixes
+
+* Updates Cronus ([c658999](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/c658999c03fc4a03354b57314ba73e8f587a9a98))
+* Wait a bit when starting a consumer. It needs warming up ([e79ca67](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/e79ca67701d974d575b7bd99e1475072efeae36b))
+
 # [6.4.0-preview.2](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.4.0-preview.1...v6.4.0-preview.2) (2021-05-11)
 
 
