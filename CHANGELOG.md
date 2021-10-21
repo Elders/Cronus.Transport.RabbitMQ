@@ -1,3 +1,10 @@
+# [6.4.0-preview.4](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.4.0-preview.3...v6.4.0-preview.4) (2021-10-21)
+
+
+### Bug Fixes
+
+* Reduces the amount of messages sent on re-publish ([1f25344](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/1f25344545997beb778ef987a664f2bf1f0e0c2f))
+
 # [6.4.0-preview.3](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.4.0-preview.2...v6.4.0-preview.3) (2021-06-28)
 
 
