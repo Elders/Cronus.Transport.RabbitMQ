@@ -114,6 +114,17 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.rabbitMqNamer = rabbitMqNamer;
         }
 
+        protected virtual IBasicProperties BuildMessageProperties(IBasicProperties properties, CronusMessage message)
+        {
+            string boundedContext = message.Headers[MessageHeader.BoundedContext];
+
+            properties.Headers = new Dictionary<string, object>() { { message.Payload.GetType().GetContractId(), boundedContext } };
+
+            properties.Persistent = true;
+
+            return properties;
+        }
+
         protected override bool PublishInternal(CronusMessage message)
         {
             try
@@ -140,9 +151,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 }
 
                 IBasicProperties props = publishModel.CreateBasicProperties();
-                props.Headers = new Dictionary<string, object>() { { message.Payload.GetType().GetContractId(), boundedContext } };
-
-                props.Persistent = true;
+                props = BuildMessageProperties(props, message);
 
                 byte[] body = this.serializer.SerializeToBytes(message);
 

@@ -204,27 +204,76 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     model = connection.CreateModel();
                     model.ConfirmSelect();
 
+                    // exchangeName, dictionary<eventType,List<handlers>>
+                    var event2Handler = new Dictionary<string, Dictionary<string, List<string>>>();
+
                     var routingHeaders = new Dictionary<string, object>();
                     routingHeaders.Add("x-match", "any");
-                    var messageTypes = subscriberCollection.Subscribers.SelectMany(x => x.GetInvolvedMessageTypes()).Distinct().ToList();
 
-                    foreach (var msgType in messageTypes.Where(mt => typeof(ISystemMessage).IsAssignableFrom(mt) == isSystemQueue))
+                    foreach (var subscriber in subscriberCollection.Subscribers)
                     {
-                        routingHeaders.Add(msgType.GetContractId(), msgType.GetBoundedContext(boundedContext.Name));
+                        foreach (var msgType in subscriber.GetInvolvedMessageTypes().Where(mt => typeof(ISystemMessage).IsAssignableFrom(mt) == isSystemQueue))
+                        {
+                            string bc = msgType.GetBoundedContext(boundedContext.Name);
+                            string messageContractId = msgType.GetContractId();
+                            var exchangeNames = bcRabbitMqNamer.GetExchangeNames(msgType);
+
+                            foreach (string exchangeName in exchangeNames)
+                            {
+                                Dictionary<string, List<string>> gg;
+                                if (event2Handler.TryGetValue(exchangeName, out gg) == false)
+                                {
+                                    gg = new Dictionary<string, List<string>>();
+                                    event2Handler.Add(exchangeName, gg);
+                                }
+
+                                List<string> handlers;
+                                if (gg.TryGetValue(messageContractId, out handlers) == false)
+                                {
+                                    handlers = new List<string>();
+                                    gg.Add(messageContractId, handlers);
+                                }
+
+                                handlers.Add(subscriber.Id);
+                            }
+                        }
+                    }
+
+                    foreach (var subscriber in subscriberCollection.Subscribers)
+                    {
+                        foreach (var msgType in subscriber.GetInvolvedMessageTypes().Where(mt => typeof(ISystemMessage).IsAssignableFrom(mt) == isSystemQueue))
+                        {
+                            string bc = msgType.GetBoundedContext(boundedContext.Name);
+                            string messageContractId = msgType.GetContractId();
+                            string subscriberContractId = subscriber.Id;
+
+                            if(routingHeaders.ContainsKey(messageContractId) == false)
+                                routingHeaders.Add(messageContractId, bc);
+
+                            string explicitHeader = $"{messageContractId}@{subscriberContractId}";
+                            if (routingHeaders.ContainsKey(explicitHeader) == false)
+                                routingHeaders.Add(explicitHeader, bc);
+                        }
                     }
 
                     model.QueueDeclare(queueName, true, false, false, routingHeaders);
 
+                    var messageTypes = subscriberCollection.Subscribers.SelectMany(x => x.GetInvolvedMessageTypes()).Distinct().ToList();
                     var exchangeGroups = messageTypes
                         .SelectMany(mt => bcRabbitMqNamer.GetExchangeNames(mt).Select(x => new { Exchange = x, MessageType = mt }))
                         .GroupBy(x => x.Exchange)
                         .Distinct();
                     foreach (var exchangeGroup in exchangeGroups)
                     {
-                        model.ExchangeDeclare(exchangeGroup.Key, PipelineType.Headers.ToString(), true);
+                        // Standard exchange
+                        string standardExchangeName = exchangeGroup.Key;
+                        model.ExchangeDeclare(standardExchangeName, PipelineType.Headers.ToString(), true);
+
+                        // Scheduler exchange
+                        string schedulerExchangeName = $"{standardExchangeName}.Scheduler";
                         var args = new Dictionary<string, object>();
                         args.Add("x-delayed-type", PipelineType.Headers.ToString());
-                        model.ExchangeDeclare(exchangeGroup.Key + ".Scheduler", "x-delayed-message", true, false, args);
+                        model.ExchangeDeclare(schedulerExchangeName, "x-delayed-message", true, false, args);
 
                         var bindHeaders = new Dictionary<string, object>();
                         bindHeaders.Add("x-match", "any");
@@ -232,9 +281,15 @@ namespace Elders.Cronus.Transport.RabbitMQ
                         foreach (Type msgType in exchangeGroup.Select(x => x.MessageType).Where(mt => typeof(ISystemMessage).IsAssignableFrom(mt) == isSystemQueue))
                         {
                             bindHeaders.Add(msgType.GetContractId(), msgType.GetBoundedContext(boundedContext.Name));
+
+                            var handlers = event2Handler[standardExchangeName][msgType.GetContractId()];
+                            foreach (var handler in handlers)
+                            {
+                                bindHeaders.Add($"{msgType.GetContractId()}@{handler}", msgType.GetBoundedContext(boundedContext.Name));
+                            }
                         }
-                        model.QueueBind(queueName, exchangeGroup.Key, string.Empty, bindHeaders);
-                        model.QueueBind(queueName, exchangeGroup.Key + ".Scheduler", string.Empty, bindHeaders);
+                        model.QueueBind(queueName, standardExchangeName, string.Empty, bindHeaders);
+                        model.QueueBind(queueName, schedulerExchangeName, string.Empty, bindHeaders);
                         model.BasicQos(0, 1, false);
                     }
                 }
@@ -268,5 +323,10 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 }
             }
         }
+    }
+
+    public class Event2Handler2ExchangeMapping
+    {
+        public string Exchange { get; set; }
     }
 }
