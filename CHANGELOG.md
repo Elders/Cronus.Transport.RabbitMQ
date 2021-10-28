@@ -1,3 +1,10 @@
+# [6.4.0-preview.5](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.4.0-preview.4...v6.4.0-preview.5) (2021-10-28)
+
+
+### Bug Fixes
+
+* Properly stops consumer ([0f96707](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/0f9670765d446838ecc2a3a19b6645e8a8cac130))
+
 # [6.4.0-preview.4](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.4.0-preview.3...v6.4.0-preview.4) (2021-10-21)
 
 
