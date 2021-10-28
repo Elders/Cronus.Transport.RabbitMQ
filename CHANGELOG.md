@@ -1,3 +1,10 @@
+# [6.4.0-preview.6](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.4.0-preview.5...v6.4.0-preview.6) (2021-10-28)
+
+
+### Bug Fixes
+
+* Code cleanup ([a639230](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/a6392309c3538919d54895010ebedd55d6ae6584))
+
 # [6.4.0-preview.5](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.4.0-preview.4...v6.4.0-preview.5) (2021-10-28)
 
 
