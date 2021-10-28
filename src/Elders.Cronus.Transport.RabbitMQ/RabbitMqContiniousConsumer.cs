@@ -50,11 +50,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
             if (ReferenceEquals(null, consumer)) return;
             try
             {
-                consumer.Do((consumer) =>
+                consumer.Do(c =>
                 {
                     ulong deliveryTag;
                     if (deliveryTags.TryGetValue(message.Id, out deliveryTag))
-                        consumer.Model.BasicAck(deliveryTag, false);
+                        c.Model.BasicAck(deliveryTag, false);
                     return true;
                 });
             }
@@ -247,7 +247,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                             string messageContractId = msgType.GetContractId();
                             string subscriberContractId = subscriber.Id;
 
-                            if(routingHeaders.ContainsKey(messageContractId) == false)
+                            if (routingHeaders.ContainsKey(messageContractId) == false)
                                 routingHeaders.Add(messageContractId, bc);
 
                             string explicitHeader = $"{messageContractId}@{subscriberContractId}";
