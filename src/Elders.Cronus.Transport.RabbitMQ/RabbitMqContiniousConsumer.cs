@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Elders.Cronus.MessageProcessing;
 using Microsoft.Extensions.Logging;
@@ -47,13 +46,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         protected override void MessageConsumed(CronusMessage message)
         {
-            if (ReferenceEquals(null, consumer)) return;
+            if (consumer is null) return;
             try
             {
                 consumer.Do(c =>
                 {
-                    ulong deliveryTag;
-                    if (deliveryTags.TryGetValue(message.Id, out deliveryTag))
+                    if (deliveryTags.TryGetValue(message.Id, out ulong deliveryTag))
                         c.Model.BasicAck(deliveryTag, false);
                     return true;
                 });
@@ -71,7 +69,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
             consumer?.Abort();
             consumer = null;
             deliveryTags?.Clear();
-            deliveryTags = null;
         }
 
         class QueueingBasicConsumerWithManagedConnection

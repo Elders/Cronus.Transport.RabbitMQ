@@ -58,15 +58,17 @@ namespace Elders.Cronus.Transport.RabbitMQ
                         MessageConsumed(message);
                     }
                 }
+
+                if (stopping)
+                    WorkStop();
             }
             catch (Exception ex)
             {
                 logger.ErrorException(ex, () => "Unexpected Exception.");
-
+                WorkStop();
             }
             finally
             {
-                WorkStop();
                 ScheduledStart = DateTime.UtcNow.AddMilliseconds(50);
             }
         }
