@@ -62,9 +62,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
             catch (Exception ex)
             {
                 logger.ErrorException(ex, () => "Unexpected Exception.");
+
             }
             finally
             {
+                WorkStop();
                 ScheduledStart = DateTime.UtcNow.AddMilliseconds(50);
             }
         }
@@ -72,7 +74,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
         public void Stop()
         {
             stopping = true;
-            WorkStop();
         }
     }
 }
