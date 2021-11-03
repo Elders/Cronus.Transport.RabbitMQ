@@ -40,6 +40,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 Thread.Sleep(1000);
                 rabbitMqInfrastructure.Initialize();
                 return base.CreateConnection(new MultipleEndpointResolver(options).All().ToList());
+
             }
         }
 
