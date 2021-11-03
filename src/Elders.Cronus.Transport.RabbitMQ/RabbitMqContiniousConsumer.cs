@@ -254,7 +254,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     }
 
                     model.QueueDeclare(queueName, true, false, false, routingHeaders);
-                    model.BasicQos(0, 1, false);
+                    model.BasicQos(0, 10, false);
 
                     var messageTypes = subscriberCollection.Subscribers.SelectMany(x => x.GetInvolvedMessageTypes()).Distinct().ToList();
                     var exchangeGroups = messageTypes
@@ -288,7 +288,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                         }
                         model.QueueBind(queueName, standardExchangeName, string.Empty, bindHeaders);
                         model.QueueBind(queueName, schedulerExchangeName, string.Empty, bindHeaders);
-                        model.BasicQos(0, 1, false);
+
                     }
                 }
             }
