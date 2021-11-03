@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
@@ -36,6 +37,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
             catch (BrokerUnreachableException)
             {
+                Thread.Sleep(1000);
                 rabbitMqInfrastructure.Initialize();
                 return base.CreateConnection(new MultipleEndpointResolver(options).All().ToList());
             }
