@@ -3,6 +3,14 @@
 
 ### Bug Fixes
 
+* Code fix ([9722d5d](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/9722d5d92567519c50e8c4f4a241a4ffd03ca258))
+* Perform performance ([60e9629](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/60e96293603d89f08aba91d77635bb651993f548))
+
+# [6.4.0-preview.7](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.4.0-preview.6...v6.4.0-preview.7) (2021-11-03)
+
+
+### Bug Fixes
+
 * Perform performance ([60e9629](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/60e96293603d89f08aba91d77635bb651993f548))
 
 # [6.4.0-preview.6](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.4.0-preview.5...v6.4.0-preview.6) (2021-10-28)
