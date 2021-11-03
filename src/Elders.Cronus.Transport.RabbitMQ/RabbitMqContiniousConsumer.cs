@@ -288,7 +288,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
                         }
                         model.QueueBind(queueName, standardExchangeName, string.Empty, bindHeaders);
                         model.QueueBind(queueName, schedulerExchangeName, string.Empty, bindHeaders);
-
                     }
                 }
             }

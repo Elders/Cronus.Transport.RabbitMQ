@@ -54,8 +54,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
 
             var poolName = $"cronus: {typeof(T).Name}";
-            pool = new WorkPool(poolName, options.WorkersCount + 5);
-            for (int i = 0; i < options.WorkersCount + 5; i++)
+            pool = new WorkPool(poolName, options.WorkersCount);
+            for (int i = 0; i < options.WorkersCount; i++)
             {
                 var consumer = new RabbitMqContinuousConsumer<T>(boundedContext, serializer, connectionFactory, subscriberCollection, bcRabbitMqNamer, options.FanoutMode);
                 pool.AddWork(consumer);
