@@ -1,3 +1,10 @@
+# [6.4.0-preview.8](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.4.0-preview.7...v6.4.0-preview.8) (2021-11-04)
+
+
+### Bug Fixes
+
+* trigger ci ([938578c](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/938578c6ba4c1ad7b0f4f15bb6bd346f217d4ff0))
+
 # [6.4.0-preview.7](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.4.0-preview.6...v6.4.0-preview.7) (2021-11-04)
 
 
