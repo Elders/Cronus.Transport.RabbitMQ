@@ -20,6 +20,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         where TOptions : IRabbitMqOptions
     {
         TOptions options;
+        static readonly ILogger logger = CronusLogger.CreateLogger(typeof(RabbitMqConnectionResolver<TOptions>));
 
         ConcurrentDictionary<string, IConnection> connections;
         private readonly RabbitMqInfrastructure rabbitMqInfrastructure;
@@ -33,7 +34,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public IConnection Resolve(CronusMessage message)
         {
-            string boundedContext = message.Headers[MessageHeader.BoundedContext];
+            string boundedContext = message.RecipientBoundedContext;
 
             IConnection connection = connections.GetOrAdd(boundedContext, (bc, opt) => GetConnection(bc, opt), options);
 
@@ -41,16 +42,22 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 try
                 {
-                    connection?.Abort(5000);
                     connection = GetConnection(boundedContext, options);
-                    connections.TryAdd(boundedContext, connection);
+                    connections.AddOrUpdate(boundedContext, connection, (bc, con) =>
+                    {
+                        DisposeConnection(con);
+                        return connection;
+                    });
                 }
                 catch (BrokerUnreachableException)
                 {
-                    connection?.Abort(5000);
                     rabbitMqInfrastructure.Initialize();
                     connection = GetConnection(boundedContext, options);
-                    connections.TryAdd(boundedContext, connection);
+                    connections.AddOrUpdate(boundedContext, connection, (bc, con) =>
+                    {
+                        DisposeConnection(con);
+                        return connection;
+                    });
                 }
             }
 
@@ -63,17 +70,25 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             var connectionFactory = new RabbitMqConnectionFactoryNew(currentOptions);
             var connection = connectionFactory.CreateConnection();
+            logger.LogInformation("Rabbitmq connection created by publisher.");
             connection.AutoClose = false;
 
             return connection;
+        }
+
+        private void DisposeConnection(IConnection connection)
+        {
+            connection?.Abort(5000);
+            connection.Dispose();
+            connection = null;
+            logger.LogInformation("Rabbitmq connection disposed by publisher.");
         }
 
         public void Dispose()
         {
             foreach (IConnection connection in connections.Select(x => x.Value))
             {
-                connection?.Abort(5000);
-                connection.Dispose();
+                DisposeConnection(connection);
             }
 
             connections.Clear();
@@ -99,6 +114,17 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.rabbitMqNamer = rabbitMqNamer;
         }
 
+        protected virtual IBasicProperties BuildMessageProperties(IBasicProperties properties, CronusMessage message)
+        {
+            string boundedContext = message.Headers[MessageHeader.BoundedContext];
+
+            properties.Headers = new Dictionary<string, object>() { { message.Payload.GetType().GetContractId(), boundedContext } };
+
+            properties.Persistent = true;
+
+            return properties;
+        }
+
         protected override bool PublishInternal(CronusMessage message)
         {
             try
@@ -114,15 +140,18 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
                 if (publishModel == null || publishModel.IsClosed)
                 {
-                    publishModel = connection.CreateModel();
-                    publishModel.ConfirmSelect();
+                    lock (connectionResolver)
+                    {
+                        if (publishModel == null || publishModel.IsClosed)
+                        {
+                            publishModel = connection.CreateModel();
+                            publishModel.ConfirmSelect();
+                        }
+                    }
                 }
 
                 IBasicProperties props = publishModel.CreateBasicProperties();
-                props.Headers = new Dictionary<string, object>() { { message.Payload.GetType().GetContractId(), boundedContext } };
-
-                props.Persistent = true;
-                props.Priority = 9;
+                props = BuildMessageProperties(props, message);
 
                 byte[] body = this.serializer.SerializeToBytes(message);
 

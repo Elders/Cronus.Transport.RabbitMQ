@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Threading;
 using Elders.Cronus.Transport.RabbitMQ.Management.Model;
 
 namespace Elders.Cronus.Transport.RabbitMQ.Management

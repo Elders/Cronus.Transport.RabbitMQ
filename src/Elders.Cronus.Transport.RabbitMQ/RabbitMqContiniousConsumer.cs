@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Elders.Cronus.MessageProcessing;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
@@ -45,14 +46,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         protected override void MessageConsumed(CronusMessage message)
         {
-            if (ReferenceEquals(null, consumer)) return;
+            if (consumer is null) return;
             try
             {
-                consumer.Do((consumer) =>
+                consumer.Do(c =>
                 {
-                    ulong deliveryTag;
-                    if (deliveryTags.TryGetValue(message.Id, out deliveryTag))
-                        consumer.Model.BasicAck(deliveryTag, false);
+                    if (deliveryTags.TryGetValue(message.Id, out ulong deliveryTag))
+                        c.Model.BasicAck(deliveryTag, false);
                     return true;
                 });
             }
@@ -69,7 +69,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
             consumer?.Abort();
             consumer = null;
             deliveryTags?.Clear();
-            deliveryTags = null;
         }
 
         class QueueingBasicConsumerWithManagedConnection
@@ -86,6 +85,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             private QueueingBasicConsumer consumer;
             private bool aborting;
             private readonly string queueName;
+            bool isSystemQueue = false;
 
             public QueueingBasicConsumerWithManagedConnection(
                 IConnectionFactory connectionFactory,
@@ -99,6 +99,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 this.boundedContext = boundedContext;
                 this.bcRabbitMqNamer = bcRabbitMqNamer;
                 queueName = GetQueueName(boundedContext.Name, useFanoutMode);
+                isSystemQueue = typeof(ISystemHandler).IsAssignableFrom(typeof(T));
             }
 
             private string GetQueueName(string boundedContext, bool useFanoutMode = false)
@@ -109,8 +110,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 }
                 else
                 {
+                    string systemMarker = typeof(ISystemHandler).IsAssignableFrom(typeof(T)) ? "cronus." : string.Empty;
                     // This is the default
-                    return $"{boundedContext}.{typeof(T).Name}";
+                    return $"{boundedContext}.{systemMarker}{typeof(T).Name}";
                 }
             }
 
@@ -145,6 +147,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
                     connection?.Abort(5000);
                     connection = null;
+
+                    logger.LogInformation("Rabbitmq connection disposed by consumer.");
                 }
             }
 
@@ -177,8 +181,10 @@ namespace Elders.Cronus.Transport.RabbitMQ
                         if (ReferenceEquals(null, connection) || connection.IsOpen == false)
                         {
                             connection?.Abort(5000);
-                            
+
                             connection = connectionFactory.CreateConnection();
+
+                            logger.LogInformation("Rabbitmq connection created by consumer.");
                         }
                     }
                 }
@@ -195,38 +201,93 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     model = connection.CreateModel();
                     model.ConfirmSelect();
 
+                    // exchangeName, dictionary<eventType,List<handlers>>
+                    var event2Handler = new Dictionary<string, Dictionary<string, List<string>>>();
+
                     var routingHeaders = new Dictionary<string, object>();
                     routingHeaders.Add("x-match", "any");
-                    var messageTypes = subscriberCollection.Subscribers.SelectMany(x => x.GetInvolvedMessageTypes()).Distinct().ToList();
 
-                    foreach (var msgType in messageTypes)
+                    foreach (var subscriber in subscriberCollection.Subscribers)
                     {
-                        routingHeaders.Add(msgType.GetContractId(), msgType.GetBoundedContext(boundedContext.Name));
+                        foreach (var msgType in subscriber.GetInvolvedMessageTypes().Where(mt => typeof(ISystemMessage).IsAssignableFrom(mt) == isSystemQueue))
+                        {
+                            string bc = msgType.GetBoundedContext(boundedContext.Name);
+                            string messageContractId = msgType.GetContractId();
+                            var exchangeNames = bcRabbitMqNamer.GetExchangeNames(msgType);
+
+                            foreach (string exchangeName in exchangeNames)
+                            {
+                                Dictionary<string, List<string>> gg;
+                                if (event2Handler.TryGetValue(exchangeName, out gg) == false)
+                                {
+                                    gg = new Dictionary<string, List<string>>();
+                                    event2Handler.Add(exchangeName, gg);
+                                }
+
+                                List<string> handlers;
+                                if (gg.TryGetValue(messageContractId, out handlers) == false)
+                                {
+                                    handlers = new List<string>();
+                                    gg.Add(messageContractId, handlers);
+                                }
+
+                                handlers.Add(subscriber.Id);
+                            }
+                        }
+                    }
+
+                    foreach (var subscriber in subscriberCollection.Subscribers)
+                    {
+                        foreach (var msgType in subscriber.GetInvolvedMessageTypes().Where(mt => typeof(ISystemMessage).IsAssignableFrom(mt) == isSystemQueue))
+                        {
+                            string bc = msgType.GetBoundedContext(boundedContext.Name);
+                            string messageContractId = msgType.GetContractId();
+                            string subscriberContractId = subscriber.Id;
+
+                            if (routingHeaders.ContainsKey(messageContractId) == false)
+                                routingHeaders.Add(messageContractId, bc);
+
+                            string explicitHeader = $"{messageContractId}@{subscriberContractId}";
+                            if (routingHeaders.ContainsKey(explicitHeader) == false)
+                                routingHeaders.Add(explicitHeader, bc);
+                        }
                     }
 
                     model.QueueDeclare(queueName, true, false, false, routingHeaders);
+                    model.BasicQos(0, 10, false);
 
+                    var messageTypes = subscriberCollection.Subscribers.SelectMany(x => x.GetInvolvedMessageTypes()).Distinct().ToList();
                     var exchangeGroups = messageTypes
                         .SelectMany(mt => bcRabbitMqNamer.GetExchangeNames(mt).Select(x => new { Exchange = x, MessageType = mt }))
                         .GroupBy(x => x.Exchange)
                         .Distinct();
                     foreach (var exchangeGroup in exchangeGroups)
                     {
-                        model.ExchangeDeclare(exchangeGroup.Key, PipelineType.Headers.ToString(), true);
+                        // Standard exchange
+                        string standardExchangeName = exchangeGroup.Key;
+                        model.ExchangeDeclare(standardExchangeName, PipelineType.Headers.ToString(), true);
+
+                        // Scheduler exchange
+                        string schedulerExchangeName = $"{standardExchangeName}.Scheduler";
                         var args = new Dictionary<string, object>();
                         args.Add("x-delayed-type", PipelineType.Headers.ToString());
-                        model.ExchangeDeclare(exchangeGroup.Key + ".Scheduler", "x-delayed-message", true, false, args);
+                        model.ExchangeDeclare(schedulerExchangeName, "x-delayed-message", true, false, args);
 
                         var bindHeaders = new Dictionary<string, object>();
                         bindHeaders.Add("x-match", "any");
 
-                        foreach (Type msgType in exchangeGroup.Select(x => x.MessageType))
+                        foreach (Type msgType in exchangeGroup.Select(x => x.MessageType).Where(mt => typeof(ISystemMessage).IsAssignableFrom(mt) == isSystemQueue))
                         {
                             bindHeaders.Add(msgType.GetContractId(), msgType.GetBoundedContext(boundedContext.Name));
+
+                            var handlers = event2Handler[standardExchangeName][msgType.GetContractId()];
+                            foreach (var handler in handlers)
+                            {
+                                bindHeaders.Add($"{msgType.GetContractId()}@{handler}", msgType.GetBoundedContext(boundedContext.Name));
+                            }
                         }
-                        model.QueueBind(queueName, exchangeGroup.Key, string.Empty, bindHeaders);
-                        model.QueueBind(queueName, exchangeGroup.Key + ".Scheduler", string.Empty, bindHeaders);
-                        model.BasicQos(0, 1, false);
+                        model.QueueBind(queueName, standardExchangeName, string.Empty, bindHeaders);
+                        model.QueueBind(queueName, schedulerExchangeName, string.Empty, bindHeaders);
                     }
                 }
             }
@@ -246,10 +307,23 @@ namespace Elders.Cronus.Transport.RabbitMQ
                         string consumerTag = model.BasicConsume(queueName, false, consumer);
 
                         if (consumer.IsRunning == false)
-                            throw new Exception("Unable to start QueueingBasicConsumerWithManagedConnection. Terminating the connection.");
+                        {
+                            Task.Delay(1000).GetAwaiter().GetResult(); // Give the consumer 1 second to warm up. For some reason it needs it. => https://www.youtube.com/watch?v=xyPaPysxltA
+                            if (consumer.IsRunning == false)
+                            {
+                                Task.Delay(1000).GetAwaiter().GetResult(); // Give the consumer 1 more second to warm up. PRAY => https://www.youtube.com/watch?v=aJbsdoDHUrI
+                                if (consumer.IsRunning == false)
+                                    throw new Exception("Unable to start QueueingBasicConsumerWithManagedConnection. Terminating the connection.");
+                            }
+                        }
                     }
                 }
             }
         }
+    }
+
+    public class Event2Handler2ExchangeMapping
+    {
+        public string Exchange { get; set; }
     }
 }
