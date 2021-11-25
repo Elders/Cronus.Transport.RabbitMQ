@@ -1,3 +1,33 @@
+# [6.4.0](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.3.1...v6.4.0) (2021-11-25)
+
+
+### Bug Fixes
+
+* Adds Thread.Sleep on CreateConnection ([07f98cd](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/07f98cd13785d24f97cc018efe6544e3e392ed1a))
+* Code cleanup ([a639230](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/a6392309c3538919d54895010ebedd55d6ae6584))
+* Code fix ([9722d5d](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/9722d5d92567519c50e8c4f4a241a4ffd03ca258))
+* Fixes copyright attribute ([e660954](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/e660954b291eca40a73996fd7788e8b52211095c))
+* Fixes how exchange names are defined ([581fb59](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/581fb59858eb6c3945d154477013c1068e9e5704))
+* Fixes how the bounded context is resolved on publish ([83f54c1](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/83f54c1b50f9f76324ca0db3ae2c77676c6c68a9))
+* Perform performance ([60e9629](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/60e96293603d89f08aba91d77635bb651993f548))
+* Properly stops consumer ([0f96707](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/0f9670765d446838ecc2a3a19b6645e8a8cac130))
+* Reduces the amount of messages sent on re-publish ([1f25344](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/1f25344545997beb778ef987a664f2bf1f0e0c2f))
+* Removes gitversion ([e8f97cc](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/e8f97cc92a11630fef0f8db1f7de79ee5c03545c))
+* Removes message priority ([0db50a4](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/0db50a4b46612696d8f419647d9a0f33f74f5a11))
+* Run pipeline ([8e081e2](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/8e081e213b81b3330b8293e07f12548c9e9c73dc))
+* trigger ci ([938578c](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/938578c6ba4c1ad7b0f4f15bb6bd346f217d4ff0))
+* Updates Cronus ([c658999](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/c658999c03fc4a03354b57314ba73e8f587a9a98))
+* Updates Cronus ([27c8863](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/27c88631d833072c762317ba499198a24fe098c4))
+* Updates Cronus ([3e0abe3](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/3e0abe3f17f2b9636f6634c77ccc322409d54835))
+* Updates Cronus ([ddc3cea](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/ddc3cea1a9772c61f27d9068e9a40cce59ad7bc8))
+* Wait a bit when starting a consumer. It needs warming up ([e79ca67](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/e79ca67701d974d575b7bd99e1475072efeae36b))
+
+
+### Features
+
+* Consolidates the release notes ([552792a](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/552792a6201b21ae9ae0831e38bcae36517dd094))
+* Release ([6861518](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/6861518d2ae543f30c8a1a0bedf289f2ae1d6fd9))
+
 # [6.4.0-preview.8](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.4.0-preview.7...v6.4.0-preview.8) (2021-11-04)
 
 
