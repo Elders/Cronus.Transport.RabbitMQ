@@ -15,12 +15,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private RabbitMqConsumerOptions options;
         private readonly BoundedContext boundedContext;
         private readonly ISubscriberCollection<T> subscriberCollection;
-        private WorkPool pool;
         private readonly ISerializer serializer;
         private readonly IConnectionFactory connectionFactory;
         private readonly BoundedContextRabbitMqNamer bcRabbitMqNamer;
+        private readonly WorkPoolFactory workPoolFactory;
+        private WorkPool pool;
 
-        public RabbitMqConsumer(IOptionsMonitor<RabbitMqConsumerOptions> options, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<T> subscriberCollection, ISerializer serializer, IConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer)
+        public RabbitMqConsumer(IOptionsMonitor<RabbitMqConsumerOptions> options, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<T> subscriberCollection, ISerializer serializer, IConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer, WorkPoolFactory workPoolFactory)
         {
             if (ReferenceEquals(null, subscriberCollection)) throw new ArgumentNullException(nameof(subscriberCollection));
             if (ReferenceEquals(null, serializer)) throw new ArgumentNullException(nameof(serializer));
@@ -32,6 +33,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.serializer = serializer;
             this.connectionFactory = connectionFactory;
             this.bcRabbitMqNamer = bcRabbitMqNamer;
+            this.workPoolFactory = workPoolFactory;
         }
 
         protected virtual void ConsumerStart() { }
@@ -53,8 +55,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 return;
             }
 
-            var poolName = $"cronus: {typeof(T).Name}";
-            pool = new WorkPool(poolName, options.WorkersCount);
+            var poolName = $"cronus_{typeof(T).Name}";
+            pool = workPoolFactory.Create(poolName, options.WorkersCount);
             for (int i = 0; i < options.WorkersCount; i++)
             {
                 var consumer = new RabbitMqContinuousConsumer<T>(boundedContext, serializer, connectionFactory, subscriberCollection, bcRabbitMqNamer, options.FanoutMode);

@@ -33,7 +33,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 BasicDeliverEventArgs dequeuedMessage = null;
                 consumer.Queue.Dequeue((int)30, out dequeuedMessage);
-                if (ReferenceEquals(null, dequeuedMessage) == false)
+                if (dequeuedMessage is not null)
                 {
                     var cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(dequeuedMessage.Body);
                     deliveryTags[cronusMessage.Id] = dequeuedMessage.DeliveryTag;
