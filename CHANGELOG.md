@@ -360,7 +360,7 @@ The plugin did not work well with the current RabbitMQ v3.5.3 so the RabbitMQ cl
 * Version for Cronus 2.0.alpha9
 
 #### 1.2.6 - 21.04.2015
-* Fix nuget package dependencies
+* Fix nuget package dependencies.
 
 #### 1.2.5 - 27.03.2015
 * Fix issues with building exchanges and queues.
