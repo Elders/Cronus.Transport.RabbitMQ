@@ -1,3 +1,11 @@
+# [7.0.0-preview.1](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.4.0...v7.0.0-preview.1) (2021-12-01)
+
+
+### Bug Fixes
+
+* Last Chance Deploy before Mynkow fix it ([aad9182](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/aad9182ce3cb22bcd324bff963ba492886fc283f))
+* Updates MTS ([f012043](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/f0120430b353ac259d61edc28cfe05b50db3f427))
+
 # [7.0.0-preview.1](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.4.0...v7.0.0-preview.1) (2021-11-30)
 
 
