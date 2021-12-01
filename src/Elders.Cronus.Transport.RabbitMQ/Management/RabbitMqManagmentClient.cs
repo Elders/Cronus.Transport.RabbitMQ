@@ -57,6 +57,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management
             this.settings = new JsonSerializerOptions
             {
                 DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+                PropertyNameCaseInsensitive = true
             };
         }
 
