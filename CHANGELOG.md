@@ -1,3 +1,10 @@
+# [7.0.0-preview.3](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.2...v7.0.0-preview.3) (2021-12-01)
+
+
+### Bug Fixes
+
+* Fixes DeserializeResponse settings ([c5211b6](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/c5211b671bdb13e6ac77a964467982c39b642d4f))
+
 # [7.0.0-preview.2](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.1...v7.0.0-preview.2) (2021-12-01)
 
 
