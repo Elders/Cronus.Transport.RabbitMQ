@@ -32,12 +32,22 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
                 RabbitMqManagementClient pub = new RabbitMqManagementClient(publicOptions);
                 CreateVHost(pub, publicOptions);
-                CreatePublishedLanguageConnection(pub, publicOptions);
+
+                if (ChecksIfHavePublishedLanguageConfigurations())
+                    logger.Warn(() => "Missing configurations for public rabbitMq.");
+                else
+                    CreatePublishedLanguageConnection(pub, publicOptions);
             }
             catch (Exception ex)
             {
                 logger.ErrorException(ex, () => ex.Message);
             }
+        }
+
+        private bool ChecksIfHavePublishedLanguageConfigurations()
+        {
+            // We are sure that if missing configurations for public rabbitMq VHost by default equals "/"
+            return publicOptions.VHost.Equals("/");
         }
 
         private void CreateVHost(RabbitMqManagementClient client, IRabbitMqOptions options)
