@@ -1,3 +1,10 @@
+# [7.0.0-preview.5](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.4...v7.0.0-preview.5) (2021-12-06)
+
+
+### Bug Fixes
+
+* Update Multi-threading-Scheduler ([dd0f80f](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/dd0f80f242d753a43347e1861a7246ceff99b441))
+
 # [7.0.0-preview.4](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.3...v7.0.0-preview.4) (2021-12-06)
 
 
