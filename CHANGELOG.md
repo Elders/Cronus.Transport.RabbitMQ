@@ -1,3 +1,10 @@
+# [7.0.0-preview.4](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.3...v7.0.0-preview.4) (2021-12-06)
+
+
+### Bug Fixes
+
+* Fixes errors on startup when missing configurations for public rabbitMq ([756bab7](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/756bab7c7210ccd1442381337208c03170d57c79))
+
 # [7.0.0-preview.3](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.2...v7.0.0-preview.3) (2021-12-01)
 
 
