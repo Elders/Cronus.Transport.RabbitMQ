@@ -35,7 +35,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 consumer.Queue.Dequeue((int)30, out dequeuedMessage);
                 if (dequeuedMessage is not null)
                 {
-                    var cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(dequeuedMessage.Body);
+                    var cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(dequeuedMessage.Body.ToArray());
                     deliveryTags[cronusMessage.Id] = dequeuedMessage.DeliveryTag;
                     return cronusMessage;
                 }
@@ -145,7 +145,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     model?.Abort();
                     model = null;
 
-                    connection?.Abort(5000);
+                    connection?.Abort(TimeSpan.FromSeconds(5));
                     connection = null;
 
                     logger.LogInformation("Rabbitmq connection disposed by consumer.");
@@ -180,7 +180,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
                         if (ReferenceEquals(null, connection) || connection.IsOpen == false)
                         {
-                            connection?.Abort(5000);
+                            connection?.Abort(TimeSpan.FromSeconds(5));
 
                             connection = connectionFactory.CreateConnection();
 

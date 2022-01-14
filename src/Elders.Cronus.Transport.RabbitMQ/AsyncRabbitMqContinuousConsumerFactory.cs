@@ -51,13 +51,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 return DeliverMessageToSubscribers(@event, consumer);
             }
 
-            logger.Error(() => $"There is no consumer for {Convert.ToBase64String(@event.Body)}");
+            logger.Error(() => $"There is no consumer for {Convert.ToBase64String(@event.Body.ToArray())}");
             return Task.CompletedTask;
         }
 
         private Task DeliverMessageToSubscribers(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)
         {
-            var cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(ev.Body);
+            var cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(ev.Body.ToArray());
             try
             {
                 var subscribers = subscriberCollection.GetInterestedSubscribers(cronusMessage);
