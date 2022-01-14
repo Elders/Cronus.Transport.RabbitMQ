@@ -1,3 +1,10 @@
+# [7.0.0-preview.6](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.5...v7.0.0-preview.6) (2022-01-14)
+
+
+### Features
+
+* Introduces an async consumer ([ea09935](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/ea09935dcd0c447482ff1f166718d0b57463ce0f))
+
 # [7.0.0-preview.5](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.4...v7.0.0-preview.5) (2021-12-06)
 
 
