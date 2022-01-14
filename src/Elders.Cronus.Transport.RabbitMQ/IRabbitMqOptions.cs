@@ -9,8 +9,8 @@
         string Username { get; set; }
         string VHost { get; set; }
         string ApiAddress { get; set; }
+        bool UseAsyncDispatcher { get; set; }
         FederatedExchangeOptions FederatedExchange { get; set; }
-
         IRabbitMqOptions GetOptionsFor(string boundedContext);
     }
 }

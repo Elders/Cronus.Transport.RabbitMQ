@@ -24,7 +24,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
             UserName = options.Username;
             Password = options.Password;
             VirtualHost = options.VHost;
-            AutomaticRecoveryEnabled = false;
+            DispatchConsumersAsync = options.UseAsyncDispatcher;
+            AutomaticRecoveryEnabled = options.UseAsyncDispatcher;
             EndpointResolverFactory = (x) => { return new MultipleEndpointResolver(options); };
             this.rabbitMqInfrastructure = rabbitMqInfrastructure;
         }

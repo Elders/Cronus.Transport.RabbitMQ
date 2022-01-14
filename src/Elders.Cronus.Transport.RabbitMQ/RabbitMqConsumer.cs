@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Elders.Cronus.MessageProcessing;
 using Elders.Multithreading.Scheduler;
 using Microsoft.Extensions.Logging;
@@ -19,9 +20,10 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private readonly IConnectionFactory connectionFactory;
         private readonly BoundedContextRabbitMqNamer bcRabbitMqNamer;
         private readonly WorkPoolFactory workPoolFactory;
+        private readonly AsyncRabbitMqContinuousConsumerFactory<T> consumerFactory;
         private WorkPool pool;
 
-        public RabbitMqConsumer(IOptionsMonitor<RabbitMqConsumerOptions> options, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<T> subscriberCollection, ISerializer serializer, IConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer, WorkPoolFactory workPoolFactory)
+        public RabbitMqConsumer(IOptionsMonitor<RabbitMqConsumerOptions> options, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<T> subscriberCollection, ISerializer serializer, IConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer, WorkPoolFactory workPoolFactory, AsyncRabbitMqContinuousConsumerFactory<T> consumerFactory)
         {
             if (ReferenceEquals(null, subscriberCollection)) throw new ArgumentNullException(nameof(subscriberCollection));
             if (ReferenceEquals(null, serializer)) throw new ArgumentNullException(nameof(serializer));
@@ -34,6 +36,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.connectionFactory = connectionFactory;
             this.bcRabbitMqNamer = bcRabbitMqNamer;
             this.workPoolFactory = workPoolFactory;
+            this.consumerFactory = consumerFactory;
         }
 
         protected virtual void ConsumerStart() { }
@@ -68,8 +71,23 @@ namespace Elders.Cronus.Transport.RabbitMQ
             ConsumerStarted();
         }
 
+        public Task StartAsync()
+        {
+            if (subscriberCollection.Subscribers.Any() == false)
+            {
+                logger.Warn(() => $"Consumer {boundedContext}.{typeof(T).Name} not started because there are no subscribers.");
+                return Task.CompletedTask;
+            }
+
+            consumerFactory.CreateConsumers();
+
+            return Task.CompletedTask;
+        }
+
         public void Stop()
         {
+            consumerFactory.Stop();
+
             pool?.Stop();
         }
 
