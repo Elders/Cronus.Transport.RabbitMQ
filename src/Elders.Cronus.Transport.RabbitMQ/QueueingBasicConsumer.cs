@@ -7,13 +7,13 @@ namespace RabbitMQ.Client
     public interface IQueueingBasicConsumer
     {
         void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered,
-            string exchange, string routingKey, IBasicProperties properties, byte[] body);
+           string exchange, string routingKey, IBasicProperties properties, byte[] body);
         void OnCancel();
         SharedQueue<BasicDeliverEventArgs> Queue { get; }
     }
 
     [Obsolete("Deprecated. Use EventingBasicConsumer or a different consumer interface implementation instead")]
-    public class QueueingBasicConsumer : DefaultBasicConsumer, IQueueingBasicConsumer
+    public class QueueingBasicConsumer : DeprecatedDefaultBasicConsumer, IQueueingBasicConsumer
     {
         public QueueingBasicConsumer() : this(null)
         {
@@ -30,13 +30,7 @@ namespace RabbitMQ.Client
 
         public SharedQueue<BasicDeliverEventArgs> Queue { get; protected set; }
 
-        public void HandleBasicDeliver(string consumerTag,
-            ulong deliveryTag,
-            bool redelivered,
-            string exchange,
-            string routingKey,
-            IBasicProperties properties,
-            byte[] body)
+        public override void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, IBasicProperties properties, byte[] body)
         {
             var eventArgs = new BasicDeliverEventArgs
             {
@@ -51,7 +45,22 @@ namespace RabbitMQ.Client
             Queue.Enqueue(eventArgs);
         }
 
-        public void OnCancel()
+        public override void HandleBasicDeliver(string consumerTag, ulong deliveryTag, bool redelivered, string exchange, string routingKey, IBasicProperties properties, ReadOnlyMemory<byte> body)
+        {
+            var eventArgs = new BasicDeliverEventArgs
+            {
+                ConsumerTag = consumerTag,
+                DeliveryTag = deliveryTag,
+                Redelivered = redelivered,
+                Exchange = exchange,
+                RoutingKey = routingKey,
+                BasicProperties = properties,
+                Body = body
+            };
+            Queue.Enqueue(eventArgs);
+        }
+
+        public override void OnCancel()
         {
             base.OnCancel();
             Queue.Close();
