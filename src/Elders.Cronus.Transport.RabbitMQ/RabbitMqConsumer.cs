@@ -5,7 +5,6 @@ using Elders.Cronus.MessageProcessing;
 using Elders.Multithreading.Scheduler;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
@@ -17,13 +16,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private readonly BoundedContext boundedContext;
         private readonly ISubscriberCollection<T> subscriberCollection;
         private readonly ISerializer serializer;
-        private readonly IConnectionFactory connectionFactory;
+        private readonly IRabbitMqConnectionFactory connectionFactory;
         private readonly BoundedContextRabbitMqNamer bcRabbitMqNamer;
         private readonly WorkPoolFactory workPoolFactory;
         private readonly AsyncRabbitMqContinuousConsumerFactory<T> consumerFactory;
         private WorkPool pool;
 
-        public RabbitMqConsumer(IOptionsMonitor<RabbitMqConsumerOptions> options, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<T> subscriberCollection, ISerializer serializer, IConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer, WorkPoolFactory workPoolFactory, AsyncRabbitMqContinuousConsumerFactory<T> consumerFactory)
+        public RabbitMqConsumer(IOptionsMonitor<RabbitMqConsumerOptions> options, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<T> subscriberCollection, ISerializer serializer, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer, WorkPoolFactory workPoolFactory, AsyncRabbitMqContinuousConsumerFactory<T> consumerFactory)
         {
             if (ReferenceEquals(null, subscriberCollection)) throw new ArgumentNullException(nameof(subscriberCollection));
             if (ReferenceEquals(null, serializer)) throw new ArgumentNullException(nameof(serializer));

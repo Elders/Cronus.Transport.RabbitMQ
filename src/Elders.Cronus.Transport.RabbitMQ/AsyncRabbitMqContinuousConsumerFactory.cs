@@ -16,19 +16,21 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private readonly RabbitMqConsumerOptions consumerOptions;
         private readonly BoundedContext boundedContext;
         private readonly ISubscriberCollection<T> subscriberCollection;
+        private readonly IRabbitMqConnectionFactory connectionFactory;
         private IConnection connection;
 
-        public AsyncRabbitMqContinuousConsumerFactory(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISerializer serializer, ISubscriberCollection<T> subscriberCollection, IConnectionFactory connectionFactory)
+        public AsyncRabbitMqContinuousConsumerFactory(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISerializer serializer, ISubscriberCollection<T> subscriberCollection, IRabbitMqConnectionFactory connectionFactory)
         {
             this.boundedContext = boundedContext.CurrentValue;
             this.serializer = serializer;
             this.consumerOptions = consumerOptions.CurrentValue;
             this.subscriberCollection = subscriberCollection;
-            connection = connectionFactory.CreateConnection();
+            this.connectionFactory = connectionFactory;
         }
 
         public void CreateConsumers()
         {
+            connection = connectionFactory.CreateConnection();
             string queue = GetQueueName(boundedContext.Name);
 
             if (connection.IsOpen)

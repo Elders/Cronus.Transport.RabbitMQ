@@ -68,8 +68,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             IRabbitMqOptions currentOptions = options.GetOptionsFor(boundedContext);
 
-            var connectionFactory = new RabbitMqConnectionFactoryNew(currentOptions);
-            var connection = connectionFactory.CreateConnection();
+            var connectionFactory = new RabbitMqConnectionFactory<TOptions>();
+            var connection = connectionFactory.CreateNewConnection(currentOptions);
             logger.LogInformation("Rabbitmq connection created by publisher.");
 
             return connection;

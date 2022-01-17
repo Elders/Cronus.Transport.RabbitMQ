@@ -33,12 +33,16 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.0" />
-    <PackageReference Include="Multithreading.Scheduler" Version="4.0.0-preview.3" />
+    <!--<PackageReference Include="Multithreading.Scheduler" Version="4.0.0-preview.3" />-->
     <PackageReference Include="RabbitMQ.Client" Version="6.2.2" />
     <PackageReference Include="Cronus" Version="7.0.0-preview.11" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Multithreading.Scheduler\src\Elders.Multithreading.Scheduler\Elders.Multithreading.Scheduler.csproj" />
   </ItemGroup>
 </Project>
