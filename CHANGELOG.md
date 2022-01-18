@@ -1,3 +1,17 @@
+# [7.0.0-preview.7](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.6...v7.0.0-preview.7) (2022-01-18)
+
+
+### Bug Fixes
+
+* Code cleanup ([0b83ed5](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/0b83ed5bbdcc44a042107d4ea11590301af85f29))
+* HandleBasicDeliver to enqueue in the  right way ([99dd144](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/99dd144f688747751131f45791410006fed0b647))
+* Remove unneeded stuff ([9f7d059](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/9f7d059a02214d8e753ef26844bfcaf63c979ace))
+
+
+### Features
+
+* Update RabbitMQ client ([4b52fbe](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/4b52fbefe6bcb1a2a82b2ad75a01cc3562ac3792))
+
 # [7.0.0-preview.6](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.5...v7.0.0-preview.6) (2022-01-14)
 
 
