@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Elders.Cronus.MessageProcessing;
+using Elders.Cronus.Transport.RabbitMQ.Internal;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -16,8 +17,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private QueueingBasicConsumerWithManagedConnection consumer;
 
-        public RabbitMqContinuousConsumer(BoundedContext boundedContext, ISerializer serializer, IRabbitMqConnectionFactory connectionFactory, ISubscriberCollection<T> subscriberCollection, BoundedContextRabbitMqNamer bcRabbitMqNamer, bool useFanoutMode)
-            : base(subscriberCollection)
+        public RabbitMqContinuousConsumer(BoundedContext boundedContext, ISerializer serializer, IRabbitMqConnectionFactory connectionFactory, ISubscriberCollection<T> subscriberCollection, BoundedContextRabbitMqNamer bcRabbitMqNamer, bool useFanoutMode, ILogger logger)
+            : base(subscriberCollection, logger)
         {
             this.deliveryTags = new Dictionary<Guid, ulong>();
             this.serializer = serializer;

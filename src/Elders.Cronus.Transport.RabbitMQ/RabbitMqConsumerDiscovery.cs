@@ -27,7 +27,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             consumerModel.CanOverrideDefaults = true;
             yield return consumerModel;
 
-            yield return new DiscoveredModel(typeof(AsyncRabbitMqContinuousConsumerFactory<>), typeof(AsyncRabbitMqContinuousConsumerFactory<>), ServiceLifetime.Singleton);
+            yield return new DiscoveredModel(typeof(AsyncConsumerFactory<>), typeof(AsyncConsumerFactory<>), ServiceLifetime.Singleton);
 
             yield return new DiscoveredModel(typeof(RabbitMqInfrastructure), typeof(RabbitMqInfrastructure), ServiceLifetime.Singleton);
         }

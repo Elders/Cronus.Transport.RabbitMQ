@@ -23,7 +23,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public RabbitMqConnectionFactory()
         {
-
         }
 
         public RabbitMqConnectionFactory(RabbitMqInfrastructure rabbitMqInfrastructure, IOptionsMonitor<TOptions> settings, ConnectionFactory connectionFactory)
