@@ -68,17 +68,16 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             IRabbitMqOptions currentOptions = options.GetOptionsFor(boundedContext);
 
-            var connectionFactory = new RabbitMqConnectionFactoryNew(currentOptions);
-            var connection = connectionFactory.CreateConnection();
+            var connectionFactory = new RabbitMqConnectionFactory<TOptions>();
+            var connection = connectionFactory.CreateNewConnection(currentOptions);
             logger.LogInformation("Rabbitmq connection created by publisher.");
-            connection.AutoClose = false;
 
             return connection;
         }
 
         private void DisposeConnection(IConnection connection)
         {
-            connection?.Abort(5000);
+            connection?.Abort(TimeSpan.FromSeconds(5));
             connection.Dispose();
             connection = null;
             logger.LogInformation("Rabbitmq connection disposed by publisher.");

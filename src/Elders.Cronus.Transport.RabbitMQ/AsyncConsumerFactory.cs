@@ -4,31 +4,34 @@ using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
+using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class AsyncRabbitMqContinuousConsumerFactory<T>
+    public class AsyncConsumerFactory<T>
     {
-        private readonly ILogger logger = CronusLogger.CreateLogger(typeof(AsyncRabbitMqContinuousConsumerFactory<>));
+        private readonly ILogger logger = CronusLogger.CreateLogger(typeof(AsyncConsumerFactory<>));
         private readonly ISerializer serializer;
         private readonly RabbitMqConsumerOptions consumerOptions;
         private readonly BoundedContext boundedContext;
         private readonly ISubscriberCollection<T> subscriberCollection;
+        private readonly IRabbitMqConnectionFactory connectionFactory;
         private IConnection connection;
 
-        public AsyncRabbitMqContinuousConsumerFactory(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISerializer serializer, ISubscriberCollection<T> subscriberCollection, IConnectionFactory connectionFactory)
+        public AsyncConsumerFactory(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISerializer serializer, ISubscriberCollection<T> subscriberCollection, IRabbitMqConnectionFactory connectionFactory)
         {
             this.boundedContext = boundedContext.CurrentValue;
             this.serializer = serializer;
             this.consumerOptions = consumerOptions.CurrentValue;
             this.subscriberCollection = subscriberCollection;
-            connection = connectionFactory.CreateConnection();
+            this.connectionFactory = connectionFactory;
         }
 
         public void CreateConsumers()
         {
+            connection = connectionFactory.CreateConnection();
             string queue = GetQueueName(boundedContext.Name);
 
             if (connection.IsOpen)
@@ -44,6 +47,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
         }
 
+        public void Stop()
+        {
+            connection.Close();
+        }
+
         private Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)
         {
             if (sender is AsyncEventingBasicConsumer consumer)
@@ -51,7 +59,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 return DeliverMessageToSubscribers(@event, consumer);
             }
 
-            logger.Error(() => $"There is no consumer for {Convert.ToBase64String(@event.Body)}");
+            logger.Error(() => $"There is no consumer for {(@event.Body.ToArray())}");
+
             return Task.CompletedTask;
         }
 
@@ -66,16 +75,24 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     subscriber.Process(cronusMessage);
                 }
             }
-            catch (Exception ex)
-            {
-                logger.ErrorException(ex, () => "Failed to process message." + Environment.NewLine + JsonSerializer.Serialize(cronusMessage));
-            }
+            catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to process message." + Environment.NewLine + MessageAsString(cronusMessage))) { }
             finally
             {
                 consumer.Model.BasicAck(ev.DeliveryTag, false);
             }
 
             return Task.CompletedTask;
+        }
+
+        private string MessageAsString(CronusMessage message)
+        {
+            using (var stream = new MemoryStream())
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                serializer.Serialize(stream, message);
+                stream.Position = 0;
+                return reader.ReadToEnd();
+            }
         }
 
         private string GetQueueName(string boundedContext, bool useFanoutMode = false)
@@ -90,11 +107,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 // This is the default
                 return $"{boundedContext}.{systemMarker}{typeof(T).Name}";
             }
-        }
-
-        public void Stop()
-        {
-            connection.Close();
         }
     }
 }

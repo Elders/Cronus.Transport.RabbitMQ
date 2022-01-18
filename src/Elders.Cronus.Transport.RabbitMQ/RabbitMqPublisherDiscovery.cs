@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Elders.Cronus.Discoveries;
 using Microsoft.Extensions.DependencyInjection;
+using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
@@ -22,6 +23,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
             yield return new DiscoveredModel(typeof(BoundedContextRabbitMqNamer), typeof(BoundedContextRabbitMqNamer), ServiceLifetime.Singleton);
             yield return new DiscoveredModel(typeof(PublicMessagesRabbitMqNamer), typeof(PublicMessagesRabbitMqNamer), ServiceLifetime.Singleton);
 
+            yield return new DiscoveredModel(typeof(IConnectionFactory), typeof(ConnectionFactory), ServiceLifetime.Singleton);
+            yield return new DiscoveredModel(typeof(ConnectionFactory), typeof(ConnectionFactory), ServiceLifetime.Singleton);
 
             yield return new DiscoveredModel(typeof(RabbitMqConnectionFactory<>), typeof(RabbitMqConnectionFactory<>), ServiceLifetime.Singleton);
             yield return new DiscoveredModel(typeof(PrivateRabbitMqPublisher<>), typeof(PrivateRabbitMqPublisher<>), ServiceLifetime.Singleton);

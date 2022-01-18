@@ -8,27 +8,23 @@ namespace Elders.Cronus.Transport.RabbitMQ
 {
     public abstract class ContinuousConsumer<T> : IWork
     {
-        static readonly ILogger logger = CronusLogger.CreateLogger(typeof(ContinuousConsumer<>));
+        protected readonly ILogger logger;
 
-        ISubscriberCollection<T> subscriberCollection;
+        private readonly ISubscriberCollection<T> subscriberCollection;
 
         bool stopping;
 
-        public ContinuousConsumer(ISubscriberCollection<T> subscriberCollection)
+        public ContinuousConsumer(ISubscriberCollection<T> subscriberCollection, ILogger logger)
         {
             if (subscriberCollection is null) throw new ArgumentNullException(nameof(subscriberCollection));
 
             this.subscriberCollection = subscriberCollection;
+            this.logger = logger;
         }
 
         public string Name { get; set; }
 
         public DateTime ScheduledStart { get; set; }
-
-        protected abstract void MessageConsumed(CronusMessage message);
-        protected abstract void WorkStart();
-        protected abstract void WorkStop();
-        protected abstract CronusMessage GetMessage();
 
         public void Start()
         {
@@ -69,7 +65,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
             finally
             {
-                ScheduledStart = DateTime.UtcNow.AddMilliseconds(50);
+                ScheduledStart = DateTime.UtcNow.AddMilliseconds(10);
             }
         }
 
@@ -77,5 +73,10 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             stopping = true;
         }
+
+        protected abstract void MessageConsumed(CronusMessage message);
+        protected abstract void WorkStart();
+        protected abstract void WorkStop();
+        protected abstract CronusMessage GetMessage();
     }
 }

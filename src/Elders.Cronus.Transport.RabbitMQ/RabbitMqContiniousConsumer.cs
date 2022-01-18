@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Elders.Cronus.MessageProcessing;
+using Elders.Cronus.Transport.RabbitMQ.Internal;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -16,8 +17,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private QueueingBasicConsumerWithManagedConnection consumer;
 
-        public RabbitMqContinuousConsumer(BoundedContext boundedContext, ISerializer serializer, IConnectionFactory connectionFactory, ISubscriberCollection<T> subscriberCollection, BoundedContextRabbitMqNamer bcRabbitMqNamer, bool useFanoutMode)
-            : base(subscriberCollection)
+        public RabbitMqContinuousConsumer(BoundedContext boundedContext, ISerializer serializer, IRabbitMqConnectionFactory connectionFactory, ISubscriberCollection<T> subscriberCollection, BoundedContextRabbitMqNamer bcRabbitMqNamer, bool useFanoutMode, ILogger logger)
+            : base(subscriberCollection, logger)
         {
             this.deliveryTags = new Dictionary<Guid, ulong>();
             this.serializer = serializer;
@@ -35,7 +36,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 consumer.Queue.Dequeue((int)30, out dequeuedMessage);
                 if (dequeuedMessage is not null)
                 {
-                    var cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(dequeuedMessage.Body);
+                    var cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(dequeuedMessage.Body.ToArray());
                     deliveryTags[cronusMessage.Id] = dequeuedMessage.DeliveryTag;
                     return cronusMessage;
                 }
@@ -78,7 +79,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             private DateTime timestampSinceConsumerIsNotWorking;
             private IModel model;
             private static IConnection connection;
-            private readonly IConnectionFactory connectionFactory;
+            private readonly IRabbitMqConnectionFactory connectionFactory;
             private readonly ISubscriberCollection<T> subscriberCollection;
             private readonly BoundedContext boundedContext;
             private readonly BoundedContextRabbitMqNamer bcRabbitMqNamer;
@@ -88,7 +89,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             bool isSystemQueue = false;
 
             public QueueingBasicConsumerWithManagedConnection(
-                IConnectionFactory connectionFactory,
+                IRabbitMqConnectionFactory connectionFactory,
                 ISubscriberCollection<T> subscriberCollection,
                 BoundedContext boundedContext,
                 BoundedContextRabbitMqNamer bcRabbitMqNamer,
@@ -145,7 +146,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     model?.Abort();
                     model = null;
 
-                    connection?.Abort(5000);
+                    connection?.Abort(TimeSpan.FromSeconds(5));
                     connection = null;
 
                     logger.LogInformation("Rabbitmq connection disposed by consumer.");
@@ -180,7 +181,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
                         if (ReferenceEquals(null, connection) || connection.IsOpen == false)
                         {
-                            connection?.Abort(5000);
+                            connection?.Abort(TimeSpan.FromSeconds(5));
 
                             connection = connectionFactory.CreateConnection();
 

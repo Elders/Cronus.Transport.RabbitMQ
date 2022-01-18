@@ -5,25 +5,24 @@ using Elders.Cronus.MessageProcessing;
 using Elders.Multithreading.Scheduler;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
     public class RabbitMqConsumer<T> : IConsumer<T> where T : IMessageHandler
     {
-        static readonly ILogger logger = CronusLogger.CreateLogger(typeof(RabbitMqConsumer<>));
+        private readonly ILogger logger;
 
         private RabbitMqConsumerOptions options;
         private readonly BoundedContext boundedContext;
         private readonly ISubscriberCollection<T> subscriberCollection;
         private readonly ISerializer serializer;
-        private readonly IConnectionFactory connectionFactory;
+        private readonly IRabbitMqConnectionFactory connectionFactory;
         private readonly BoundedContextRabbitMqNamer bcRabbitMqNamer;
         private readonly WorkPoolFactory workPoolFactory;
-        private readonly AsyncRabbitMqContinuousConsumerFactory<T> consumerFactory;
+        private readonly AsyncConsumerFactory<T> consumerFactory;
         private WorkPool pool;
 
-        public RabbitMqConsumer(IOptionsMonitor<RabbitMqConsumerOptions> options, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<T> subscriberCollection, ISerializer serializer, IConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer, WorkPoolFactory workPoolFactory, AsyncRabbitMqContinuousConsumerFactory<T> consumerFactory)
+        public RabbitMqConsumer(IOptionsMonitor<RabbitMqConsumerOptions> options, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<T> subscriberCollection, ISerializer serializer, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer, WorkPoolFactory workPoolFactory, AsyncConsumerFactory<T> consumerFactory, ILogger<RabbitMqConsumer<T>> logger)
         {
             if (ReferenceEquals(null, subscriberCollection)) throw new ArgumentNullException(nameof(subscriberCollection));
             if (ReferenceEquals(null, serializer)) throw new ArgumentNullException(nameof(serializer));
@@ -37,6 +36,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.bcRabbitMqNamer = bcRabbitMqNamer;
             this.workPoolFactory = workPoolFactory;
             this.consumerFactory = consumerFactory;
+            this.logger = logger;
         }
 
         protected virtual void ConsumerStart() { }
@@ -62,7 +62,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             pool = workPoolFactory.Create(poolName, options.WorkersCount);
             for (int i = 0; i < options.WorkersCount; i++)
             {
-                var consumer = new RabbitMqContinuousConsumer<T>(boundedContext, serializer, connectionFactory, subscriberCollection, bcRabbitMqNamer, options.FanoutMode);
+                var consumer = new RabbitMqContinuousConsumer<T>(boundedContext, serializer, connectionFactory, subscriberCollection, bcRabbitMqNamer, options.FanoutMode, logger);
                 pool.AddWork(consumer);
             }
 
