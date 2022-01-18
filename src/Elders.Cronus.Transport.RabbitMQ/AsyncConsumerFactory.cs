@@ -5,7 +5,6 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.IO;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Elders.Cronus.Transport.RabbitMQ

@@ -5,19 +5,14 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RabbitMQ.Util
+namespace Elders.Cronus.Transport.RabbitMQ.Internal
 {
     ///<summary>A thread-safe shared queue implementation.</summary>
-    public class SharedQueue : SharedQueue<object>
+    internal sealed class SharedQueue<T> : IEnumerable<T>
     {
-    }
-
-    ///<summary>A thread-safe shared queue implementation.</summary>
-    public class SharedQueue<T> : IEnumerable<T>
-    {
-        protected bool m_isOpen = true;
-        protected Queue<T> m_queue = new Queue<T>();
-        protected Queue<TaskCompletionSource<T>> m_waiting = new Queue<TaskCompletionSource<T>>();
+        private bool m_isOpen = true;
+        private Queue<T> m_queue = new Queue<T>();
+        private Queue<TaskCompletionSource<T>> m_waiting = new Queue<TaskCompletionSource<T>>();
 
         public void Close()
         {
@@ -31,7 +26,7 @@ namespace RabbitMQ.Util
                 {
                     try
                     {
-                        this.EnsureIsOpen();
+                        EnsureIsOpen();
                     }
                     catch (Exception ex)
                     {
@@ -67,7 +62,7 @@ namespace RabbitMQ.Util
                 EnsureIsOpen();
                 if (m_queue.Count > 0)
                 {
-                    return Task.FromResult(this.Dequeue());
+                    return Task.FromResult(Dequeue());
                 }
                 else
                 {
@@ -92,11 +87,11 @@ namespace RabbitMQ.Util
                 while (m_queue.Count == 0)
                 {
                     EnsureIsOpen();
-                    var elapsedTime = (int)((DateTime.Now - startTime).TotalMilliseconds);
+                    var elapsedTime = (int)(DateTime.Now - startTime).TotalMilliseconds;
                     int remainingTime = millisecondsTimeout - elapsedTime;
                     if (remainingTime <= 0)
                     {
-                        result = default(T);
+                        result = default;
                         return false;
                     }
 
@@ -165,15 +160,15 @@ namespace RabbitMQ.Util
         }
     }
 
-    public struct SharedQueueEnumerator<T> : IEnumerator<T>
+    internal struct SharedQueueEnumerator<T> : IEnumerator<T>
     {
         private readonly SharedQueue<T> m_queue;
         private T m_current;
 
-        public SharedQueueEnumerator(SharedQueue<T> queue)
+        internal SharedQueueEnumerator(SharedQueue<T> queue)
         {
             m_queue = queue;
-            m_current = default(T);
+            m_current = default;
         }
 
         object IEnumerator.Current
@@ -213,7 +208,7 @@ namespace RabbitMQ.Util
             }
             catch (EndOfStreamException)
             {
-                m_current = default(T);
+                m_current = default;
                 return false;
             }
         }
