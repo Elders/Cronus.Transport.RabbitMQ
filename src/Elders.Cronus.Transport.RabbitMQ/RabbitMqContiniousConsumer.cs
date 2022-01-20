@@ -12,6 +12,13 @@ using RabbitMQ.Client.Events;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
+    internal class FailedCronusMessage : CronusMessage
+    {
+        public static FailedCronusMessage Failed => new FailedCronusMessage();
+
+        internal FailedCronusMessage() : base(default, default) { }
+    }
+
     public class RabbitMqContinuousConsumer<T> : ContinuousConsumer<T>
     {
         private readonly ISerializer serializer;
@@ -36,18 +43,26 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 BasicDeliverEventArgs dequeuedMessage = null;
 
-                try
+                consumer.Queue.Dequeue((int)30, out dequeuedMessage);
+                if (dequeuedMessage is not null)
                 {
-                    consumer.Queue.Dequeue((int)30, out dequeuedMessage);
-                    if (dequeuedMessage is not null)
+                    try
                     {
-                        var cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(dequeuedMessage.Body.ToArray());
+                        var cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(dequeuedMessage.Body);
                         deliveryTags[cronusMessage.Id] = dequeuedMessage.DeliveryTag;
+
                         return cronusMessage;
                     }
+                    catch (Exception ex)
+                    {
+                        logger.ErrorException(ex, () => $"Failed to construct CronusMessage from dequeued message.{Environment.NewLine}{Convert.ToBase64String(dequeuedMessage.Body.ToArray())}");
+                        consumer.Model.BasicAck(dequeuedMessage.DeliveryTag, false);
+
+                        return FailedCronusMessage.Failed;
+                    }
                 }
-                catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to deserialize bytes to Cronus message" + Environment.NewLine + Encoding.Default.GetString(dequeuedMessage.Body.ToArray()))) { }
-                return null;
+
+                return default;
             });
         }
 

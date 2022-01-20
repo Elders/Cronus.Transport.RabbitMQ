@@ -37,6 +37,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 {
                     CronusMessage message = GetMessage();
                     if (ReferenceEquals(null, message)) break;
+                    if (message is FailedCronusMessage) continue;
                     try
                     {
                         var subscribers = subscriberCollection.GetInterestedSubscribers(message);
@@ -65,7 +66,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
             finally
             {
-                ScheduledStart = DateTime.UtcNow.AddMilliseconds(10);
+                ScheduledStart = DateTime.UtcNow.AddMilliseconds(50);
             }
         }
 
