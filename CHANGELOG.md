@@ -1,3 +1,10 @@
+# [7.0.0-preview.10](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.9...v7.0.0-preview.10) (2022-01-20)
+
+
+### Bug Fixes
+
+* Ensure exiting from infinity loop on FailedCronusMessage ([b57a778](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/b57a7785fbad4b36638ab753c1688d605a73ec0f))
+
 # [7.0.0-preview.9](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.8...v7.0.0-preview.9) (2022-01-20)
 
 
