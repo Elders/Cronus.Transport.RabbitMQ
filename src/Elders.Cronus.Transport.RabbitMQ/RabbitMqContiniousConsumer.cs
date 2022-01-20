@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Elders.Cronus.MessageProcessing;
 using Elders.Cronus.Transport.RabbitMQ.Internal;
+using Elders.Cronus.Userfull;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -33,14 +35,18 @@ namespace Elders.Cronus.Transport.RabbitMQ
             return consumer.Do((consumer) =>
             {
                 BasicDeliverEventArgs dequeuedMessage = null;
-                consumer.Queue.Dequeue((int)30, out dequeuedMessage);
-                if (dequeuedMessage is not null)
-                {
-                    var cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(dequeuedMessage.Body.ToArray());
-                    deliveryTags[cronusMessage.Id] = dequeuedMessage.DeliveryTag;
-                    return cronusMessage;
-                }
 
+                try
+                {
+                    consumer.Queue.Dequeue((int)30, out dequeuedMessage);
+                    if (dequeuedMessage is not null)
+                    {
+                        var cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(dequeuedMessage.Body.ToArray());
+                        deliveryTags[cronusMessage.Id] = dequeuedMessage.DeliveryTag;
+                        return cronusMessage;
+                    }
+                }
+                catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to deserialize bytes to Cronus message" + Environment.NewLine + Encoding.Default.GetString(dequeuedMessage.Body.ToArray()))) { }
                 return null;
             });
         }
