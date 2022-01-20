@@ -1,3 +1,10 @@
+# [7.0.0-preview.9](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.8...v7.0.0-preview.9) (2022-01-20)
+
+
+### Bug Fixes
+
+* Handle unknown deserialization problem when trying to serialize into a Cronus Message ([c869d39](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/c869d398b4fb9140a0706721c8de208f75416c5b))
+
 # [7.0.0-preview.8](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.7...v7.0.0-preview.8) (2022-01-18)
 
 
