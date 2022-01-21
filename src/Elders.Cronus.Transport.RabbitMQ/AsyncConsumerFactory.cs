@@ -65,16 +65,17 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private Task DeliverMessageToSubscribers(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)
         {
-            var cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(ev.Body);
+            CronusMessage cronusMessage = null;
             try
             {
+                cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(ev.Body);
                 var subscribers = subscriberCollection.GetInterestedSubscribers(cronusMessage);
                 foreach (var subscriber in subscribers)
                 {
                     subscriber.Process(cronusMessage);
                 }
             }
-            catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to process message." + Environment.NewLine + MessageAsString(cronusMessage))) { }
+            catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to process message." + Environment.NewLine + cronusMessage is null ? "Failed to deserialize" : MessageAsString(cronusMessage))) { }
             finally
             {
                 consumer.Model.BasicAck(ev.DeliveryTag, false);
