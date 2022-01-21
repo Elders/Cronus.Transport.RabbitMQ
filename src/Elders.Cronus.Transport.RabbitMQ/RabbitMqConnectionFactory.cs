@@ -36,8 +36,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.connectionFactory.UserName = options.Username;
             this.connectionFactory.Password = options.Password;
             this.connectionFactory.VirtualHost = options.VHost;
-            this.connectionFactory.DispatchConsumersAsync = options.UseAsyncDispatcher;
-            this.connectionFactory.AutomaticRecoveryEnabled = options.UseAsyncDispatcher;
+            this.connectionFactory.DispatchConsumersAsync = true;
+            this.connectionFactory.AutomaticRecoveryEnabled = true;
             this.connectionFactory.EndpointResolverFactory = (x) => { return new MultipleEndpointResolver(options); };
         }
 
@@ -65,8 +65,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
             newConnectionFactory.UserName = options.Username;
             newConnectionFactory.Password = options.Password;
             newConnectionFactory.VirtualHost = options.VHost;
-            newConnectionFactory.DispatchConsumersAsync = options.UseAsyncDispatcher;
-            newConnectionFactory.AutomaticRecoveryEnabled = options.UseAsyncDispatcher;
+            newConnectionFactory.DispatchConsumersAsync = true;
+            newConnectionFactory.AutomaticRecoveryEnabled = true;
             newConnectionFactory.EndpointResolverFactory = (x) => { return new MultipleEndpointResolver(options); };
             return newConnectionFactory.CreateConnection(new MultipleEndpointResolver(options).All().ToList());
         }

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Elders.Cronus.Discoveries;
-using Elders.Multithreading.Scheduler;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 
@@ -11,7 +10,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
         protected override DiscoveryResult<IConsumer<IMessageHandler>> DiscoverFromAssemblies(DiscoveryContext context)
         {
             return new DiscoveryResult<IConsumer<IMessageHandler>>(GetModels(), services => services
-                                                                                    .AddMultithreadingScheduler()
                                                                                     .AddOptions<RabbitMqOptions, RabbitMqOptionsProvider>()
                                                                                     .AddOptions<RabbitMqConsumerOptions, RabbitMqConsumerOptionsProvider>());
         }

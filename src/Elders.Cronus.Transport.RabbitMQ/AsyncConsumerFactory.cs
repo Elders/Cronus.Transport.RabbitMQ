@@ -58,7 +58,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 return DeliverMessageToSubscribers(@event, consumer);
             }
 
-            logger.Error(() => $"There is no consumer for {(@event.Body.ToArray())}");
+            logger.Error(() => $"There is no consumer for {(@event.Body)}");
 
             return Task.CompletedTask;
         }
