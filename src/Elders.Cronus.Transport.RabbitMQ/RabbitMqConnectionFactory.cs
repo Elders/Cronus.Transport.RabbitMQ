@@ -1,5 +1,7 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
@@ -12,6 +14,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         public IConnection CreateConnection();
 
         public IConnection CreateNewConnection(IRabbitMqOptions options);
+        //Task CloseConnectionAsync<T>(IConnection connection, AsyncConsumerFactory<T> asyncConsumerFactory);
     }
 
     public class RabbitMqConnectionFactory<TOptions> : IRabbitMqConnectionFactory where TOptions : IRabbitMqOptions
@@ -20,12 +23,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private readonly TOptions options;
         private readonly RabbitMqInfrastructure rabbitMqInfrastructure;
         private readonly ConnectionFactory connectionFactory;
+        private IConnection connection;
 
         public RabbitMqConnectionFactory()
         {
         }
 
-        public RabbitMqConnectionFactory(RabbitMqInfrastructure rabbitMqInfrastructure, IOptionsMonitor<TOptions> settings, ConnectionFactory connectionFactory)
+        public RabbitMqConnectionFactory(RabbitMqInfrastructure rabbitMqInfrastructure, IOptionsMonitor<TOptions> settings, ConnectionFactory connectionFactory) : this()
         {
             options = settings.CurrentValue;
             logger.Debug(() => "Loaded RabbitMQ options are {@Options}", options);
@@ -45,14 +49,16 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             try
             {
-                return this.connectionFactory.CreateConnection(new MultipleEndpointResolver(options).All().ToList());
+                connection = this.connectionFactory.CreateConnection(new MultipleEndpointResolver(options).All().ToList());
+                return connection;
             }
             catch (BrokerUnreachableException)
             {
                 Thread.Sleep(1000);
                 rabbitMqInfrastructure.Initialize();
-                return this.connectionFactory.CreateConnection(new MultipleEndpointResolver(options).All().ToList());
 
+                connection = this.connectionFactory.CreateConnection(new MultipleEndpointResolver(options).All().ToList());
+                return connection;
             }
         }
 
@@ -70,6 +76,25 @@ namespace Elders.Cronus.Transport.RabbitMQ
             newConnectionFactory.EndpointResolverFactory = (x) => { return new MultipleEndpointResolver(options); };
             return newConnectionFactory.CreateConnection(new MultipleEndpointResolver(options).All().ToList());
         }
+
+        //public Task CloseConnectionAsync<T>(IConnection connection, AsyncConsumerFactory<T> factory)
+        //{
+        //    foreach (var subscriber in factory.channels)
+        //    {
+        //        while (factory.isAcked == false)
+        //        {
+        //            continue;
+        //        }
+
+        //        if (factory.isAcked == true)
+        //        {
+        //            subscriber.Close();
+        //        }
+        //    }
+
+        //    connection?.Close(System.TimeSpan.FromSeconds(5));
+        //    return Task.CompletedTask;
+        //}
 
         private class MultipleEndpointResolver : DefaultEndpointResolver
         {

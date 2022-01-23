@@ -45,9 +45,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
             return Task.CompletedTask;
         }
 
-        public void Stop()
+        public async Task StopAsync()
         {
-            consumerFactory.Stop();
+            await consumerFactory.StopAsync().ConfigureAwait(false);
         }
 
         private void OptionsChanged(RabbitMqConsumerOptions options)
@@ -59,13 +59,18 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             this.options = options;
 
-            Stop();
+            StopAsync().GetAwaiter().GetResult();
             StartAsync();
         }
 
         public void Start()
         {
             StartAsync();
+        }
+
+        public void Stop()
+        {
+            StopAsync().GetAwaiter().GetResult();
         }
     }
 }
