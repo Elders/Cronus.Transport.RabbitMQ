@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Elders.Cronus.MessageProcessing;
 using Microsoft.Extensions.Logging;
@@ -40,8 +41,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 return Task.CompletedTask;
             }
 
-            consumerFactory.CreateConsumers();
-
+            consumerFactory.CreateConsumersAsync();
             return Task.CompletedTask;
         }
 

@@ -2,12 +2,8 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Elders.Cronus.Transport.RabbitMQ
@@ -20,9 +16,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private readonly BoundedContext boundedContext;
         private readonly ISubscriberCollection<T> subscriberCollection;
         private readonly IRabbitMqConnectionFactory connectionFactory;
+        private readonly ConcurrentBag<AsyncConsumer<T>> consumers = new ConcurrentBag<AsyncConsumer<T>>();
+
         private IConnection connection;
-        public List<IModel> channels = new List<IModel>();
-        public ConcurrentDictionary<AsyncEventingBasicConsumer, bool> consumers = new ConcurrentDictionary<AsyncEventingBasicConsumer, bool>();
 
         public AsyncConsumerFactory(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISerializer serializer, ISubscriberCollection<T> subscriberCollection, IRabbitMqConnectionFactory connectionFactory)
         {
@@ -33,97 +29,35 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.connectionFactory = connectionFactory;
         }
 
-        public void CreateConsumers()
+        public Task CreateConsumersAsync()
         {
             connection = connectionFactory.CreateConnection();
+
             string queue = GetQueueName(boundedContext.Name);
 
             if (connection.IsOpen)
             {
                 for (int i = 0; i < consumerOptions.WorkersCount; i++)
                 {
-                    var subscriber = connection.CreateModel();
-                    channels.Add(subscriber);
-                    var asyncListener = new AsyncEventingBasicConsumer(subscriber);
-                    consumers.TryAdd(asyncListener, true);
-                    asyncListener.Received += AsyncListener_Received;
-                    subscriber.BasicQos(0, 1, false); // prefetch allow to avoid buffer of messages on the flight
-                    subscriber.BasicConsume(queue, false, string.Empty, asyncListener); // we should use autoAck: false to avoid messages loosing
+                    IModel model = connection.CreateModel();
+                    AsyncConsumer<T> asyncListener = new AsyncConsumer<T>(queue, model, subscriberCollection, serializer, logger);
+                    consumers.Add(asyncListener);
                 }
             }
+
+            return Task.CompletedTask;
         }
 
         public async Task StopAsync()
         {
             foreach (var consumer in consumers)
             {
-                consumer.Key.Received -= AsyncListener_Received;
-            }
-
-            int i = 0;
-            while (consumers.Any() == true)
-            {
-                if (i >= consumers.Count - 1)
-                    i = 0;
-
-                var consumer = consumers.ElementAt(i);
-                if (consumer.Value == true)
-                {
-                    consumer.Key.Model.Close();
-                    consumers.TryRemove(consumer);
-                }
-                i++;
+                await consumer.StopAsync();
             }
 
             if (connection is not null && connection.IsOpen)
             {
                 connection.Close();
-            }
-        }
-
-        private Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)
-        {
-            if (sender is AsyncEventingBasicConsumer consumer)
-            {
-                consumers[consumer] = false;
-                return DeliverMessageToSubscribers(@event, consumer);
-            }
-
-            logger.Error(() => $"There is no consumer for {(@event.Body)}");
-
-            return Task.CompletedTask;
-        }
-
-        private Task DeliverMessageToSubscribers(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)
-        {
-            CronusMessage cronusMessage = null;
-            try
-            {
-                cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(ev.Body);
-                var subscribers = subscriberCollection.GetInterestedSubscribers(cronusMessage);
-                foreach (var subscriber in subscribers)
-                {
-                    subscriber.Process(cronusMessage);
-                }
-            }
-            catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to process message." + Environment.NewLine + cronusMessage is null ? "Failed to deserialize" : MessageAsString(cronusMessage))) { }
-            finally
-            {
-                consumer.Model.BasicAck(ev.DeliveryTag, false);
-                consumers[consumer] = true;
-            }
-
-            return Task.CompletedTask;
-        }
-
-        private string MessageAsString(CronusMessage message)
-        {
-            using (var stream = new MemoryStream())
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                serializer.Serialize(stream, message);
-                stream.Position = 0;
-                return reader.ReadToEnd();
             }
         }
 
@@ -140,5 +74,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 return $"{boundedContext}.{systemMarker}{typeof(T).Name}";
             }
         }
+
     }
 }
+
