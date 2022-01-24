@@ -1,3 +1,10 @@
+# [7.0.0-preview.12](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.11...v7.0.0-preview.12) (2022-01-24)
+
+
+### Bug Fixes
+
+* Resolve issue with connection closing in multi-threads ([589eddf](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/589eddfbe305f896a6e6e272d421471c8b7b0282))
+
 # [7.0.0-preview.11](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.10...v7.0.0-preview.11) (2022-01-21)
 
 # [7.0.0-preview.10](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.9...v7.0.0-preview.10) (2022-01-20)
