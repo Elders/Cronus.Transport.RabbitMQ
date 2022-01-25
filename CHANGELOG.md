@@ -1,3 +1,10 @@
+# [7.0.0-preview.14](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.13...v7.0.0-preview.14) (2022-01-25)
+
+
+### Bug Fixes
+
+* Trigger CI ([5a20625](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/5a20625caa417419ae2af350455e93d3b247b013))
+
 # [7.0.0-preview.13](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.12...v7.0.0-preview.13) (2022-01-25)
 
 
