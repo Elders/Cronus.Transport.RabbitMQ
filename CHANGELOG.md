@@ -1,3 +1,10 @@
+# [7.0.0-preview.13](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.12...v7.0.0-preview.13) (2022-01-25)
+
+
+### Bug Fixes
+
+* Rolls back the code which creates the exchanges and the queues ([08d4814](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/08d48143b637b1a39a04ef5bf4e65027297c98c7))
+
 # [7.0.0-preview.12](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.11...v7.0.0-preview.12) (2022-01-24)
 
 
