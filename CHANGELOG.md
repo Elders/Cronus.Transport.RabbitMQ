@@ -1,3 +1,15 @@
+# [7.0.0-preview.15](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.14...v7.0.0-preview.15) (2022-01-26)
+
+
+### Bug Fixes
+
+* Fix Resolve connection for bounded context ([7e43074](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/7e430741e6f9e659ddad2669e2dd6249844c79d2))
+
+
+### Features
+
+* Add RabbitMq startup for all services ([3557674](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/3557674f33eeed5c8e7f63b1b7b0a90be2f49e09))
+
 # [7.0.0-preview.14](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.13...v7.0.0-preview.14) (2022-01-25)
 
 
