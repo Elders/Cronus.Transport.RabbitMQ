@@ -67,17 +67,20 @@ namespace Elders.Cronus.Transport.RabbitMQ
             IEnumerable<string> publicExchangeNames = rabbitMqNamer.GetExchangeNames(typeof(IPublicEvent));
             foreach (var exchange in publicExchangeNames)
             {
-                FederatedExchange federatedExchange = new FederatedExchange()
+                foreach (var upstream in publicOptions.GetUpstreamUris())
                 {
-                    Name = publicOptions.VHost + "--events",
-                    Value = new FederatedExchange.ValueParameters()
+                    FederatedExchange federatedExchange = new FederatedExchange()
                     {
-                        Uri = publicOptions.GetUpstreamUri(),
-                        Exchange = exchange,
-                        MaxHops = publicOptions.FederatedExchange.MaxHops
-                    }
-                };
-                client.CreateFederatedExchange(federatedExchange, options.VHost);
+                        Name = publicOptions.VHost + "--events",
+                        Value = new FederatedExchange.ValueParameters()
+                        {
+                            Uri = upstream,
+                            Exchange = exchange,
+                            MaxHops = publicOptions.FederatedExchange.MaxHops
+                        }
+                    };
+                    client.CreateFederatedExchange(federatedExchange, options.VHost);
+                }
             }
 
             IEnumerable<string> bcExchangeNames = rabbitMqNamer.GetExchangeNames(typeof(IPublicEvent));

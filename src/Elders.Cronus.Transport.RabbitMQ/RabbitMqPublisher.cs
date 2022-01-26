@@ -25,6 +25,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         ConcurrentDictionary<string, IConnection> connections;
         private readonly RabbitMqInfrastructure rabbitMqInfrastructure;
         private readonly IRabbitMqConnectionFactory connectionFactory;
+        private static readonly object connectionLock = new object();
 
         public RabbitMqConnectionResolver(RabbitMqInfrastructure rabbitMqInfrastructure, IOptionsMonitor<TOptions> monitor, IRabbitMqConnectionFactory connectionFactory)
         {
@@ -39,27 +40,26 @@ namespace Elders.Cronus.Transport.RabbitMQ
             string boundedContext = message.RecipientBoundedContext;
 
             IConnection connection = connections.GetOrAdd(boundedContext, (bc, opt) => GetConnection(bc, opt), options);
-
             if (connection is null || connection.IsOpen == false)
             {
-                try
+                lock (connectionLock)
                 {
-                    connection = GetConnection(boundedContext, options);
-                    connections.AddOrUpdate(boundedContext, connection, (bc, con) =>
+                    if (connection is null || connection.IsOpen == false)
                     {
-                        DisposeConnection(con);
-                        return connection;
-                    });
-                }
-                catch (BrokerUnreachableException)
-                {
-                    rabbitMqInfrastructure.Initialize();
-                    connection = GetConnection(boundedContext, options);
-                    connections.AddOrUpdate(boundedContext, connection, (bc, con) =>
-                    {
-                        DisposeConnection(con);
-                        return connection;
-                    });
+                        try
+                        {
+                            connection = GetConnection(boundedContext, options);
+                            connections.AddOrUpdate(boundedContext, connection, (bc, con) =>
+                            {
+                                DisposeConnection(con);
+                                return connection;
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.ErrorException(ex, () => "Koceto iska da lognem");
+                        }
+                    }
                 }
             }
 
@@ -79,7 +79,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private void DisposeConnection(IConnection connection)
         {
             connection?.Abort(TimeSpan.FromSeconds(5));
-            connection.Dispose();
+            connection?.Dispose();
             connection = null;
             logger.LogInformation("Rabbitmq connection disposed by publisher.");
         }
