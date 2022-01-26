@@ -33,22 +33,22 @@ namespace Elders.Cronus.Transport.RabbitMQ
         protected virtual void ConsumerStart() { }
         protected virtual void ConsumerStarted() { }
 
-        public async Task StartAsync()
+        public Task StartAsync()
         {
             try
             {
                 if (subscriberCollection.Subscribers.Any() == false)
                 {
                     logger.Warn(() => $"Consumer {boundedContext}.{typeof(T).Name} not started because there are no subscribers.");
-                    //return Task.CompletedTask;
+                    return Task.CompletedTask;
                 }
 
-                await consumerFactory.CreateConsumersAsync();
+                return consumerFactory.CreateConsumersAsync();
 
             }
             catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to start rabbitmq consumer."))
             {
-                //return Task.FromException(ex);
+                return Task.FromException(ex);
             }
         }
 
@@ -71,7 +71,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.options = options;
 
             StopAsync().GetAwaiter().GetResult();
-            StartAsync();
+            StartAsync().GetAwaiter().GetResult();
         }
 
         public void Start()

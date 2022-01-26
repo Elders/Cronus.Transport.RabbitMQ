@@ -1,5 +1,6 @@
 ﻿using Elders.Cronus.Transport.RabbitMQ.Management;
 using Elders.Cronus.Transport.RabbitMQ.Management.Model;
+using Elders.Cronus.Transport.RabbitMQ.Startup;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;

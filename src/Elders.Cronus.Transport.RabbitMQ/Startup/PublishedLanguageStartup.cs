@@ -1,11 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
-
-namespace Elders.Cronus.Transport.RabbitMQ
+﻿namespace Elders.Cronus.Transport.RabbitMQ.Startup
 {
     [CronusStartup(Bootstraps.ExternalResource)]
     internal class PublishedLanguageStartup : ICronusStartup
     {
-        static readonly ILogger logger = CronusLogger.CreateLogger(typeof(PublishedLanguageStartup));
         private readonly RabbitMqInfrastructure infrastructure;
 
         public PublishedLanguageStartup(RabbitMqInfrastructure infrastructure)
