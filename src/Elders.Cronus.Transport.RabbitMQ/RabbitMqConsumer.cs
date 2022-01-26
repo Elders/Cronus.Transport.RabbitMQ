@@ -33,21 +33,32 @@ namespace Elders.Cronus.Transport.RabbitMQ
         protected virtual void ConsumerStart() { }
         protected virtual void ConsumerStarted() { }
 
-        public Task StartAsync()
+        public async Task StartAsync()
         {
-            if (subscriberCollection.Subscribers.Any() == false)
+            try
             {
-                logger.Warn(() => $"Consumer {boundedContext}.{typeof(T).Name} not started because there are no subscribers.");
-                return Task.CompletedTask;
-            }
+                if (subscriberCollection.Subscribers.Any() == false)
+                {
+                    logger.Warn(() => $"Consumer {boundedContext}.{typeof(T).Name} not started because there are no subscribers.");
+                    //return Task.CompletedTask;
+                }
 
-            consumerFactory.CreateConsumersAsync();
-            return Task.CompletedTask;
+                await consumerFactory.CreateConsumersAsync();
+
+            }
+            catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to start rabbitmq consumer."))
+            {
+                //return Task.FromException(ex);
+            }
         }
 
         public async Task StopAsync()
         {
-            await consumerFactory.StopAsync().ConfigureAwait(false);
+            try
+            {
+                await consumerFactory.StopAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to stop rabbitmq consumer.")) { }
         }
 
         private void OptionsChanged(RabbitMqConsumerOptions options)
@@ -65,7 +76,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public void Start()
         {
-            StartAsync();
+            StartAsync().GetAwaiter().GetResult();
         }
 
         public void Stop()

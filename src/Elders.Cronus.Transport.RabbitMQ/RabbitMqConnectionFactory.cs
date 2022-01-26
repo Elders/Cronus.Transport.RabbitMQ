@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -9,9 +11,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
 {
     public interface IRabbitMqConnectionFactory
     {
-        public IConnection CreateConnection();
-
-        public IConnection CreateNewConnection(IRabbitMqOptions options);
+        IConnection CreateConnection();
+        IConnection CreateConnectionWithChannels(int workers, out List<IModel> channels);
+        IConnection CreateConnectionWithOptions(IRabbitMqOptions options);
     }
 
     public class RabbitMqConnectionFactory<TOptions> : IRabbitMqConnectionFactory where TOptions : IRabbitMqOptions
@@ -20,13 +22,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private readonly TOptions options;
         private readonly RabbitMqInfrastructure rabbitMqInfrastructure;
         private readonly ConnectionFactory connectionFactory;
-        private IConnection connection;
 
-        public RabbitMqConnectionFactory()
-        {
-        }
-
-        public RabbitMqConnectionFactory(RabbitMqInfrastructure rabbitMqInfrastructure, IOptionsMonitor<TOptions> settings, ConnectionFactory connectionFactory) : this()
+        public RabbitMqConnectionFactory(RabbitMqInfrastructure rabbitMqInfrastructure, IOptionsMonitor<TOptions> settings, ConnectionFactory connectionFactory)
         {
             options = settings.CurrentValue;
             logger.Debug(() => "Loaded RabbitMQ options are {@Options}", options);
@@ -44,38 +41,62 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public IConnection CreateConnection()
         {
-            try
-            {
-                connection = this.connectionFactory.CreateConnection(new MultipleEndpointResolver(options).All().ToList());
-                return connection;
-            }
-            catch (BrokerUnreachableException)
-            {
-                Thread.Sleep(1000);
-                rabbitMqInfrastructure.Initialize();
-
-                connection = this.connectionFactory.CreateConnection(new MultipleEndpointResolver(options).All().ToList());
-                return connection;
-            }
+            return CreateConnectionWithOptions(options);
         }
 
-        public IConnection CreateNewConnection(IRabbitMqOptions options)
+        public IConnection CreateConnectionWithChannels(int workersCount, out List<IModel> channels)
+        {
+            channels = new List<IModel>();
+            var connection = CreateConnectionWithOptions(options);
+
+            try
+            {
+                if (connection is not null && connection.IsOpen)
+                {
+                    for (int i = 0; i < workersCount; i++)
+                    {
+                        var channel = connection.CreateModel();
+                        channel.ConfirmSelect();
+                        channels.Add(channel);
+                    }
+                    return connection;
+                }
+            }
+            catch (BrokerUnreachableException ex) when (logger.WarnException(ex, () => $"Failed to create channels to RabbitMQ. Retrying..."))
+            {
+                rabbitMqInfrastructure.Initialize();
+            }
+
+            return CreateConnectionWithChannels(workersCount, out channels);
+        }
+
+        public IConnection CreateConnectionWithOptions(IRabbitMqOptions options)
         {
             logger.Debug(() => "Loaded RabbitMQ options are {@Options}", options);
-            var newConnectionFactory = new ConnectionFactory();
-            newConnectionFactory.HostName = options.Server;
-            newConnectionFactory.Port = options.Port;
-            newConnectionFactory.UserName = options.Username;
-            newConnectionFactory.Password = options.Password;
-            newConnectionFactory.VirtualHost = options.VHost;
-            newConnectionFactory.DispatchConsumersAsync = true;
-            newConnectionFactory.AutomaticRecoveryEnabled = true;
-            newConnectionFactory.EndpointResolverFactory = (x) => { return new MultipleEndpointResolver(options); };
-            return newConnectionFactory.CreateConnection(new MultipleEndpointResolver(options).All().ToList());
+
+            try
+            {
+                var newConnectionFactory = new ConnectionFactory();
+                newConnectionFactory.Port = options.Port;
+                newConnectionFactory.UserName = options.Username;
+                newConnectionFactory.Password = options.Password;
+                newConnectionFactory.VirtualHost = options.VHost;
+                newConnectionFactory.DispatchConsumersAsync = true;
+                newConnectionFactory.AutomaticRecoveryEnabled = true;
+                newConnectionFactory.EndpointResolverFactory = (_) => new MultipleEndpointResolver(options);
+                return newConnectionFactory.CreateConnection();
+            }
+            catch (BrokerUnreachableException ex) when (logger.WarnException(ex, () => $"Failed to create RabbitMQ connection with options {nameof(options)}. Retrying..."))
+            {
+                rabbitMqInfrastructure.Initialize();
+            }
+
+            return CreateConnectionWithOptions(options);
         }
 
         private class MultipleEndpointResolver : DefaultEndpointResolver
         {
+
             public MultipleEndpointResolver(IRabbitMqOptions options) : base(AmqpTcpEndpoint.ParseMultiple(options.Server)) { }
         }
     }

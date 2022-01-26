@@ -20,8 +20,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public string ApiAddress { get; set; }
 
-        public FederatedExchangeOptions FederatedExchange { get; set; } = new FederatedExchangeOptions();
         public bool UseAsyncDispatcher { get; set; }
+
+        public FederatedExchangeOptions FederatedExchange { get; set; } = new FederatedExchangeOptions();
 
         public IRabbitMqOptions GetOptionsFor(string boundedContext)
         {

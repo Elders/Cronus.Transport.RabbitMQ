@@ -24,12 +24,14 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         ConcurrentDictionary<string, IConnection> connections;
         private readonly RabbitMqInfrastructure rabbitMqInfrastructure;
+        private readonly IRabbitMqConnectionFactory connectionFactory;
 
-        public RabbitMqConnectionResolver(RabbitMqInfrastructure rabbitMqInfrastructure, IOptionsMonitor<TOptions> monitor)
+        public RabbitMqConnectionResolver(RabbitMqInfrastructure rabbitMqInfrastructure, IOptionsMonitor<TOptions> monitor, IRabbitMqConnectionFactory connectionFactory)
         {
             options = monitor.CurrentValue;
             connections = new ConcurrentDictionary<string, IConnection>();
             this.rabbitMqInfrastructure = rabbitMqInfrastructure;
+            this.connectionFactory = connectionFactory;
         }
 
         public IConnection Resolve(CronusMessage message)
@@ -68,8 +70,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             IRabbitMqOptions currentOptions = options.GetOptionsFor(boundedContext);
 
-            var connectionFactory = new RabbitMqConnectionFactory<TOptions>();
-            var connection = connectionFactory.CreateNewConnection(currentOptions);
+            IConnection connection = connectionFactory.CreateConnectionWithOptions(currentOptions);
             logger.LogInformation("Rabbitmq connection created by publisher.");
 
             return connection;

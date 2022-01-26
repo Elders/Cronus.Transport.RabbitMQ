@@ -33,28 +33,25 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.subscriberCollection = subscriberCollection;
             this.connectionFactory = connectionFactory;
             this.bcRabbitMqNamer = bcRabbitMqNamer;
-            isSystemQueue = typeof(ISystemHandler).IsAssignableFrom(typeof(T));
 
+            isSystemQueue = typeof(ISystemHandler).IsAssignableFrom(typeof(T));
             queueName = GetQueueName(this.boundedContext.Name, this.consumerOptions.FanoutMode);
         }
 
         public Task CreateConsumersAsync()
         {
-            connection = connectionFactory.CreateConnection();
+            connection = connectionFactory.CreateConnectionWithChannels(consumerOptions.WorkersCount, out List<IModel> channels);
 
-            string queue = GetQueueName(boundedContext.Name);
+            using (var channel = connection.CreateModel())
+            {
+                RecoverModel(channel);
+            }
 
             if (connection.IsOpen)
             {
-                for (int i = 0; i < consumerOptions.WorkersCount; i++)
+                foreach (var channel in channels)
                 {
-                    IModel model = connection.CreateModel();
-                    model.ConfirmSelect();
-
-                    if (i == 0)
-                        RecoverModel(model);
-
-                    AsyncConsumer<T> asyncListener = new AsyncConsumer<T>(queue, model, subscriberCollection, serializer, logger);
+                    AsyncConsumer<T> asyncListener = new AsyncConsumer<T>(queueName, channel, subscriberCollection, serializer, logger);
                     consumers.Add(asyncListener);
                 }
             }
@@ -75,7 +72,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
         }
 
-        void RecoverModel(IModel model)
+        private void RecoverModel(IModel model)
         {
             // exchangeName, dictionary<eventType,List<handlers>>
             var event2Handler = new Dictionary<string, Dictionary<string, List<string>>>();
@@ -130,7 +127,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
 
             model.QueueDeclare(queueName, true, false, false, routingHeaders);
-            model.BasicQos(0, 10, false);
+            model.BasicQos(0, 1, false);
 
             var messageTypes = subscriberCollection.Subscribers.SelectMany(x => x.GetInvolvedMessageTypes()).Distinct().ToList();
             var exchangeGroups = messageTypes
@@ -164,7 +161,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 }
                 model.QueueBind(queueName, standardExchangeName, string.Empty, bindHeaders);
                 model.QueueBind(queueName, schedulerExchangeName, string.Empty, bindHeaders);
-
             }
         }
 
