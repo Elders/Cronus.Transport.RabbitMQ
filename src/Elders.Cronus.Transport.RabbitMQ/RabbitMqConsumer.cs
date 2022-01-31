@@ -43,6 +43,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     return Task.CompletedTask;
                 }
 
+
+
                 return consumerFactory.CreateConsumersAsync();
 
             }
@@ -56,7 +58,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             try
             {
-                await consumerFactory.StopAsync().ConfigureAwait(false);
+                //await consumerFactory.StopAsync().ConfigureAwait(false);
             }
             catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to stop rabbitmq consumer.")) { }
         }

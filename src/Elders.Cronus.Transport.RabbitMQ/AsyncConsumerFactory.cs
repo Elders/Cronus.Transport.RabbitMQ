@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace Elders.Cronus.Transport.RabbitMQ
@@ -13,6 +14,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
     public class AsyncConsumerFactory<T>
     {
         private readonly ILogger logger = CronusLogger.CreateLogger(typeof(AsyncConsumerFactory<>));
+        private readonly ConsumerPerQueueChannelResolver channelResolver;
         private readonly ISerializer serializer;
         private readonly RabbitMqConsumerOptions consumerOptions;
         private readonly BoundedContext boundedContext;
@@ -20,12 +22,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private readonly IRabbitMqConnectionFactory connectionFactory;
         private readonly ConcurrentBag<AsyncConsumer<T>> consumers = new ConcurrentBag<AsyncConsumer<T>>();
         private readonly string queueName;
+        RabbitMqOptions options;
 
-        private IConnection connection;
-
-        public AsyncConsumerFactory(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISerializer serializer, ISubscriberCollection<T> subscriberCollection, IRabbitMqConnectionFactory connectionFactory)
+        public AsyncConsumerFactory(IOptionsMonitor<RabbitMqOptions> optionsMonitor, ConsumerPerQueueChannelResolver channelResolver, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISerializer serializer, ISubscriberCollection<T> subscriberCollection, IRabbitMqConnectionFactory connectionFactory)
         {
+            this.options = optionsMonitor.CurrentValue;
             this.boundedContext = boundedContext.CurrentValue;
+            this.channelResolver = channelResolver;
             this.serializer = serializer;
             this.consumerOptions = consumerOptions.CurrentValue;
             this.subscriberCollection = subscriberCollection;
@@ -34,33 +37,34 @@ namespace Elders.Cronus.Transport.RabbitMQ
             queueName = GetQueueName(this.boundedContext.Name, this.consumerOptions.FanoutMode);
         }
 
+        //public Task CreateConsumersAsync()
+        //{
+        //    connection = connectionFactory.CreateConnectionWithChannels(consumerOptions.WorkersCount, out List<IModel> channels);
+
+        //    if (connection.IsOpen)
+        //    {
+        //        foreach (var channel in channels)
+        //        {
+        //            AsyncConsumer<T> asyncListener = new AsyncConsumer<T>(queueName, channel, subscriberCollection, serializer, logger);
+        //            consumers.Add(asyncListener);
+        //        }
+        //    }
+
+        //    return Task.CompletedTask;
+        //}
+
         public Task CreateConsumersAsync()
         {
-            connection = connectionFactory.CreateConnectionWithChannels(consumerOptions.WorkersCount, out List<IModel> channels);
-
-            if (connection.IsOpen)
+            for (int i = 0; i < consumerOptions.WorkersCount; i++)
             {
-                foreach (var channel in channels)
-                {
-                    AsyncConsumer<T> asyncListener = new AsyncConsumer<T>(queueName, channel, subscriberCollection, serializer, logger);
-                    consumers.Add(asyncListener);
-                }
+                IModel channel = channelResolver.Resolve($"{boundedContext.Name}_{typeof(T).Name}_{i}", options, boundedContext.Name);
+
+
+                AsyncConsumer<T> asyncListener = new AsyncConsumer<T>(queueName, channel, subscriberCollection, serializer, logger);
+                consumers.Add(asyncListener);
             }
 
             return Task.CompletedTask;
-        }
-
-        public async Task StopAsync()
-        {
-            foreach (var consumer in consumers)
-            {
-                await consumer.StopAsync();
-            }
-
-            if (connection is not null && connection.IsOpen)
-            {
-                connection.Close();
-            }
         }
 
         private string GetQueueName(string boundedContext, bool useFanoutMode = false)

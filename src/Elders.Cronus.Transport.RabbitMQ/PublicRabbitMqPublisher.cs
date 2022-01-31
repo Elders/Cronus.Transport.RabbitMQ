@@ -5,10 +5,10 @@ using System.Collections.Generic;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class PublicRabbitMqPublisher : RabbitMqPublisher<IPublicEvent>
+    public class PublicRabbitMqPublisher : TestPublisherBase<IPublicEvent>
     {
-        public PublicRabbitMqPublisher(ISerializer serializer, IRabbitMqConnectionResolver<PublicRabbitMqOptions> connectionResolver, ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, PublicMessagesRabbitMqNamer publicRabbitMqNamer)
-            : base(serializer, connectionResolver, tenantResolver, boundedContext, publicRabbitMqNamer)
+        public PublicRabbitMqPublisher(ISerializer serializer, PublisherChannelResolver channelResolver, ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, IOptionsMonitor<PublicRabbitMqOptions> options, PublicMessagesRabbitMqNamer publicRabbitMqNamer)
+            : base(serializer, channelResolver, tenantResolver, boundedContext, options.CurrentValue, publicRabbitMqNamer)
         {
 
         }
