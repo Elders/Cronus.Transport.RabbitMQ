@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Threading.Channels;
 using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class ConnectionResolver
+    public class ConnectionResolver : IDisposable
     {
         private readonly ConcurrentDictionary<string, IConnection> connectionsPerVHost;
         private readonly IRabbitMqConnectionFactory connectionFactory;
@@ -20,13 +21,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             IConnection connection = GetExistingConnection(boundedContext);
 
-            if (connection is null)
+            if (connection is null || connection.IsOpen == false)
             {
                 lock (connectionLock)
                 {
                     connection = GetExistingConnection(boundedContext);
 
-                    if (connection is null)
+                    if (connection is null || connection.IsOpen == false)
                     {
                         connection = CreateConnection(boundedContext, options);
                     }
@@ -50,6 +51,14 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 throw new Exception("Kak go napravi tova?");
 
             return connection;
+        }
+
+        public void Dispose()
+        {
+            foreach (var connection in connectionsPerVHost)
+            {
+                connection.Value.Close(TimeSpan.FromSeconds(5));
+            }
         }
     }
 }
