@@ -16,17 +16,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         IEnumerable<DiscoveredModel> GetModels()
         {
-            //yield return new DiscoveredModel(typeof(IRabbitMqConnectionResolver<>), typeof(RabbitMqConnectionResolver<>), ServiceLifetime.Singleton);
-            //yield return new DiscoveredModel(typeof(RabbitMqConnectionResolver<>), typeof(RabbitMqConnectionResolver<>), ServiceLifetime.Singleton);
-
-
             yield return new DiscoveredModel(typeof(BoundedContextRabbitMqNamer), typeof(BoundedContextRabbitMqNamer), ServiceLifetime.Singleton);
             yield return new DiscoveredModel(typeof(PublicMessagesRabbitMqNamer), typeof(PublicMessagesRabbitMqNamer), ServiceLifetime.Singleton);
 
-            yield return new DiscoveredModel(typeof(IConnectionFactory), typeof(ConnectionFactory), ServiceLifetime.Singleton);
             yield return new DiscoveredModel(typeof(ConnectionFactory), typeof(ConnectionFactory), ServiceLifetime.Singleton);
 
-            yield return new DiscoveredModel(typeof(RabbitMqConnectionFactory<>), typeof(RabbitMqConnectionFactory<>), ServiceLifetime.Singleton);
             yield return new DiscoveredModel(typeof(PrivateRabbitMqPublisher<>), typeof(PrivateRabbitMqPublisher<>), ServiceLifetime.Singleton);
             yield return new DiscoveredModel(typeof(PublicRabbitMqPublisher), typeof(PublicRabbitMqPublisher), ServiceLifetime.Singleton);
 
@@ -43,7 +37,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             yield return new DiscoveredModel(typeof(ConnectionResolver), typeof(ConnectionResolver), ServiceLifetime.Singleton);
             yield return new DiscoveredModel(typeof(PublisherChannelResolver), typeof(PublisherChannelResolver), ServiceLifetime.Singleton);
-            yield return new DiscoveredModel(typeof(ConsumerPerQueueChannelResolver), typeof(ConsumerPerQueueChannelResolver), ServiceLifetime.Singleton);
         }
     }
 }

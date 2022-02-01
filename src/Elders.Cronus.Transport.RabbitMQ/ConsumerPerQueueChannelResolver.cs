@@ -4,35 +4,34 @@ using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class PublisherChannelResolver
+    public class ConsumerPerQueueChannelResolver
     {
-        private readonly ConcurrentDictionary<string, IModel> channelPerBoundedContext;
+        private readonly ConcurrentDictionary<string, IModel> channelPerQueue;
         private readonly ConnectionResolver connectionResolver;
         private static readonly object @lock = new object();
 
-        public PublisherChannelResolver(ConnectionResolver connectionResolver)
+        public ConsumerPerQueueChannelResolver(ConnectionResolver connectionResolver)
         {
-            channelPerBoundedContext = new ConcurrentDictionary<string, IModel>();
+            channelPerQueue = new ConcurrentDictionary<string, IModel>();
             this.connectionResolver = connectionResolver;
         }
 
-        public IModel Resolve(string boundedContext, IRabbitMqOptions options)
+        public IModel Resolve(string queue, IRabbitMqOptions options, string boundedContext)
         {
-            IModel channel = GetExistingChannel(boundedContext);
+            IModel channel = GetExistingChannel(queue);
 
             if (channel is null || channel.IsClosed)
             {
                 lock (@lock)
                 {
-                    channel = GetExistingChannel(boundedContext);
+                    channel = GetExistingChannel(queue);
 
                     if (channel is null || channel.IsClosed)
                     {
                         var connection = connectionResolver.Resolve(boundedContext, options);
                         channel = connection.CreateModel();
-                        channel.ConfirmSelect();
 
-                        if (channelPerBoundedContext.TryAdd(boundedContext, channel) == false)
+                        if (channelPerQueue.TryAdd(queue, channel) == false)
                         {
                             throw new Exception("Kak go napravi tova?");
                         }
@@ -43,9 +42,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
             return channel;
         }
 
-        private IModel GetExistingChannel(string boundedContext)
+        private IModel GetExistingChannel(string queue)
         {
-            channelPerBoundedContext.TryGetValue(boundedContext, out IModel channel);
+            channelPerQueue.TryGetValue(queue, out IModel channel);
 
             return channel;
         }

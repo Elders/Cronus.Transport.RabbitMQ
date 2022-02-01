@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class PublicRabbitMqPublisher : TestPublisherBase<IPublicEvent>
+    public class PublicRabbitMqPublisher : RabbitMqPublisherBase<IPublicEvent>
     {
         public PublicRabbitMqPublisher(ISerializer serializer, PublisherChannelResolver channelResolver, ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, IOptionsMonitor<PublicRabbitMqOptions> options, PublicMessagesRabbitMqNamer publicRabbitMqNamer)
             : base(serializer, channelResolver, tenantResolver, boundedContext, options.CurrentValue, publicRabbitMqNamer)
