@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
@@ -26,9 +24,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
         public RabbitMqConnectionFactory(RabbitMqInfrastructure rabbitMqInfrastructure, IOptionsMonitor<TOptions> settings, ConnectionFactory connectionFactory, ILogger<RabbitMqConnectionFactory<TOptions>> logger)
         {
             this.logger = logger;
+            this.rabbitMqInfrastructure = rabbitMqInfrastructure;
             options = settings.CurrentValue;
             logger.Debug(() => "Loaded RabbitMQ options are {@Options}", options);
-            this.rabbitMqInfrastructure = rabbitMqInfrastructure;
             this.connectionFactory = connectionFactory;
             this.connectionFactory.HostName = options.Server;
             this.connectionFactory.Port = options.Port;
@@ -38,6 +36,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.connectionFactory.DispatchConsumersAsync = true;
             this.connectionFactory.AutomaticRecoveryEnabled = true;
             this.connectionFactory.EndpointResolverFactory = (x) => { return new MultipleEndpointResolver(options); };
+
+            rabbitMqInfrastructure.Initialize();
         }
 
         public IConnection CreateConnection()
@@ -63,9 +63,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     return connection;
                 }
             }
-            catch (BrokerUnreachableException ex) when (logger.WarnException(ex, () => $"Failed to create channels to RabbitMQ. Retrying..."))
+            catch (Exception ex)
             {
-                rabbitMqInfrastructure.Initialize();
+                if (ex is BrokerUnreachableException)
+                    logger.Warn(() => $"Failed to create RabbitMQ connection with channels. Retrying...");
+                else
+                    logger.WarnException(ex, () => $"Failed to create RabbitMQ connection with channels. Retrying...");
             }
 
             return CreateConnectionWithChannels(workersCount, out channels);
@@ -87,9 +90,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 newConnectionFactory.EndpointResolverFactory = (_) => new MultipleEndpointResolver(options);
                 return newConnectionFactory.CreateConnection();
             }
-            catch (BrokerUnreachableException ex) when (logger.WarnException(ex, () => $"Failed to create RabbitMQ connection with options {nameof(options)}. Retrying..."))
+            catch (Exception ex)
             {
-                rabbitMqInfrastructure.Initialize();
+                if (ex is BrokerUnreachableException)
+                    logger.Warn(() => $"Failed to create RabbitMQ connection with channels. Retrying...");
+                else
+                    logger.WarnException(ex, () => $"Failed to create RabbitMQ connection with channels. Retrying...");
             }
 
             return CreateConnectionWithOptions(options);
@@ -97,7 +103,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private class MultipleEndpointResolver : DefaultEndpointResolver
         {
-
             public MultipleEndpointResolver(IRabbitMqOptions options) : base(AmqpTcpEndpoint.ParseMultiple(options.Server)) { }
         }
     }
