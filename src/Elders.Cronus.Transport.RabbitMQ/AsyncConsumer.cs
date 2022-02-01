@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
-using System.Diagnostics.Metrics;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -29,7 +28,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             isСurrentlyConsuming = false;
         }
 
-        public Task StopAsync()
+        public async Task StopAsync()
         {
             Received -= AsyncListener_Received;
 
@@ -37,27 +36,27 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
             }
 
-            return Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
         }
 
-        private Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)
+        private async Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)
         {
             try
             {
                 isСurrentlyConsuming = true;
 
                 if (sender is AsyncEventingBasicConsumer consumer)
-                    return DeliverMessageToSubscribers(@event, consumer);
+                    await DeliverMessageToSubscribers(@event, consumer).ConfigureAwait(false);
             }
             finally
             {
                 isСurrentlyConsuming = false;
             }
 
-            return Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
         }
 
-        private Task DeliverMessageToSubscribers(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)
+        private async Task DeliverMessageToSubscribers(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)
         {
             CronusMessage cronusMessage = null;
             try
@@ -72,10 +71,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
             catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to process message." + Environment.NewLine + cronusMessage is null ? "Failed to deserialize" : MessageAsString(cronusMessage))) { }
             finally
             {
-                consumer.Model.BasicAck(ev.DeliveryTag, false);
+                if (consumer.Model.IsOpen)
+                {
+                    consumer.Model.BasicAck(ev.DeliveryTag, false);
+                }
             }
 
-            return Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
         }
 
         private string MessageAsString(CronusMessage message)
