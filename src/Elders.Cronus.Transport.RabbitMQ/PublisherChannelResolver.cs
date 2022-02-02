@@ -1,18 +1,17 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Generic;
 using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
     public class PublisherChannelResolver
     {
-        private readonly ConcurrentDictionary<string, IModel> channelPerBoundedContext;
+        private readonly Dictionary<string, IModel> channelPerBoundedContext;
         private readonly ConnectionResolver connectionResolver;
         private static readonly object @lock = new object();
 
         public PublisherChannelResolver(ConnectionResolver connectionResolver)
         {
-            channelPerBoundedContext = new ConcurrentDictionary<string, IModel>();
+            channelPerBoundedContext = new Dictionary<string, IModel>();
             this.connectionResolver = connectionResolver;
         }
 
@@ -26,21 +25,23 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 {
                     channel = GetExistingChannel(boundedContext);
 
-                    if (channel is null || channel.IsClosed)
+                    if (channel?.IsClosed == true)
+                    {
+                        channelPerBoundedContext.Remove(boundedContext);
+                    }
+
+                    if (channel is null)
                     {
                         var connection = connectionResolver.Resolve(boundedContext, options);
-                        channel = connection.CreateModel();
-                        channel.ConfirmSelect();
+                        IModel scopedChannel = connection.CreateModel();
+                        scopedChannel.ConfirmSelect();
 
-                        if (channelPerBoundedContext.TryAdd(boundedContext, channel) == false)
-                        {
-                            throw new Exception("Kak go napravi tova?");
-                        }
+                        channelPerBoundedContext.Add(boundedContext, scopedChannel);
                     }
                 }
             }
 
-            return channel;
+            return GetExistingChannel(boundedContext);
         }
 
         private IModel GetExistingChannel(string boundedContext)
