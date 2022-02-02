@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
@@ -18,13 +19,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
     {
         private readonly ILogger<RabbitMqConnectionFactory<TOptions>> logger;
         private readonly TOptions options;
-        private readonly RabbitMqInfrastructure rabbitMqInfrastructure;
         private readonly ConnectionFactory connectionFactory;
 
-        public RabbitMqConnectionFactory(RabbitMqInfrastructure rabbitMqInfrastructure, IOptionsMonitor<TOptions> settings, ConnectionFactory connectionFactory, ILogger<RabbitMqConnectionFactory<TOptions>> logger)
+        public RabbitMqConnectionFactory(IOptionsMonitor<TOptions> settings, ConnectionFactory connectionFactory, ILogger<RabbitMqConnectionFactory<TOptions>> logger)
         {
             this.logger = logger;
-            this.rabbitMqInfrastructure = rabbitMqInfrastructure;
             options = settings.CurrentValue;
             logger.Debug(() => "Loaded RabbitMQ options are {@Options}", options);
             this.connectionFactory = connectionFactory;
@@ -36,8 +35,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.connectionFactory.DispatchConsumersAsync = true;
             this.connectionFactory.AutomaticRecoveryEnabled = true;
             this.connectionFactory.EndpointResolverFactory = (x) => { return new MultipleEndpointResolver(options); };
-
-            rabbitMqInfrastructure.Initialize();
         }
 
         public IConnection CreateConnection()
@@ -50,55 +47,70 @@ namespace Elders.Cronus.Transport.RabbitMQ
             channels = new List<IModel>();
             var connection = CreateConnectionWithOptions(options);
 
-            try
-            {
-                if (connection is not null && connection.IsOpen)
-                {
-                    for (int i = 0; i < workersCount; i++)
-                    {
-                        var channel = connection.CreateModel();
-                        channel.ConfirmSelect();
-                        channels.Add(channel);
-                    }
-                    return connection;
-                }
-            }
-            catch (Exception ex)
-            {
-                if (ex is BrokerUnreachableException)
-                    logger.Warn(() => $"Failed to create RabbitMQ connection with channels. Retrying...");
-                else
-                    logger.WarnException(ex, () => $"Failed to create RabbitMQ connection with channels. Retrying...");
-            }
+            bool tailRecursion = false;
 
-            return CreateConnectionWithChannels(workersCount, out channels);
+            do
+            {
+                try
+                {
+                    if (connection is not null && connection.IsOpen)
+                    {
+                        for (int i = 0; i < workersCount; i++)
+                        {
+                            var channel = connection.CreateModel();
+                            channel.ConfirmSelect();
+                            channels.Add(channel);
+                        }
+                        return connection;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    tailRecursion = true;
+                    if (ex is BrokerUnreachableException)
+                        logger.Warn(() => $"Failed to create RabbitMQ connection with channels. Retrying...");
+                    else
+                        logger.WarnException(ex, () => $"Failed to create RabbitMQ connection with channels. Retrying...");
+                }
+            } while (tailRecursion == true);
+
+
+            return default;
         }
 
         public IConnection CreateConnectionWithOptions(IRabbitMqOptions options)
         {
             logger.Debug(() => "Loaded RabbitMQ options are {@Options}", options);
 
-            try
-            {
-                var newConnectionFactory = new ConnectionFactory();
-                newConnectionFactory.Port = options.Port;
-                newConnectionFactory.UserName = options.Username;
-                newConnectionFactory.Password = options.Password;
-                newConnectionFactory.VirtualHost = options.VHost;
-                newConnectionFactory.DispatchConsumersAsync = true;
-                newConnectionFactory.AutomaticRecoveryEnabled = true;
-                newConnectionFactory.EndpointResolverFactory = (_) => new MultipleEndpointResolver(options);
-                return newConnectionFactory.CreateConnection();
-            }
-            catch (Exception ex)
-            {
-                if (ex is BrokerUnreachableException)
-                    logger.Warn(() => $"Failed to create RabbitMQ connection with channels. Retrying...");
-                else
-                    logger.WarnException(ex, () => $"Failed to create RabbitMQ connection with channels. Retrying...");
-            }
+            bool tailRecursion = false;
 
-            return CreateConnectionWithOptions(options);
+            do
+            {
+                try
+                {
+                    var newConnectionFactory = new ConnectionFactory();
+                    newConnectionFactory.Port = options.Port;
+                    newConnectionFactory.UserName = options.Username;
+                    newConnectionFactory.Password = options.Password;
+                    newConnectionFactory.VirtualHost = options.VHost;
+                    newConnectionFactory.DispatchConsumersAsync = true;
+                    newConnectionFactory.AutomaticRecoveryEnabled = true;
+                    newConnectionFactory.EndpointResolverFactory = (_) => new MultipleEndpointResolver(options);
+                    return newConnectionFactory.CreateConnection();
+                }
+                catch (Exception ex)
+                {
+                    if (ex is BrokerUnreachableException)
+                        logger.Warn(() => $"Failed to create RabbitMQ connection. Retrying...");
+                    else
+                        logger.WarnException(ex, () => $"Failed to create RabbitMQ connection. Retrying...");
+
+                    Task.Delay(5000).GetAwaiter().GetResult();
+                    tailRecursion = true;
+                }
+            } while (tailRecursion == true);
+
+            return default;
         }
 
         private class MultipleEndpointResolver : DefaultEndpointResolver
