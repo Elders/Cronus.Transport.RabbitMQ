@@ -9,8 +9,7 @@ using System.Linq;
 
 namespace Elders.Cronus.Transport.RabbitMQ.Startup
 {
-    [CronusStartup(Bootstraps.Environment)]
-    internal abstract class RabbitMqStartup<T> : ICronusStartup
+    public abstract class RabbitMqStartup<T> : ICronusStartup
     {
         private readonly RabbitMqConsumerOptions consumerOptions;
         private readonly BoundedContext boundedContext;
@@ -148,72 +147,86 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
         }
     }
 
-    internal class AppService_Startup : RabbitMqStartup<IApplicationService>
+    [CronusStartup(Bootstraps.Environment)]
+    public class AppService_Startup : RabbitMqStartup<IApplicationService>
     {
         public AppService_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<IApplicationService> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
     }
 
-    internal class CronusEventStoreIndex_Startup : RabbitMqStartup<ICronusEventStoreIndex>
+    [CronusStartup(Bootstraps.Environment)]
+    public class CronusEventStoreIndex_Startup : RabbitMqStartup<ICronusEventStoreIndex>
     {
         public CronusEventStoreIndex_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ICronusEventStoreIndex> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
     }
 
-    internal class EventStoreIndex_Startup : RabbitMqStartup<IEventStoreIndex>
+    [CronusStartup(Bootstraps.Environment)]
+    public class EventStoreIndex_Startup : RabbitMqStartup<IEventStoreIndex>
     {
         public EventStoreIndex_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<IEventStoreIndex> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
     }
 
-    internal class Projection_Startup : RabbitMqStartup<IProjection>
+    [CronusStartup(Bootstraps.Environment)]
+    public class Projection_Startup : RabbitMqStartup<IProjection>
     {
         public Projection_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<IProjection> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
     }
 
-    internal class Port_Startup : RabbitMqStartup<IPort>
+    [CronusStartup(Bootstraps.Environment)]
+    public class Port_Startup : RabbitMqStartup<IPort>
     {
         public Port_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<IPort> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
     }
 
-    internal class Saga_Startup : RabbitMqStartup<ISaga>
+    [CronusStartup(Bootstraps.Environment)]
+    public class Saga_Startup : RabbitMqStartup<ISaga>
     {
         public Saga_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ISaga> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
     }
 
-    internal class Gateway_Startup : RabbitMqStartup<IGateway>
+    [CronusStartup(Bootstraps.Environment)]
+    public class Gateway_Startup : RabbitMqStartup<IGateway>
     {
         public Gateway_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<IGateway> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
     }
 
-    internal class Trigger_Startup : RabbitMqStartup<ITrigger>
+    [CronusStartup(Bootstraps.Environment)]
+    public class Trigger_Startup : RabbitMqStartup<ITrigger>
     {
         public Trigger_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ITrigger> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
     }
 
-    internal class SystemAppService_Startup : RabbitMqStartup<ISystemAppService>
+    [CronusStartup(Bootstraps.Environment)]
+    public class SystemAppService_Startup : RabbitMqStartup<ISystemAppService>
     {
         public SystemAppService_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ISystemAppService> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
     }
 
-    internal class SystemSaga_Startup : RabbitMqStartup<ISystemSaga>
+    [CronusStartup(Bootstraps.Environment)]
+    public class SystemSaga_Startup : RabbitMqStartup<ISystemSaga>
     {
         public SystemSaga_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ISystemSaga> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
     }
 
-    internal class SystemPort_Startup : RabbitMqStartup<ISystemPort>
+    [CronusStartup(Bootstraps.Environment)]
+    public class SystemPort_Startup : RabbitMqStartup<ISystemPort>
     {
         public SystemPort_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ISystemPort> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
     }
 
-    internal class SystemTrigger_Startup : RabbitMqStartup<ISystemTrigger>
+    [CronusStartup(Bootstraps.Environment)]
+    public class SystemTrigger_Startup : RabbitMqStartup<ISystemTrigger>
     {
         public SystemTrigger_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ISystemTrigger> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
     }
 
-    internal class SystemProjection_Startup : RabbitMqStartup<ISystemProjection>
+    [CronusStartup(Bootstraps.Environment)]
+    public class SystemProjection_Startup : RabbitMqStartup<ISystemProjection>
     {
         public SystemProjection_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ISystemProjection> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
     }
 
-    internal class MigrationHandler_Startup : RabbitMqStartup<IMigrationHandler>
+    [CronusStartup(Bootstraps.Environment)]
+    public class MigrationHandler_Startup : RabbitMqStartup<IMigrationHandler>
     {
         public MigrationHandler_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<IMigrationHandler> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
     }
