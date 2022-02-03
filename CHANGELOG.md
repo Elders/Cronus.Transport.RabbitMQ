@@ -1,3 +1,15 @@
+# [7.0.0-preview.16](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.15...v7.0.0-preview.16) (2022-02-03)
+
+
+### Bug Fixes
+
+* StackOverFlow exception ([085de67](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/085de678baedd0b7a62002b68ac8275c1b17c3af))
+
+
+### Features
+
+* Dispose connections when application is shutting down ([3341951](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/33419516a26b88dbaec3e60b7687f99a1f415827))
+
 # [7.0.0-preview.15](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.14...v7.0.0-preview.15) (2022-01-26)
 
 
