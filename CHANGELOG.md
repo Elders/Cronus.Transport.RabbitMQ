@@ -1,3 +1,16 @@
+# [7.0.0-preview.16](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.15...v7.0.0-preview.16) (2022-02-04)
+
+
+### Bug Fixes
+
+* Make publisher channels per exchange ([3cffc7b](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/3cffc7b3744235e9c7153a65fa73d673a54c9f2c))
+* StackOverFlow exception ([085de67](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/085de678baedd0b7a62002b68ac8275c1b17c3af))
+
+
+### Features
+
+* Dispose connections when application is shutting down ([3341951](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/33419516a26b88dbaec3e60b7687f99a1f415827))
+
 # [7.0.0-preview.16](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.15...v7.0.0-preview.16) (2022-02-03)
 
 
