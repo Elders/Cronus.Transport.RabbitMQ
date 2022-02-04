@@ -12,8 +12,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
     {
         static readonly ILogger logger = CronusLogger.CreateLogger(typeof(RabbitMqPublisherBase<>));
 
-        bool isStopped = false;
-
         private readonly ISerializer serializer;
         private readonly PublisherChannelResolver channelResolver;
         private readonly IRabbitMqNamer rabbitMqNamer;
@@ -32,12 +30,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             try
             {
-                if (isStopped)
-                {
-                    logger.Warn(() => "Failed to publish a message. Publisher is stopped/disposed.");
-                    return false;
-                }
-
                 string boundedContext = message.BoundedContext;
 
                 List<string> exchanges = GetExistingExchangesNames(message);
