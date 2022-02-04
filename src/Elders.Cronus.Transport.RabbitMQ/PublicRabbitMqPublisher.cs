@@ -8,10 +8,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
     public class PublicRabbitMqPublisher : RabbitMqPublisherBase<IPublicEvent>
     {
         public PublicRabbitMqPublisher(ISerializer serializer, PublisherChannelResolver channelResolver, ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, IOptionsMonitor<PublicRabbitMqOptions> options, PublicMessagesRabbitMqNamer publicRabbitMqNamer)
-            : base(serializer, channelResolver, tenantResolver, boundedContext, options.CurrentValue, publicRabbitMqNamer)
-        {
-
-        }
+            : base(serializer, channelResolver, tenantResolver, boundedContext, options.CurrentValue, publicRabbitMqNamer) { }
 
         protected override IBasicProperties BuildMessageProperties(IBasicProperties properties, CronusMessage message)
         {
@@ -21,6 +18,10 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 string messageContractId = message.Payload.GetType().GetContractId();
 
                 properties.Headers = new Dictionary<string, object>();
+
+                if (message.GetPublishDelay() > 1000)
+                    properties.Headers.Add("x-delay", message.GetPublishDelay());
+
                 foreach (var recipientHandler in message.RecipientHandlers)
                 {
                     properties.Headers.Add($"{messageContractId}@{recipientHandler}", boundedContext);

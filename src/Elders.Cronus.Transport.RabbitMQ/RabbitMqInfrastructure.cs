@@ -83,8 +83,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 }
             }
 
-            IEnumerable<string> bcExchangeNames = rabbitMqNamer.GetExchangeNames(typeof(IPublicEvent));
-            foreach (var exchange in bcExchangeNames)
+            foreach (var exchange in publicExchangeNames)
             {
                 Policy policy = new Policy()
                 {

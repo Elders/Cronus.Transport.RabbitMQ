@@ -47,8 +47,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private IConnection CreateConnection(string boundedContext, IRabbitMqOptions options)
         {
             IConnection connection = connectionFactory.CreateConnectionWithOptions(options);
-            if (connectionsPerVHost.TryAdd(boundedContext, connection) == false)
-                throw new Exception("Kak go napravi tova?");
+            connectionsPerVHost.TryAdd(boundedContext, connection);
 
             return connection;
         }

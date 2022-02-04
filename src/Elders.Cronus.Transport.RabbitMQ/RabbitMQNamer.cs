@@ -74,12 +74,10 @@ namespace Elders.Cronus.Transport.RabbitMQ
         }
     }
 
-
     public sealed class PublicMessagesRabbitMqNamer : IRabbitMqNamer
     {
         public IEnumerable<string> GetExchangeNames(Type messageType)
         {
-
             if (typeof(IPublicEvent).IsAssignableFrom(messageType))
             {
                 // No BoundedContext here, because the bounded context is global here

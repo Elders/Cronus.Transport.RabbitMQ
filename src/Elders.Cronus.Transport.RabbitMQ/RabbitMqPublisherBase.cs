@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
@@ -27,16 +28,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.rabbitMqNamer = rabbitMqNamer;
         }
 
-        protected virtual IBasicProperties BuildMessageProperties(IBasicProperties properties, CronusMessage message)
-        {
-            string boundedContext = message.Headers[MessageHeader.BoundedContext];
-
-            properties.Headers = new Dictionary<string, object>() { { message.Payload.GetType().GetContractId(), boundedContext } };
-            properties.Persistent = true;
-
-            return properties;
-        }
-
         protected override bool PublishInternal(CronusMessage message)
         {
             try
@@ -47,33 +38,19 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     return false;
                 }
 
-                string boundedContext = message.Headers[MessageHeader.BoundedContext];
-                IModel publishModel;
+                string boundedContext = message.BoundedContext;
 
-                publishModel = channelResolver.Resolve($"{boundedContext}_{options.GetType().Name}", options);
-
-                IBasicProperties props = publishModel.CreateBasicProperties();
-                props = BuildMessageProperties(props, message);
-
-                byte[] body = this.serializer.SerializeToBytes(message);
-
-                var publishDelayInMiliseconds = message.GetPublishDelay();
-                if (publishDelayInMiliseconds < 1000)
+                List<string> exchanges = GetExistingExchangesNames(message);
+                foreach (string exchange in exchanges)
                 {
-                    foreach (var exchange in rabbitMqNamer.GetExchangeNames(message.Payload.GetType()))
-                    {
-                        publishModel.BasicPublish(exchange, string.Empty, false, props, body);
-                    }
+                    IModel exchangeModel = channelResolver.Resolve(exchange, options, boundedContext);
+                    IBasicProperties props = exchangeModel.CreateBasicProperties();
+                    props = BuildMessageProperties(props, message);
+
+                    byte[] body = serializer.SerializeToBytes(message);
+                    exchangeModel.BasicPublish(exchange, string.Empty, false, props, body);
                 }
-                else
-                {
-                    foreach (var exchange in rabbitMqNamer.GetExchangeNames(message.Payload.GetType()))
-                    {
-                        var exchangeName = $"{exchange}.Scheduler";
-                        props.Headers.Add("x-delay", message.GetPublishDelay());
-                        publishModel.BasicPublish(exchangeName, string.Empty, false, props, body);
-                    }
-                }
+
                 return true;
             }
             catch (Exception ex)
@@ -81,6 +58,31 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 logger.WarnException(ex, () => ex.Message);
                 return false;
             }
+        }
+
+        protected virtual IBasicProperties BuildMessageProperties(IBasicProperties properties, CronusMessage message)
+        {
+            string boundedContext = message.Headers[MessageHeader.BoundedContext];
+
+            properties.Headers = new Dictionary<string, object>() { { message.Payload.GetType().GetContractId(), boundedContext } };
+            properties.Persistent = true;
+
+            if (message.GetPublishDelay() > 1000)
+                properties.Headers.Add("x-delay", message.GetPublishDelay());
+
+            return properties;
+        }
+
+        private List<string> GetExistingExchangesNames(CronusMessage message)
+        {
+            List<string> exchanges = rabbitMqNamer.GetExchangeNames(message.Payload.GetType()).ToList();
+
+            if (message.GetPublishDelay() > 1000)
+            {
+                exchanges = exchanges.Select(e => $"{e}.Scheduler").ToList();
+            }
+
+            return exchanges;
         }
     }
 }
