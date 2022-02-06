@@ -1,3 +1,9 @@
+# [7.0.0-preview.17](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.16...v7.0.0-preview.17) (2022-02-06)
+
+
+### Bug Fixes
+
+* CHANGELOG and Deploy ([fc018ff](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/fc018ff6c13d79d088f4b578ef376c2790004f82))
 
 # [7.0.0-preview.15](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.14...v7.0.0-preview.15) (2022-01-26)
 
