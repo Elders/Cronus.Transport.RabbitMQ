@@ -56,11 +56,17 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             string boundedContext = message.Headers[MessageHeader.BoundedContext];
 
-            properties.Headers = new Dictionary<string, object>() { { message.Payload.GetType().GetContractId(), boundedContext } };
-            properties.Persistent = true;
+            properties.Headers = new Dictionary<string, object>();
+            properties.Headers.Add(message.Payload.GetType().GetContractId(), boundedContext);
 
             if (message.GetPublishDelay() > 1000)
                 properties.Headers.Add("x-delay", message.GetPublishDelay());
+
+            string ttl = message.GetTTL(); // https://www.rabbitmq.com/ttl.html#per-message-ttl-in-publishers
+            if (string.IsNullOrEmpty(ttl) == false)
+                properties.Expiration = ttl;
+
+            properties.Persistent = true;
 
             return properties;
         }
