@@ -59,7 +59,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             properties.Headers = new Dictionary<string, object>();
             properties.Headers.Add(message.Payload.GetType().GetContractId(), boundedContext);
 
-            if (message.GetPublishDelay() > 1000)
+            if (message.GetPublishDelay() > 1000) // ttl for message
                 properties.Headers.Add("x-delay", message.GetPublishDelay());
 
             string ttl = message.GetTTL(); // https://www.rabbitmq.com/ttl.html#per-message-ttl-in-publishers
