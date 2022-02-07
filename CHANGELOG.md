@@ -1,3 +1,12 @@
+# [7.0.0-preview.18](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.17...v7.0.0-preview.18) (2022-02-07)
+
+
+### Bug Fixes
+
+* add comment ([23d8e4e](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/23d8e4e63a0ac20792dfa08ac86d7add9c6edeac))
+* Add TTL to heartbeat ([1b49cbb](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/1b49cbb4dd8513e3b6a6addd2f2f8988838a918f))
+* update Cronus package ([4e3bdf9](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/4e3bdf99adb6453f44d4c8a129a3e4af44f95b2d))
+
 # [7.0.0-preview.17](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.16...v7.0.0-preview.17) (2022-02-06)
 
 
