@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
@@ -21,5 +22,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             return ttl;
         }
+
+
     }
 }

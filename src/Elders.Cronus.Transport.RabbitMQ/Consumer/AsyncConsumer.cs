@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
+    /// <summary>
+    /// Transient consumer with some extra connection management.
+    /// </summary>
+    /// <typeparam name="TSubscriber"></typeparam>
     public class AsyncConsumer<TSubscriber> : AsyncEventingBasicConsumer
     {
         private readonly ILogger logger;
@@ -22,18 +26,22 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.subscriberCollection = subscriberCollection;
             this.serializer = serializer;
 
+            isСurrentlyConsuming = false;
             Received += AsyncListener_Received;
             model.BasicQos(0, 1, false); // prefetch allow to avoid buffer of messages on the flight
             model.BasicConsume(queue, false, string.Empty, this); // we should use autoAck: false to avoid messages loosing
-            isСurrentlyConsuming = false;
         }
 
         public async Task StopAsync()
         {
+            // 1. We detach the listener so ther will be no new messages coming from the queue
             Received -= AsyncListener_Received;
 
+            // 2. Wait to handle any messages in progress
             while (isСurrentlyConsuming)
             {
+                // We are trying to wait all consumers to finish their current work.
+                // Ofcourse the host could be forcibly shut down but we are doing our best.
             }
 
             await Task.CompletedTask.ConfigureAwait(false);

@@ -1,4 +1,5 @@
 ﻿using Elders.Cronus.Multitenancy;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using System.Collections.Generic;
@@ -7,8 +8,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
 {
     public class PublicRabbitMqPublisher : RabbitMqPublisherBase<IPublicEvent>
     {
-        public PublicRabbitMqPublisher(ISerializer serializer, PublisherChannelResolver channelResolver, ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, IOptionsMonitor<PublicRabbitMqOptions> options, PublicMessagesRabbitMqNamer publicRabbitMqNamer)
-            : base(serializer, channelResolver, tenantResolver, boundedContext, options.CurrentValue, publicRabbitMqNamer) { }
+        public PublicRabbitMqPublisher(ISerializer serializer, PublisherChannelResolver channelResolver, ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, IOptionsMonitor<PublicRabbitMqOptions> options, PublicMessagesRabbitMqNamer publicRabbitMqNamer, ILogger<PublicRabbitMqPublisher> logger)
+            : base(serializer, channelResolver, tenantResolver, boundedContext, options.CurrentValue, publicRabbitMqNamer, logger) { }
 
         protected override IBasicProperties BuildMessageProperties(IBasicProperties properties, CronusMessage message)
         {

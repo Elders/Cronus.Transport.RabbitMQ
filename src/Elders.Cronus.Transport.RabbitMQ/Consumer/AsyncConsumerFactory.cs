@@ -4,6 +4,9 @@ using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace Elders.Cronus.Transport.RabbitMQ
@@ -32,11 +35,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
             queueName = GetQueueName(this.boundedContext.Name, this.consumerOptions.FanoutMode);
         }
 
-        public void CreateConsumers()
+        public void CreateAndStartConsumers()
         {
             for (int i = 0; i < consumerOptions.WorkersCount; i++)
             {
-                IModel channel = channelResolver.Resolve($"{boundedContext.Name}_{typeof(T).Name}_{i}", options, boundedContext.Name);
+                string consumerChannelKey = $"{boundedContext.Name}_{typeof(T).Name}_{i}";
+                IModel channel = channelResolver.Resolve(consumerChannelKey, options, boundedContext.Name);
 
                 AsyncConsumer<T> asyncListener = new AsyncConsumer<T>(queueName, channel, subscriberCollection, serializer, logger);
                 consumers.Add(asyncListener);
@@ -45,10 +49,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public async Task StopAsync()
         {
-            foreach (var consumer in consumers)
-            {
-                await consumer.StopAsync().ConfigureAwait(false);
-            }
+            IEnumerable<Task> stopTasks = consumers.Select(consumer => consumer.StopAsync());
+
+            await Task.WhenAll(stopTasks).ConfigureAwait(false);
         }
 
         private string GetQueueName(string boundedContext, bool useFanoutMode = false)

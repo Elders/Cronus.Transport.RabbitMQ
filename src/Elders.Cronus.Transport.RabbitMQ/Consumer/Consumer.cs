@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class RabbitMqConsumer<T> : IConsumer<T> where T : IMessageHandler
+    public class Consumer<T> : IConsumer<T> where T : IMessageHandler
     {
         private readonly ILogger logger;
 
@@ -15,7 +15,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private readonly ISubscriberCollection<T> subscriberCollection;
         private readonly AsyncConsumerFactory<T> consumerFactory;
 
-        public RabbitMqConsumer(IOptionsMonitor<RabbitMqConsumerOptions> options, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<T> subscriberCollection, ISerializer serializer, AsyncConsumerFactory<T> consumerFactory, ILogger<RabbitMqConsumer<T>> logger)
+        public Consumer(IOptionsMonitor<RabbitMqConsumerOptions> options, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<T> subscriberCollection, ISerializer serializer, AsyncConsumerFactory<T> consumerFactory, ILogger<Consumer<T>> logger)
         {
             if (ReferenceEquals(null, subscriberCollection)) throw new ArgumentNullException(nameof(subscriberCollection));
             if (ReferenceEquals(null, serializer)) throw new ArgumentNullException(nameof(serializer));
@@ -28,9 +28,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.logger = logger;
         }
 
-        protected virtual void ConsumerStart() { }
-        protected virtual void ConsumerStarted() { }
-
         public void Start()
         {
             try
@@ -40,7 +37,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     logger.Warn(() => $"Consumer {boundedContext}.{typeof(T).Name} not started because there are no subscribers.");
                 }
 
-                consumerFactory.CreateConsumers();
+                consumerFactory.CreateAndStartConsumers();
 
             }
             catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to start rabbitmq consumer.")) { }
