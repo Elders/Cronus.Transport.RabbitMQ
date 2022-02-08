@@ -1,3 +1,10 @@
+# [7.0.0-preview.20](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.19...v7.0.0-preview.20) (2022-02-08)
+
+
+### Bug Fixes
+
+* Wait all consumers to stop in tandem ([51db0dc](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/51db0dc097cf393a3a6a5bb1c906517e39c345ce))
+
 # [7.0.0-preview.19](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.18...v7.0.0-preview.19) (2022-02-08)
 
 
