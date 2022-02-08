@@ -1,7 +1,7 @@
 ﻿namespace Elders.Cronus.Transport.RabbitMQ.Startup
 {
     [CronusStartup(Bootstraps.ExternalResource)]
-    internal class PublishedLanguageStartup : ICronusStartup
+    public class PublishedLanguageStartup : ICronusStartup
     {
         private readonly RabbitMqInfrastructure infrastructure;
 

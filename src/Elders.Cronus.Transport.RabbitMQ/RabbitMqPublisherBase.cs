@@ -5,6 +5,7 @@ using RabbitMQ.Client;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using RabbitMQ.Client.Exceptions;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
@@ -45,11 +46,16 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
                 return true;
             }
+            catch (BrokerUnreachableException ex)
+            {
+                logger.Warn(() => "Unable to connect to RabbitMq. Retrying...");
+            }
             catch (Exception ex)
             {
                 logger.WarnException(ex, () => ex.Message);
-                return false;
             }
+
+            return false;
         }
 
         protected virtual IBasicProperties BuildMessageProperties(IBasicProperties properties, CronusMessage message)
