@@ -1,3 +1,10 @@
+# [7.0.0-preview.19](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.18...v7.0.0-preview.19) (2022-02-08)
+
+
+### Bug Fixes
+
+* Code cleanup ([19ac208](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/19ac208165f6f5bb8343e9886fa239d847000a4a))
+
 # [7.0.0-preview.18](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.17...v7.0.0-preview.18) (2022-02-07)
 
 
