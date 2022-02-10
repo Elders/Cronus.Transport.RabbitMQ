@@ -9,25 +9,26 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public override IModel Resolve(string exchange, IRabbitMqOptions options, string boundedContext)
         {
-            string theKey = $"{boundedContext}_{options.GetType().Name}_{exchange}";
+            string channelKey = $"{boundedContext}_{options.GetType().Name}_{exchange}";
+            string connectionKey = options.VHost;
 
-            IModel channel = GetExistingChannel(theKey);
+            IModel channel = GetExistingChannel(channelKey);
 
             if (channel is null || channel.IsClosed)
             {
                 lock (@lock)
                 {
-                    channel = GetExistingChannel(theKey);
+                    channel = GetExistingChannel(channelKey);
 
                     if (channel?.IsClosed == true)
                     {
-                        channels.Remove(theKey);
+                        channels.Remove(channelKey);
                         channel = null;
                     }
 
                     if (channel is null)
                     {
-                        var connection = connectionResolver.Resolve(boundedContext, options);
+                        var connection = connectionResolver.Resolve(connectionKey, options);
                         IModel scopedChannel = CreateModelForPublisher(connection);
                         try
                         {
@@ -40,12 +41,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
                             scopedChannel.ExchangeDeclare(exchange, PipelineType.Headers.ToString(), true);
                         }
 
-                        channels.Add(theKey, scopedChannel);
+                        channels.Add(channelKey, scopedChannel);
                     }
                 }
             }
 
-            return GetExistingChannel(theKey);
+            return GetExistingChannel(channelKey);
         }
 
         private IModel CreateModelForPublisher(IConnection connection)
