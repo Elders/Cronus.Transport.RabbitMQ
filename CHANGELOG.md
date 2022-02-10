@@ -1,3 +1,10 @@
+# [7.0.0-preview.21](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.20...v7.0.0-preview.21) (2022-02-10)
+
+
+### Bug Fixes
+
+* Properly manages connections for boundedContext and public BC ([4fb478d](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/4fb478d7c6369bc583f4fcdec7af7a2ab3d97991))
+
 # [7.0.0-preview.20](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.19...v7.0.0-preview.20) (2022-02-08)
 
 
