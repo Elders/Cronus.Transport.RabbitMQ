@@ -1,3 +1,10 @@
+# [7.0.0-preview.22](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.21...v7.0.0-preview.22) (2022-02-21)
+
+
+### Bug Fixes
+
+* Fix options for Bounded Context. ([d2ae9d7](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/d2ae9d7868ed23ad212b3f6f0d24ebaca4bbf301))
+
 # [7.0.0-preview.21](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.20...v7.0.0-preview.21) (2022-02-10)
 
 
