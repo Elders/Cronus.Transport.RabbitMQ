@@ -36,7 +36,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 List<string> exchanges = GetExistingExchangesNames(message);
                 foreach (string exchange in exchanges)
                 {
-                    IModel exchangeModel = channelResolver.Resolve(exchange, options, boundedContext);
+                    var scopedOptions = options.GetOptionsFor(message.BoundedContext);
+                    IModel exchangeModel = channelResolver.Resolve(exchange, scopedOptions, boundedContext);
                     IBasicProperties props = exchangeModel.CreateBasicProperties();
                     props = BuildMessageProperties(props, message);
 
