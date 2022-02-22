@@ -109,7 +109,6 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
             }
 
             model.QueueDeclare(queueName, true, false, false, routingHeaders);
-            model.BasicQos(0, 1, false);
 
             var messageTypes = subscriberCollection.Subscribers.SelectMany(x => x.GetInvolvedMessageTypes()).Distinct().ToList();
             var exchangeGroups = messageTypes
@@ -217,6 +216,12 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
     public class SystemTrigger_Startup : RabbitMqStartup<ISystemTrigger>
     {
         public SystemTrigger_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ISystemTrigger> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
+    }
+
+    [CronusStartup(Bootstraps.Configuration)]
+    public class SystemFastTrigger_Startup : RabbitMqStartup<IFastSystemTrigger>
+    {
+        public SystemFastTrigger_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<IFastSystemTrigger> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
     }
 
     [CronusStartup(Bootstraps.Configuration)]

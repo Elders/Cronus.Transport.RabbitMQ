@@ -61,6 +61,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 isConventionalMessageType = true;
             }
 
+            if (typeof(IFastSignal).IsAssignableFrom(messageType))
+            {
+                yield return $"{bc}.{systemMarker}FastSignals";
+                isConventionalMessageType = true;
+            }
+
             if (typeof(AggregateCommit).IsAssignableFrom(messageType))
             {
                 yield return $"{bc}.{systemMarker}AggregateCommits";
@@ -83,6 +89,26 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 // No BoundedContext here, because the bounded context is global here
                 string systemMarker = typeof(ISystemMessage).IsAssignableFrom(messageType) ? "cronus." : string.Empty;
                 yield return $"{systemMarker}PublicEvents";
+            }
+        }
+    }
+
+    public sealed class FastMessagesRabbitMqNamer : IRabbitMqNamer
+    {
+        private readonly BoundedContext boundedContext;
+
+        public FastMessagesRabbitMqNamer(IOptionsMonitor<BoundedContext> options)
+        {
+            this.boundedContext = options.CurrentValue;
+        }
+
+        public IEnumerable<string> GetExchangeNames(Type messageType)
+        {
+            if (typeof(IFastSignal).IsAssignableFrom(messageType))
+            {
+                string bc = messageType.GetBoundedContext(boundedContext.Name);
+                string systemMarker = typeof(ISystemMessage).IsAssignableFrom(messageType) ? "cronus." : string.Empty;
+                yield return $"{bc}.{systemMarker}FastSignals";
             }
         }
     }
