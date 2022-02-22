@@ -18,7 +18,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private readonly IRabbitMqOptions options;
 
         public RabbitMqPublisherBase(ISerializer serializer, PublisherChannelResolver channelResolver, ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, IRabbitMqOptions options, IRabbitMqNamer rabbitMqNamer, ILogger logger)
-            : base(tenantResolver, boundedContext.CurrentValue)
+            : base(tenantResolver, boundedContext.CurrentValue, logger)
         {
             this.serializer = serializer;
             this.channelResolver = channelResolver;

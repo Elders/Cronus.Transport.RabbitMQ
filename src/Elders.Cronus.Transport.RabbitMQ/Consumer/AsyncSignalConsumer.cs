@@ -12,12 +12,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
     /// We use this consumer for non-persistent types of messages.
     /// </summary>
     /// <typeparam name="TSubscriber"></typeparam>
-    public class AsyncFastConsumer<TSubscriber> : AsyncConsumerBase<TSubscriber>
+    public class AsyncSignalConsumer<TSubscriber> : AsyncConsumerBase<TSubscriber>
     {
         private readonly ISerializer _serializer;
         private readonly ISubscriberCollection<TSubscriber> _subscribers;
 
-        public AsyncFastConsumer(string queue, IModel model, ISubscriberCollection<TSubscriber> subscriberCollection, ISerializer serializer, ISubscriberCollection<TSubscriber> subscribers, ILogger logger) :
+        public AsyncSignalConsumer(string queue, IModel model, ISubscriberCollection<TSubscriber> subscriberCollection, ISerializer serializer, ISubscriberCollection<TSubscriber> subscribers, ILogger logger) :
             base(model, subscriberCollection, serializer, logger)
         {
             _serializer = serializer;

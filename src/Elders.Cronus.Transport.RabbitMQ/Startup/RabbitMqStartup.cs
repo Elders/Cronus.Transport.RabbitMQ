@@ -219,12 +219,6 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
     }
 
     [CronusStartup(Bootstraps.Configuration)]
-    public class SystemFastTrigger_Startup : RabbitMqStartup<IFastSystemTrigger>
-    {
-        public SystemFastTrigger_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<IFastSystemTrigger> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
-    }
-
-    [CronusStartup(Bootstraps.Configuration)]
     public class SystemProjection_Startup : RabbitMqStartup<ISystemProjection>
     {
         public SystemProjection_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ISystemProjection> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }

@@ -18,7 +18,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private readonly RabbitMqConsumerOptions consumerOptions;
         private readonly BoundedContext boundedContext;
         private readonly ISubscriberCollection<T> subscriberCollection;
-        private readonly ConcurrentBag<AsyncConsumer<T>> consumers = new ConcurrentBag<AsyncConsumer<T>>();
+        private readonly ConcurrentBag<AsyncConsumerBase<T>> consumers = new ConcurrentBag<AsyncConsumerBase<T>>();
         private readonly string queueName;
         private readonly RabbitMqOptions options;
 
