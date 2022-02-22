@@ -13,9 +13,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private RabbitMqConsumerOptions options;
         private readonly BoundedContext boundedContext;
         private readonly ISubscriberCollection<T> subscriberCollection;
-        private readonly AsyncConsumerFactory<T> consumerFactory;
+        private readonly ConsumerFactory<T> consumerFactory;
 
-        public Consumer(IOptionsMonitor<RabbitMqConsumerOptions> options, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<T> subscriberCollection, ISerializer serializer, AsyncConsumerFactory<T> consumerFactory, ILogger<Consumer<T>> logger)
+        public Consumer(IOptionsMonitor<RabbitMqConsumerOptions> options, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<T> subscriberCollection, ISerializer serializer, ConsumerFactory<T> consumerFactory, ILogger<Consumer<T>> logger)
         {
             if (ReferenceEquals(null, subscriberCollection)) throw new ArgumentNullException(nameof(subscriberCollection));
             if (ReferenceEquals(null, serializer)) throw new ArgumentNullException(nameof(serializer));

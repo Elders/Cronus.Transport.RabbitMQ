@@ -1,4 +1,5 @@
 ﻿using Elders.Cronus.MessageProcessing;
+using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
@@ -8,7 +9,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 {
     /// <summary>
     /// Transient consumer which consumes messages with autoacknowledging and sends message to handlers without workflow chains.
-    /// We use this consumer for non-important types of messages.
+    /// We use this consumer for non-persistent types of messages.
     /// </summary>
     /// <typeparam name="TSubscriber"></typeparam>
     public class AsyncFastConsumer<TSubscriber> : AsyncConsumerBase<TSubscriber>
@@ -16,7 +17,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private readonly ISerializer _serializer;
         private readonly ISubscriberCollection<TSubscriber> _subscribers;
 
-        public AsyncFastConsumer(string queue, IModel model, ISubscriberCollection<TSubscriber> subscriberCollection, ISerializer serializer, ISubscriberCollection<TSubscriber> subscribers) : base(model, subscriberCollection, serializer)
+        public AsyncFastConsumer(string queue, IModel model, ISubscriberCollection<TSubscriber> subscriberCollection, ISerializer serializer, ISubscriberCollection<TSubscriber> subscribers, ILogger logger) :
+            base(model, subscriberCollection, serializer, logger)
         {
             _serializer = serializer;
             _subscribers = subscribers;
@@ -42,7 +44,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Message loosed - ok.
             }

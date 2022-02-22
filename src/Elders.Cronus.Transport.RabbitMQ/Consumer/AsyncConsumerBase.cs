@@ -16,10 +16,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private bool isСurrentlyConsuming;
 
-        public AsyncConsumerBase(IModel model, ISubscriberCollection<TSubscriber> subscriberCollection, ISerializer serializer) : base(model)
+        public AsyncConsumerBase(IModel model, ISubscriberCollection<TSubscriber> subscriberCollection, ISerializer serializer, ILogger logger) : base(model)
         {
             this.subscriberCollection = subscriberCollection;
             this.serializer = serializer;
+            this.logger = logger;
             isСurrentlyConsuming = false;
             Received += AsyncListener_Received;
         }
