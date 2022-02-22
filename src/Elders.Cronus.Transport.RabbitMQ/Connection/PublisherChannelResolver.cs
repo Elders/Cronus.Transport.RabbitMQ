@@ -32,7 +32,10 @@ namespace Elders.Cronus.Transport.RabbitMQ
                         IModel scopedChannel = CreateModelForPublisher(connection);
                         try
                         {
-                            scopedChannel.ExchangeDeclarePassive(exchange);
+                            if (string.IsNullOrEmpty(exchange) == false)
+                            {
+                                scopedChannel.ExchangeDeclarePassive(exchange);
+                            }
                         }
                         catch (OperationInterruptedException)
                         {
