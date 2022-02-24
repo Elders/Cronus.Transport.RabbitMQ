@@ -1,3 +1,10 @@
+# [7.0.0-preview.23](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.22...v7.0.0-preview.23) (2022-02-24)
+
+
+### Bug Fixes
+
+* Add signal consumer for Triggers ([f0f25ef](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/f0f25ef608456289bcd2fe5b883c0522ffac4eec))
+
 # [7.0.0-preview.22](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.21...v7.0.0-preview.22) (2022-02-21)
 
 
