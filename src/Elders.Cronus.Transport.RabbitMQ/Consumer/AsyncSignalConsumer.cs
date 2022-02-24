@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Elders.Cronus.Transport.RabbitMQ
@@ -14,14 +15,16 @@ namespace Elders.Cronus.Transport.RabbitMQ
     /// <typeparam name="TSubscriber"></typeparam>
     public class AsyncSignalConsumer<TSubscriber> : AsyncConsumerBase<TSubscriber>
     {
-        private readonly ISerializer _serializer;
-        private readonly ISubscriberCollection<TSubscriber> _subscribers;
+        private readonly ISerializer serializer;
+        private readonly ILogger logger;
+        private readonly ISubscriberCollection<TSubscriber> subscriberCollection;
 
-        public AsyncSignalConsumer(string queue, IModel model, ISubscriberCollection<TSubscriber> subscriberCollection, ISerializer serializer, ISubscriberCollection<TSubscriber> subscribers, ILogger logger) :
+        public AsyncSignalConsumer(string queue, IModel model, ISubscriberCollection<TSubscriber> subscriberCollection, ISerializer serializer, ILogger logger) :
             base(model, subscriberCollection, serializer, logger)
         {
-            _serializer = serializer;
-            _subscribers = subscribers;
+            this.serializer = serializer;
+            this.logger = logger;
+            this.subscriberCollection = subscriberCollection;
             model.BasicConsume(queue, true, string.Empty, this);
         }
 
@@ -30,28 +33,27 @@ namespace Elders.Cronus.Transport.RabbitMQ
             CronusMessage cronusMessage = null;
             try
             {
-                cronusMessage = (CronusMessage)_serializer.DeserializeFromBytes(ev.Body);
-                var subscribers = _subscribers.GetInterestedSubscribers(cronusMessage);
+                cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(ev.Body);
+                var subscribers = subscriberCollection.GetInterestedSubscribers(cronusMessage);
                 foreach (var subscriber in subscribers)
                 {
-                    var context = new HandleContext(cronusMessage, typeof(TSubscriber));
-                    MessageHandleWorkflow messageHandleWorkflow = new MessageHandleWorkflow(new CreateScopedHandlerWorkflow());
-
-                    using (IHandlerInstance handlerInstance = messageHandleWorkflow.CreateHandler.Run(context))
-                    {
-                        dynamic handler = handlerInstance;
-                        handler.Handle((dynamic)context.Message);
-                    }
+                    subscriber.Process(cronusMessage);
                 }
             }
-            catch (Exception)
-            {
-                // Message loosed - ok.
-            }
+            catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to process message." + Environment.NewLine + cronusMessage is null ? "Failed to deserialize" : MessageAsString(cronusMessage))) { }
 
             await Task.CompletedTask.ConfigureAwait(false);
         }
+
+        private string MessageAsString(CronusMessage message)
+        {
+            using (var stream = new MemoryStream())
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                serializer.Serialize(stream, message);
+                stream.Position = 0;
+                return reader.ReadToEnd();
+            }
+        }
     }
 }
-
-

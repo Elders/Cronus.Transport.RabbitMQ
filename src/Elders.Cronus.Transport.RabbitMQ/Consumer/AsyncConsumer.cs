@@ -18,5 +18,3 @@ namespace Elders.Cronus.Transport.RabbitMQ
         }
     }
 }
-
-

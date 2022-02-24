@@ -36,12 +36,17 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public void CreateAndStartConsumers()
         {
+            bool isTrigger = typeof(T).IsAssignableFrom(typeof(ITrigger));
+
             for (int i = 0; i < consumerOptions.WorkersCount; i++)
             {
                 string consumerChannelKey = $"{boundedContext.Name}_{typeof(T).Name}_{i}";
                 IModel channel = channelResolver.Resolve(consumerChannelKey, options, options.VHost);
 
-                AsyncConsumer<T> asyncListener = new AsyncConsumer<T>(queueName, channel, subscriberCollection, serializer, logger);
+                AsyncConsumerBase<T> asyncListener = isTrigger == true ?
+                    new AsyncSignalConsumer<T>(queueName, channel, subscriberCollection, serializer, logger) :
+                    new AsyncConsumer<T>(queueName, channel, subscriberCollection, serializer, logger);
+
                 consumers.Add(asyncListener);
             }
         }
@@ -67,4 +72,3 @@ namespace Elders.Cronus.Transport.RabbitMQ
         }
     }
 }
-
