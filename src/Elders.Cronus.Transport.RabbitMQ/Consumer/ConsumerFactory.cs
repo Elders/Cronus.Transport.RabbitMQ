@@ -40,8 +40,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             for (int i = 0; i < consumerOptions.WorkersCount; i++)
             {
+                IRabbitMqOptions scopedOptions = options.GetOptionsFor(boundedContext.Name);
                 string consumerChannelKey = $"{boundedContext.Name}_{typeof(T).Name}_{i}";
-                IModel channel = channelResolver.Resolve(consumerChannelKey, options, options.VHost);
+                IModel channel = channelResolver.Resolve(consumerChannelKey, scopedOptions, options.VHost);
 
                 AsyncConsumerBase<T> asyncListener = isTrigger == true ?
                     new AsyncSignalConsumer<T>(queueName, channel, subscriberCollection, serializer, logger) :

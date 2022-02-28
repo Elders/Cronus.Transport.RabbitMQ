@@ -18,6 +18,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             yield return new DiscoveredModel(typeof(BoundedContextRabbitMqNamer), typeof(BoundedContextRabbitMqNamer), ServiceLifetime.Singleton);
             yield return new DiscoveredModel(typeof(PublicMessagesRabbitMqNamer), typeof(PublicMessagesRabbitMqNamer), ServiceLifetime.Singleton);
+            yield return new DiscoveredModel(typeof(SignalMessagesRabbitMqNamer), typeof(SignalMessagesRabbitMqNamer), ServiceLifetime.Singleton);
 
             yield return new DiscoveredModel(typeof(PrivateRabbitMqPublisher<>), typeof(PrivateRabbitMqPublisher<>), ServiceLifetime.Singleton);
             yield return new DiscoveredModel(typeof(PublicRabbitMqPublisher), typeof(PublicRabbitMqPublisher), ServiceLifetime.Singleton);

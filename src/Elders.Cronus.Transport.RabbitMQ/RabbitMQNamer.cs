@@ -86,5 +86,18 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
         }
     }
+
+    public sealed class SignalMessagesRabbitMqNamer : IRabbitMqNamer
+    {
+        public IEnumerable<string> GetExchangeNames(Type messageType)
+        {
+            if (typeof(ISignal).IsAssignableFrom(messageType))
+            {
+                // No BoundedContext here, because the bounded context is global here
+                string systemMarker = typeof(ISystemMessage).IsAssignableFrom(messageType) ? "cronus." : string.Empty;
+                yield return $"{systemMarker}Signals";
+            }
+        }
+    }
 }
 

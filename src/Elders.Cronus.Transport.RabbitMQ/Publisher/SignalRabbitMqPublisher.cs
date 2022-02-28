@@ -10,16 +10,19 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
     public sealed class SignalRabbitMqPublisher : PublisherBase<ISignal>
     {
         private readonly PublisherChannelResolver channelResolver;
-        private readonly BoundedContextRabbitMqNamer rabbitMqNamer;
+        private readonly SignalMessagesRabbitMqNamer rabbitMqNamer;
         private readonly ISerializer serializer;
-        private readonly RabbitMqOptions options;
+        private readonly ILogger<SignalRabbitMqPublisher> logger;
+        private readonly PublicRabbitMqOptions options;
 
-        public SignalRabbitMqPublisher(ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, IOptionsMonitor<RabbitMqOptions> optionsMonitor, BoundedContextRabbitMqNamer rabbitMqNamer, PublisherChannelResolver channelResolver, ISerializer serializer, ILogger<SignalRabbitMqPublisher> logger) : base(tenantResolver, boundedContext.CurrentValue, logger)
+        public SignalRabbitMqPublisher(ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, IOptionsMonitor<PublicRabbitMqOptions> optionsMonitor, SignalMessagesRabbitMqNamer rabbitMqNamer, PublisherChannelResolver channelResolver, ISerializer serializer, ILogger<SignalRabbitMqPublisher> logger)
+            : base(tenantResolver, boundedContext.CurrentValue, logger)
         {
             this.rabbitMqNamer = rabbitMqNamer;
             options = optionsMonitor.CurrentValue;
             this.channelResolver = channelResolver;
             this.serializer = serializer;
+            this.logger = logger;
         }
 
         protected override bool PublishInternal(CronusMessage message)
@@ -31,7 +34,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
                 IEnumerable<string> exchanges = rabbitMqNamer.GetExchangeNames(message.Payload.GetType());
                 foreach (var exchange in exchanges)
                 {
-                    var scopedOptions = options.GetOptionsFor(message.BoundedContext);
+                    IRabbitMqOptions scopedOptions = options.GetOptionsFor(message.BoundedContext);
                     IModel exchangeModel = channelResolver.Resolve(exchange, scopedOptions, boundedContext);
                     IBasicProperties props = exchangeModel.CreateBasicProperties();
                     props = BuildMessageProperties(props, message);
@@ -42,9 +45,8 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
 
                 return true;
             }
-            catch (Exception)
+            catch (Exception ex) when (logger.WarnException(ex, () => $"Unable to publish {message.Payload.GetType()}"))
             {
-                // loosed message - ok
                 return false;
             }
         }

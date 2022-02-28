@@ -15,13 +15,15 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private readonly RabbitMqOptions options;
         private readonly PublicRabbitMqOptions publicOptions;
-        private readonly PublicMessagesRabbitMqNamer rabbitMqNamer;
+        private readonly PublicMessagesRabbitMqNamer publicRabbitMqNamer;
+        private readonly SignalMessagesRabbitMqNamer signalRabbitMqNamer;
 
-        public RabbitMqInfrastructure(IOptionsMonitor<RabbitMqOptions> options, IOptionsMonitor<PublicRabbitMqOptions> publicOptions, PublicMessagesRabbitMqNamer rabbitMqNamer)
+        public RabbitMqInfrastructure(IOptionsMonitor<RabbitMqOptions> options, IOptionsMonitor<PublicRabbitMqOptions> publicOptions, PublicMessagesRabbitMqNamer rabbitMqNamer, SignalMessagesRabbitMqNamer signalRabbitMqNamer)
         {
             this.options = options.CurrentValue;
             this.publicOptions = publicOptions.CurrentValue;
-            this.rabbitMqNamer = rabbitMqNamer;
+            this.publicRabbitMqNamer = rabbitMqNamer;
+            this.signalRabbitMqNamer = signalRabbitMqNamer;
         }
 
         public void Initialize()
@@ -64,8 +66,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private void CreatePublishedLanguageConnection(RabbitMqManagementClient client, PublicRabbitMqOptions publicOptions)
         {
-            IEnumerable<string> publicExchangeNames = rabbitMqNamer.GetExchangeNames(typeof(IPublicEvent));
-            foreach (var exchange in publicExchangeNames)
+            IEnumerable<string> publicExchangeNames = publicRabbitMqNamer.GetExchangeNames(typeof(IPublicEvent));
+            IEnumerable<string> signalExchangeNames = signalRabbitMqNamer.GetExchangeNames(typeof(ISignal));
+            IEnumerable<string> exchanges = publicExchangeNames.Concat(signalExchangeNames);
+
+            foreach (var exchange in exchanges)
             {
                 foreach (var upstream in publicOptions.GetUpstreamUris())
                 {
@@ -83,7 +88,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 }
             }
 
-            foreach (var exchange in publicExchangeNames)
+            foreach (var exchange in exchanges)
             {
                 Policy policy = new Policy()
                 {
