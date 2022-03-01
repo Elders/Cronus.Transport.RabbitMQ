@@ -1,3 +1,11 @@
+# [7.0.0-preview.25](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.24...v7.0.0-preview.25) (2022-03-01)
+
+
+### Bug Fixes
+
+* Fix build ([db34371](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/db343715769009f47b07aefc16d9fc71e8d4bfa5))
+* Fix federated exchange naming ([418ad53](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/418ad53066096fe8a6c94186544eddee1189deeb))
+
 # [7.0.0-preview.24](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.23...v7.0.0-preview.24) (2022-03-01)
 
 
