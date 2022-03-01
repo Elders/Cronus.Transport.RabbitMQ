@@ -66,7 +66,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private void CreatePublishedLanguageConnection(RabbitMqManagementClient client, PublicRabbitMqOptions publicOptions)
         {
-            IEnumerable<string> publicExchangeNames = publicRabbitMqNamer.GetExchangeNames(typeof(IPublicEvent));
+            Как леоаIEnumerable<string> publicExchangeNames = publicRabbitMqNamer.GetExchangeNames(typeof(IPublicEvent));
             IEnumerable<string> signalExchangeNames = signalRabbitMqNamer.GetExchangeNames(typeof(ISignal));
             IEnumerable<string> exchanges = publicExchangeNames.Concat(signalExchangeNames);
 
@@ -76,7 +76,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 {
                     FederatedExchange federatedExchange = new FederatedExchange()
                     {
-                        Name = publicOptions.VHost + "--events",
+                        Name = publicOptions.VHost + $"--{exchange.ToLower()}",
                         Value = new FederatedExchange.ValueParameters()
                         {
                             Uri = upstream,
@@ -93,7 +93,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 Policy policy = new Policy()
                 {
                     VHost = options.VHost,
-                    Name = publicOptions.VHost + "--events",
+                    Name = publicOptions.VHost + $"--events{exchange.ToLower()}",
                     Pattern = $"{exchange}$",
                     Definition = new Policy.DefinitionDto()
                     {
