@@ -1,3 +1,11 @@
+# [7.0.0-preview.24](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.23...v7.0.0-preview.24) (2022-03-01)
+
+
+### Bug Fixes
+
+* Make Federation exchange for signals ([704ca00](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/704ca00d1ff240d7b1d462ad945e8e7edf7ecc3a))
+* Update RabbitMq client ([84231f1](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/84231f1224fed0de35464c4821f2b724199ccbc2))
+
 # [7.0.0-preview.23](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.22...v7.0.0-preview.23) (2022-02-24)
 
 
