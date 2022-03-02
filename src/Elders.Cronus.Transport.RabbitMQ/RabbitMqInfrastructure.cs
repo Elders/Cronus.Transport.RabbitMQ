@@ -95,6 +95,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     VHost = options.VHost,
                     Name = publicOptions.VHost + $"--{exchange.ToLower()}",
                     Pattern = $"{exchange}$",
+                    Priority = 1,
                     Definition = new Policy.DefinitionDto()
                     {
                         FederationUpstream = publicOptions.VHost + $"--{exchange.ToLower()}"
