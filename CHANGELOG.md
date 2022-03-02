@@ -1,3 +1,10 @@
+# [7.0.0-preview.26](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.25...v7.0.0-preview.26) (2022-03-02)
+
+
+### Bug Fixes
+
+* Adds policy Priority ([5e404da](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/5e404da540f5352240945e458a9aac93f402adc8))
+
 # [7.0.0-preview.25](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.24...v7.0.0-preview.25) (2022-03-01)
 
 
