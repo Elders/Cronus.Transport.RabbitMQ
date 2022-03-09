@@ -39,7 +39,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 if (ChecksIfHavePublishedLanguageConfigurations())
                     logger.Warn(() => "Missing configurations for public rabbitMq.");
                 else
-                    CreatePublishedLanguageConnection(pub, publicOptions);
+                    CreatePublishedLanguageConnection(priv, publicOptions);
             }
             catch (Exception ex)
             {
@@ -64,7 +64,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
         }
 
-        private void CreatePublishedLanguageConnection(RabbitMqManagementClient client, PublicRabbitMqOptions publicOptions)
+        private void CreatePublishedLanguageConnection(RabbitMqManagementClient downstreamClient, PublicRabbitMqOptions publicOptions)
         {
             IEnumerable<string> publicExchangeNames = publicRabbitMqNamer.GetExchangeNames(typeof(IPublicEvent));
             IEnumerable<string> signalExchangeNames = signalRabbitMqNamer.GetExchangeNames(typeof(ISignal));
@@ -84,7 +84,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                             MaxHops = publicOptions.FederatedExchange.MaxHops
                         }
                     };
-                    client.CreateFederatedExchange(federatedExchange, options.VHost);
+                    downstreamClient.CreateFederatedExchange(federatedExchange, options.VHost);
                 }
             }
 
@@ -101,7 +101,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                         FederationUpstream = publicOptions.VHost + $"--{exchange.ToLower()}"
                     }
                 };
-                client.CreatePolicy(policy, options.VHost);
+                downstreamClient.CreatePolicy(policy, options.VHost);
             }
         }
     }
