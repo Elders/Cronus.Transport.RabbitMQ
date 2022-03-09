@@ -1,3 +1,10 @@
+# [7.0.0-preview.27](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.26...v7.0.0-preview.27) (2022-03-09)
+
+
+### Bug Fixes
+
+* Fixes the creation of federated echanges ([1816fc4](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/1816fc46cf1bd0592ee34e1874e3083da1b91641))
+
 # [7.0.0-preview.26](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.25...v7.0.0-preview.26) (2022-03-02)
 
 
