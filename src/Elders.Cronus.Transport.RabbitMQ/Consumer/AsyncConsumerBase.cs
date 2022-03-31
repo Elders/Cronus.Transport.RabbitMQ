@@ -47,17 +47,15 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 isСurrentlyConsuming = true;
 
                 if (sender is AsyncEventingBasicConsumer consumer)
-                    await DeliverMessageToSubscribers(@event, consumer).ConfigureAwait(false);
+                    await DeliverMessageToSubscribersAsync(@event, consumer).ConfigureAwait(false);
             }
             finally
             {
                 isСurrentlyConsuming = false;
             }
-
-            await Task.CompletedTask.ConfigureAwait(false);
         }
 
-        protected virtual async Task DeliverMessageToSubscribers(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)
+        protected virtual async Task DeliverMessageToSubscribersAsync(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)
         {
             CronusMessage cronusMessage = null;
             try
@@ -66,7 +64,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 var subscribers = subscriberCollection.GetInterestedSubscribers(cronusMessage);
                 foreach (var subscriber in subscribers)
                 {
-                    subscriber.Process(cronusMessage);
+                    // Async all at the same time
+                    await subscriber.ProcessAsync(cronusMessage).ConfigureAwait(false);
                 }
             }
             catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to process message." + Environment.NewLine + cronusMessage is null ? "Failed to deserialize" : MessageAsString(cronusMessage))) { }
@@ -77,8 +76,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     consumer.Model.BasicAck(ev.DeliveryTag, false);
                 }
             }
-
-            await Task.CompletedTask.ConfigureAwait(false);
         }
 
         private string MessageAsString(CronusMessage message)
