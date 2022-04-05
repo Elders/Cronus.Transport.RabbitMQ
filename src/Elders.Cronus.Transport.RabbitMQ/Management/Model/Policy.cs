@@ -28,6 +28,9 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management.Model
         [JsonPropertyName("definition")]
         public DefinitionDto Definition { get; set; }
 
+        [JsonPropertyName("priority")]
+        public int Priority { get; set; } = 0;
+
         public class DefinitionDto
         {
             [JsonPropertyName("federation-upstream")]

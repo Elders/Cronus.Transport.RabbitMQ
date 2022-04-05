@@ -1,5 +1,6 @@
 ﻿using Elders.Cronus.Transport.RabbitMQ.Management;
 using Elders.Cronus.Transport.RabbitMQ.Management.Model;
+using Elders.Cronus.Transport.RabbitMQ.Startup;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -14,13 +15,15 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private readonly RabbitMqOptions options;
         private readonly PublicRabbitMqOptions publicOptions;
-        private readonly PublicMessagesRabbitMqNamer rabbitMqNamer;
+        private readonly PublicMessagesRabbitMqNamer publicRabbitMqNamer;
+        private readonly SignalMessagesRabbitMqNamer signalRabbitMqNamer;
 
-        public RabbitMqInfrastructure(IOptionsMonitor<RabbitMqOptions> options, IOptionsMonitor<PublicRabbitMqOptions> publicOptions, PublicMessagesRabbitMqNamer rabbitMqNamer)
+        public RabbitMqInfrastructure(IOptionsMonitor<RabbitMqOptions> options, IOptionsMonitor<PublicRabbitMqOptions> publicOptions, PublicMessagesRabbitMqNamer rabbitMqNamer, SignalMessagesRabbitMqNamer signalRabbitMqNamer)
         {
             this.options = options.CurrentValue;
             this.publicOptions = publicOptions.CurrentValue;
-            this.rabbitMqNamer = rabbitMqNamer;
+            this.publicRabbitMqNamer = rabbitMqNamer;
+            this.signalRabbitMqNamer = signalRabbitMqNamer;
         }
 
         public void Initialize()
@@ -32,12 +35,22 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
                 RabbitMqManagementClient pub = new RabbitMqManagementClient(publicOptions);
                 CreateVHost(pub, publicOptions);
-                CreatePublishedLanguageConnection(pub, publicOptions);
+
+                if (ChecksIfHavePublishedLanguageConfigurations())
+                    logger.Warn(() => "Missing configurations for public rabbitMq.");
+                else
+                    CreatePublishedLanguageConnection(priv, publicOptions);
             }
             catch (Exception ex)
             {
                 logger.ErrorException(ex, () => ex.Message);
             }
+        }
+
+        private bool ChecksIfHavePublishedLanguageConfigurations()
+        {
+            // We are sure that if missing configurations for public rabbitMq VHost by default equals "/"
+            return publicOptions.VHost.Equals("/");
         }
 
         private void CreateVHost(RabbitMqManagementClient client, IRabbitMqOptions options)
@@ -51,38 +64,44 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
         }
 
-        private void CreatePublishedLanguageConnection(RabbitMqManagementClient client, PublicRabbitMqOptions publicOptions)
+        private void CreatePublishedLanguageConnection(RabbitMqManagementClient downstreamClient, PublicRabbitMqOptions publicOptions)
         {
-            IEnumerable<string> publicExchangeNames = rabbitMqNamer.GetExchangeNames(typeof(IPublicEvent));
-            foreach (var exchange in publicExchangeNames)
+            IEnumerable<string> publicExchangeNames = publicRabbitMqNamer.GetExchangeNames(typeof(IPublicEvent));
+            IEnumerable<string> signalExchangeNames = signalRabbitMqNamer.GetExchangeNames(typeof(ISignal));
+            IEnumerable<string> exchanges = publicExchangeNames.Concat(signalExchangeNames);
+
+            foreach (var exchange in exchanges)
             {
-                FederatedExchange federatedExchange = new FederatedExchange()
+                foreach (var upstream in publicOptions.GetUpstreamUris())
                 {
-                    Name = publicOptions.VHost + "--events",
-                    Value = new FederatedExchange.ValueParameters()
+                    FederatedExchange federatedExchange = new FederatedExchange()
                     {
-                        Uri = publicOptions.GetUpstreamUri(),
-                        Exchange = exchange,
-                        MaxHops = publicOptions.FederatedExchange.MaxHops
-                    }
-                };
-                client.CreateFederatedExchange(federatedExchange, options.VHost);
+                        Name = publicOptions.VHost + $"--{exchange.ToLower()}",
+                        Value = new FederatedExchange.ValueParameters()
+                        {
+                            Uri = upstream,
+                            Exchange = exchange,
+                            MaxHops = publicOptions.FederatedExchange.MaxHops
+                        }
+                    };
+                    downstreamClient.CreateFederatedExchange(federatedExchange, options.VHost);
+                }
             }
 
-            IEnumerable<string> bcExchangeNames = rabbitMqNamer.GetExchangeNames(typeof(IPublicEvent));
-            foreach (var exchange in bcExchangeNames)
+            foreach (var exchange in exchanges)
             {
                 Policy policy = new Policy()
                 {
                     VHost = options.VHost,
-                    Name = publicOptions.VHost + "--events",
+                    Name = publicOptions.VHost + $"--{exchange.ToLower()}",
                     Pattern = $"{exchange}$",
+                    Priority = 1,
                     Definition = new Policy.DefinitionDto()
                     {
-                        FederationUpstream = publicOptions.VHost + "--events"
+                        FederationUpstream = publicOptions.VHost + $"--{exchange.ToLower()}"
                     }
                 };
-                client.CreatePolicy(policy, options.VHost);
+                downstreamClient.CreatePolicy(policy, options.VHost);
             }
         }
     }

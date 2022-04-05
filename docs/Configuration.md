@@ -41,7 +41,7 @@ RabbitMQ number of consumer workers
 ---
 
 #### `Cronus:Transport:PublicRabbitMQ:Server` >> *string | Required: No | Default: 127.0.0.1*
-DNS or IP of the Public RabbitMQ server
+DNS or IP of the Public RabbitMQ server used for BC to BC communication
 
 ---
 

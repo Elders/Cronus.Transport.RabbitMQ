@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
@@ -13,5 +14,15 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
             return 0;
         }
+
+        public static string GetTTL(this CronusMessage message)
+        {
+            string ttl = string.Empty;
+            message.Headers.TryGetValue(MessageHeader.TTL, out ttl);
+
+            return ttl;
+        }
+
+
     }
 }

@@ -10,7 +10,6 @@
         string VHost { get; set; }
         string ApiAddress { get; set; }
         FederatedExchangeOptions FederatedExchange { get; set; }
-
         IRabbitMqOptions GetOptionsFor(string boundedContext);
     }
 }

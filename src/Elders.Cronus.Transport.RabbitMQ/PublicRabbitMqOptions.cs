@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Elders.Cronus.Transport.RabbitMQ
@@ -20,6 +21,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public string ApiAddress { get; set; }
 
+        public bool UseAsyncDispatcher { get; set; }
+
         public FederatedExchangeOptions FederatedExchange { get; set; } = new FederatedExchangeOptions();
 
         public IRabbitMqOptions GetOptionsFor(string boundedContext)
@@ -27,9 +30,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
             return this;
         }
 
-        public string GetUpstreamUri()
+        public IEnumerable<string> GetUpstreamUris()
         {
-            return string.Join(' ', AmqpTcpEndpoint.ParseMultiple(Server).Select(x => $"{x}/{VHost}"));
+            return AmqpTcpEndpoint.ParseMultiple(Server).Select(x => $"{x}/{VHost}");
         }
     }
 

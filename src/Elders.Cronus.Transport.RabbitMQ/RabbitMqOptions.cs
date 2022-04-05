@@ -16,6 +16,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public string BoundedContext { get; set; } = BoundedContextDefault;
 
+        public bool UseAsyncDispatcher { get; set; } = true;
+
         public string Server { get; set; } = ServerDefault;
 
         public int Port { get; set; } = PortDefault;
