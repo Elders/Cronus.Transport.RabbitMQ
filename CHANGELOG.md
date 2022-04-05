@@ -1,3 +1,51 @@
+# [7.0.0](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.4.0...v7.0.0) (2022-04-05)
+
+
+### Bug Fixes
+
+* add comment ([23d8e4e](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/23d8e4e63a0ac20792dfa08ac86d7add9c6edeac))
+* Add signal consumer for Triggers ([f0f25ef](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/f0f25ef608456289bcd2fe5b883c0522ffac4eec))
+* Add TTL to heartbeat ([1b49cbb](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/1b49cbb4dd8513e3b6a6addd2f2f8988838a918f))
+* Adds policy Priority ([5e404da](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/5e404da540f5352240945e458a9aac93f402adc8))
+* CHANGELOG and Deploy ([fc018ff](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/fc018ff6c13d79d088f4b578ef376c2790004f82))
+* Code cleanup ([19ac208](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/19ac208165f6f5bb8343e9886fa239d847000a4a))
+* Code cleanup ([0b83ed5](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/0b83ed5bbdcc44a042107d4ea11590301af85f29))
+* Code Cleanup ([b6172aa](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/b6172aa41d4425f12bd912e194042f353c4810ec))
+* Ensure exiting from infinity loop on FailedCronusMessage ([b57a778](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/b57a7785fbad4b36638ab753c1688d605a73ec0f))
+* Fix build ([db34371](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/db343715769009f47b07aefc16d9fc71e8d4bfa5))
+* Fix federated exchange naming ([418ad53](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/418ad53066096fe8a6c94186544eddee1189deeb))
+* Fix options for Bounded Context. ([d2ae9d7](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/d2ae9d7868ed23ad212b3f6f0d24ebaca4bbf301))
+* Fix Resolve connection for bounded context ([7e43074](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/7e430741e6f9e659ddad2669e2dd6249844c79d2))
+* Fixes DeserializeResponse settings ([c5211b6](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/c5211b671bdb13e6ac77a964467982c39b642d4f))
+* Fixes errors on startup when missing configurations for public rabbitMq ([756bab7](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/756bab7c7210ccd1442381337208c03170d57c79))
+* Fixes the creation of federated echanges ([1816fc4](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/1816fc46cf1bd0592ee34e1874e3083da1b91641))
+* Handle unknown deserialization problem when trying to serialize into a Cronus Message ([c869d39](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/c869d398b4fb9140a0706721c8de208f75416c5b))
+* HandleBasicDeliver to enqueue in the  right way ([99dd144](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/99dd144f688747751131f45791410006fed0b647))
+* Last Chance Deploy before Mynkow fix it ([aad9182](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/aad9182ce3cb22bcd324bff963ba492886fc283f))
+* Make Federation exchange for signals ([704ca00](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/704ca00d1ff240d7b1d462ad945e8e7edf7ecc3a))
+* Properly manages connections for boundedContext and public BC ([4fb478d](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/4fb478d7c6369bc583f4fcdec7af7a2ab3d97991))
+* Remove unneeded flag & Deploy ([173ee70](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/173ee70e263709959adfb58b4911d7534fe748f1))
+* Remove unneeded stuff ([9f7d059](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/9f7d059a02214d8e753ef26844bfcaf63c979ace))
+* Resolve issue with connection closing in multi-threads ([589eddf](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/589eddfbe305f896a6e6e272d421471c8b7b0282))
+* Rolls back the code which creates the exchanges and the queues ([08d4814](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/08d48143b637b1a39a04ef5bf4e65027297c98c7))
+* Trigger CI ([5a20625](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/5a20625caa417419ae2af350455e93d3b247b013))
+* Trigger CI ([ff32e95](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/ff32e95133455392ca74b14b9e39d824c9a1ee18))
+* update Cronus package ([4e3bdf9](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/4e3bdf99adb6453f44d4c8a129a3e4af44f95b2d))
+* Update Cronus package ([1647f81](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/1647f818361038ab2a375bbf4025a87c8562dcdf))
+* Update Multi-threading-Scheduler ([dd0f80f](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/dd0f80f242d753a43347e1861a7246ceff99b441))
+* Update RabbitMq client ([84231f1](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/84231f1224fed0de35464c4821f2b724199ccbc2))
+* Updates docs ([2c7f6b5](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/2c7f6b579e8626dbfec727690273cfc9269ad1f5))
+* Updates MTS ([f012043](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/f0120430b353ac259d61edc28cfe05b50db3f427))
+* Wait all consumers to stop in tandem ([51db0dc](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/51db0dc097cf393a3a6a5bb1c906517e39c345ce))
+
+
+### Features
+
+* Add RabbitMq startup for all services ([3557674](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/3557674f33eeed5c8e7f63b1b7b0a90be2f49e09))
+* Dispose connections when application is shutting down ([3341951](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/33419516a26b88dbaec3e60b7687f99a1f415827))
+* Introduces an async consumer ([ea09935](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/ea09935dcd0c447482ff1f166718d0b57463ce0f))
+* Update RabbitMQ client ([4b52fbe](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/4b52fbefe6bcb1a2a82b2ad75a01cc3562ac3792))
+
 # [7.0.0-preview.28](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0-preview.27...v7.0.0-preview.28) (2022-03-31)
 
 
