@@ -28,7 +28,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             model.BasicConsume(queue, true, string.Empty, this);
         }
 
-        protected override async Task DeliverMessageToSubscribers(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)
+        protected override async Task DeliverMessageToSubscribersAsync(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)
         {
             CronusMessage cronusMessage = null;
             try
@@ -37,7 +37,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 var subscribers = subscriberCollection.GetInterestedSubscribers(cronusMessage);
                 foreach (var subscriber in subscribers)
                 {
-                    subscriber.Process(cronusMessage);
+                    await subscriber.ProcessAsync(cronusMessage).ConfigureAwait(false);
                 }
             }
             catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to process message." + Environment.NewLine + cronusMessage is null ? "Failed to deserialize" : MessageAsString(cronusMessage))) { }
