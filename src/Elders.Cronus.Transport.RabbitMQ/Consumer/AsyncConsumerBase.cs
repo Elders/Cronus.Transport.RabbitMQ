@@ -8,22 +8,20 @@ using System;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class AsyncConsumerBase<TSubscriber> : AsyncEventingBasicConsumer
+    public abstract class AsyncConsumerBase : AsyncEventingBasicConsumer
     {
-        private readonly ILogger logger;
-        private readonly ISerializer serializer;
-        private readonly ISubscriberCollection<TSubscriber> subscriberCollection;
-
+        protected readonly ILogger logger;
+        protected readonly ISerializer serializer;
         private bool isСurrentlyConsuming;
-
-        public AsyncConsumerBase(IModel model, ISubscriberCollection<TSubscriber> subscriberCollection, ISerializer serializer, ILogger logger) : base(model)
+        public AsyncConsumerBase(IModel model, ISerializer serializer, ILogger logger) : base(model)
         {
-            this.subscriberCollection = subscriberCollection;
             this.serializer = serializer;
             this.logger = logger;
             isСurrentlyConsuming = false;
             Received += AsyncListener_Received;
         }
+
+        protected abstract Task DeliverMessageToSubscribersAsync(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer);
 
         public async Task StopAsync()
         {
@@ -55,7 +53,28 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
         }
 
-        protected virtual async Task DeliverMessageToSubscribersAsync(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)
+        protected string MessageAsString(CronusMessage message)
+        {
+            using (var stream = new MemoryStream())
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                serializer.Serialize(stream, message);
+                stream.Position = 0;
+                return reader.ReadToEnd();
+            }
+        }
+    }
+
+    public class AsyncConsumerBase<TSubscriber> : AsyncConsumerBase
+    {
+        private readonly ISubscriberCollection<TSubscriber> subscriberCollection;
+
+        public AsyncConsumerBase(IModel model, ISubscriberCollection<TSubscriber> subscriberCollection, ISerializer serializer, ILogger logger) : base(model, serializer, logger)
+        {
+            this.subscriberCollection = subscriberCollection;
+        }
+
+        protected override async Task DeliverMessageToSubscribersAsync(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)
         {
             CronusMessage cronusMessage = null;
             try
@@ -75,17 +94,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 {
                     consumer.Model.BasicAck(ev.DeliveryTag, false);
                 }
-            }
-        }
-
-        private string MessageAsString(CronusMessage message)
-        {
-            using (var stream = new MemoryStream())
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                serializer.Serialize(stream, message);
-                stream.Position = 0;
-                return reader.ReadToEnd();
             }
         }
     }

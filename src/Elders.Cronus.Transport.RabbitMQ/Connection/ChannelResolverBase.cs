@@ -46,9 +46,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
             return GetExistingChannel(resolveKey);
         }
 
-        protected IModel GetExistingChannel(string boundedContext)
+        protected IModel GetExistingChannel(string resolveKey)
         {
-            channels.TryGetValue(boundedContext, out IModel channel);
+            channels.TryGetValue(resolveKey, out IModel channel);
 
             return channel;
         }

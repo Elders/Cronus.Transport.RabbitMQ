@@ -1,4 +1,5 @@
 ﻿using Elders.Cronus.MessageProcessing;
+using Elders.Cronus.Transport.RabbitMQ.Consumer;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
@@ -12,18 +13,19 @@ namespace Elders.Cronus.Transport.RabbitMQ
 {
     public class ConsumerFactory<T>
     {
-        private readonly ILogger logger = CronusLogger.CreateLogger(typeof(ConsumerFactory<>));
+        private readonly ILogger<ConsumerFactory<T>> logger;
         private readonly ConsumerPerQueueChannelResolver channelResolver;
         private readonly ISerializer serializer;
         private readonly RabbitMqConsumerOptions consumerOptions;
         private readonly BoundedContext boundedContext;
         private readonly ISubscriberCollection<T> subscriberCollection;
-        private readonly ConcurrentBag<AsyncConsumerBase<T>> consumers = new ConcurrentBag<AsyncConsumerBase<T>>();
-        private readonly string queueName;
+        private readonly ConcurrentBag<AsyncConsumerBase> consumers = new ConcurrentBag<AsyncConsumerBase>();
+        private string queueName;
         private readonly RabbitMqOptions options;
 
-        public ConsumerFactory(IOptionsMonitor<RabbitMqOptions> optionsMonitor, ConsumerPerQueueChannelResolver channelResolver, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISerializer serializer, ISubscriberCollection<T> subscriberCollection)
+        public ConsumerFactory(IOptionsMonitor<RabbitMqOptions> optionsMonitor, ConsumerPerQueueChannelResolver channelResolver, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISerializer serializer, ISubscriberCollection<T> subscriberCollection, ILogger<ConsumerFactory<T>> logger)
         {
+            this.logger = logger;
             this.boundedContext = boundedContext.CurrentValue;
             this.channelResolver = channelResolver;
             this.serializer = serializer;
