@@ -15,23 +15,9 @@ public class RpcApiDiscovery : DiscoveryBase<IConsumer<IMessageHandler>>
 
     IEnumerable<DiscoveredModel> GetModels(DiscoveryContext context)
     {
-        //IEnumerable<System.Type> requests = context.FindService<IRpcRequest>();
-
-        //foreach (var request in requests)
-        //{
-        //    yield return new DiscoveredModel(request, request, ServiceLifetime.Transient);
-        //}
-
-        //IEnumerable<System.Type> responses = context.FindService<IRpcResponse>();
-
-        //foreach (var response in responses)
-        //{
-        //    yield return new DiscoveredModel(response, response, ServiceLifetime.Transient);
-        //}
-
-        yield return new DiscoveredModel(typeof(IRpc<,>), typeof(RpcEndpoint<,>), ServiceLifetime.Singleton);
-
         yield return new DiscoveredModel(typeof(IRpcHost), typeof(RpcHost), ServiceLifetime.Singleton);
         yield return new DiscoveredModel(typeof(IRequestResponseFactory), typeof(RequestResponseFactory), ServiceLifetime.Singleton);
+
+        yield return new DiscoveredModel(typeof(IRpc<,>), typeof(RpcEndpoint<,>), ServiceLifetime.Singleton);
     }
 }

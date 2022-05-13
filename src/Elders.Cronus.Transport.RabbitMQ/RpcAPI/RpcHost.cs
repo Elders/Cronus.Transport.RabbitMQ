@@ -1,17 +1,15 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using Elders.Cronus.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Linq;
 
 namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 {
     public class RpcHost : IRpcHost
     {
-        private readonly ConcurrentBag<AsyncConsumerBase> consumers = new ConcurrentBag<AsyncConsumerBase>();
         private RabbitMqConsumerOptions options;
         private readonly List<object> services;
         private readonly IRequestResponseFactory factory;
@@ -21,35 +19,40 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
         public RpcHost(IServiceProvider provider, IOptionsMonitor<RabbitMqConsumerOptions> options, ILogger<RpcHost> logger, IRequestResponseFactory factory)
         {
             this.options = options.CurrentValue;
-            options.OnChange(OptionsChanged);
-            services = new List<object>();
             this.factory = factory;
             this.provider = provider;
             this.logger = logger;
+            options.OnChange(OptionsChanged);
+            services = new List<object>();
         }
 
         public void Start()
         {
             try
             {
-                IDictionary<Type, Type> handlers = factory.GetHandlers();
-                foreach (KeyValuePair<Type, Type> handler in handlers)
-                {
-                    Type requestType = handler.Key;
-                    Type responseType = requestType.GetInterfaces().FirstOrDefault().GetGenericArguments().FirstOrDefault();
-                    Type endpoint = typeof(IRpc<,>).MakeGenericType(requestType, responseType);
+                ILookup<Type, Type> handlerTypes = factory.GetHandlers();
 
-                    services.AddRange(provider.GetServices(endpoint));
+                foreach (IGrouping<Type, Type> handlers in handlerTypes)
+                {
+                    foreach (Type handler in handlers)
+                    {
+                        Type requestType = handler;
+                        Type responseType = requestType.GetInterfaces().FirstOrDefault().GetGenericArguments().FirstOrDefault();
+                        Type endpoint = typeof(IRpc<,>).MakeGenericType(requestType, responseType);
+
+                        services.AddRange(provider.GetServices(endpoint));
+                    }
                 }
 
+                // client consumers will be created when we'll try to send a request
+                // server consumers will be created for each instance of a handler
+                // this separation is necessary in order to avoid unneeded client starts
                 foreach (IRpc service in services)
                 {
-                    var newcomers = service.StartConsumers();
-                    consumers.Add(newcomers.Item1);
-                    consumers.Add(newcomers.Item2);
+                    service.StartServer();
                 }
             }
-            catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to start Rpc consumer.")) { }
+            catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to start Rpc consumers.")) { }
         }
 
         private void OptionsChanged(RabbitMqConsumerOptions options)
@@ -67,9 +70,9 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 
         public void Stop()
         {
-            foreach (var consumer in consumers)
+            foreach (IRpc service in services)
             {
-                consumer.StopAsync().GetAwaiter().GetResult();
+                service.StopConsumersAsync().GetAwaiter().GetResult();
             }
         }
 
@@ -78,6 +81,4 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             Stop();
         }
     }
-
-
 }

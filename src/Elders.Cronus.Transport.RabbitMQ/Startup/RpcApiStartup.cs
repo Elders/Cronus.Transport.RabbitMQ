@@ -6,7 +6,7 @@ using Elders.Cronus.Transport.RabbitMQ.RpcAPI;
 
 namespace Elders.Cronus.Transport.RabbitMQ.Startup
 {
-    [CronusStartup(Bootstraps.Environment)]
+    [CronusStartup(Bootstraps.Runtime)]
     public class RpcApiStartup : ICronusStartup
     {
         private readonly CronusHostOptions hostOptions;
@@ -22,37 +22,36 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
         {
             if (hostOptions.RpcApiEnabled)
             {
-                IDictionary<Type, Type> handlers = GetAllHandlers();
+                ILookup<Type, Type> handlers = GetHandlers();
                 requestFactory.RegisterHandlers(handlers);
             }
         }
 
-        public IDictionary<Type, Type> GetAllHandlers()
+        public ILookup<Type, Type> GetHandlers()
         {
-            Dictionary<Type, Type> handlers = new DefaulAssemblyScanner()
-                .Scan()
-                 .Where(t => !t.IsAbstract)
-                   .Select(t => new
-                   {
-                       HandlerType = t,
-                       RequestType = GetHandledRequestType(t)
-                   })
-                   .Where(x => x.RequestType != null)
-                   .ToDictionary(
-                       x => x.RequestType,
-                       x => x.HandlerType
-                   );
+            ILookup<Type, Type> handlers = new DefaulAssemblyScanner()
+                 .Scan()
+                  .Where(t => t.IsAbstract == false)
+                    .Select(t => new
+                    {
+                        HandlerType = t,
+                        RequestTypes = GetHandledRequestTypes(t)
+                    })
+                    .Where(x => x.RequestTypes.Any())
+                    .SelectMany(p => p.RequestTypes.Select(r => new { p.HandlerType, RequestType = r }))
+                  .ToLookup(pair => pair.HandlerType, pair => pair.RequestType);
+
             return handlers;
         }
 
-        private Type GetHandledRequestType(Type type)
+        private IEnumerable<Type> GetHandledRequestTypes(Type type)
         {
-            Type handlerInterface = type.GetInterfaces()
-                .FirstOrDefault(i =>
-                    i.IsGenericType &&
-                    i.GetGenericTypeDefinition() == typeof(IRequestHandler<,>));
+            IEnumerable<Type> handlerInterfaces = type.GetInterfaces()
+                 .Where(i =>
+                     i.IsGenericType &&
+                     i.GetGenericTypeDefinition() == typeof(IRequestHandler<,>));
 
-            return handlerInterface == null ? null : handlerInterface.GetGenericArguments()[0];
+            return handlerInterfaces.Select(handlerInterface => handlerInterface is null ? null : handlerInterface.GetGenericArguments()[0]);
         }
     }
 }

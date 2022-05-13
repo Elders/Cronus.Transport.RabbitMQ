@@ -7,12 +7,7 @@ using System.Collections.Concurrent;
 
 namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 {
-    public interface IRpcClient<TRequest, TResponse> where TRequest : IRpcRequest<TResponse>
-    {
-        public Task<TResponse> SendAsync(TRequest request);
-    }
-
-    public class ResponseConsumer<TRequest, TResponse> : AsyncConsumerBase, IRpcClient<TRequest, TResponse> where TRequest : IRpcRequest<TResponse>
+    public class ResponseConsumer<TRequest, TResponse> : AsyncConsumerBase where TRequest : IRpcRequest<TResponse>
     {
         private readonly BlockingCollection<TResponse> responses = new BlockingCollection<TResponse>();
         private readonly IBasicProperties props;
@@ -31,7 +26,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             props.ReplyTo = queue;
             model.BasicConsume(queue: queue, autoAck: true, consumer: this);
 
-            logger.Info(() => $"RPC Api response consumer started for {queue}.");
+            logger.Info(() => $"RPC response consumer started for {queue}.");
         }
 
         protected override Task DeliverMessageToSubscribersAsync(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer) // await responses and add to collection
@@ -39,10 +34,9 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             TResponse response = default;
             try
             {
-                response = (TResponse)serializer.DeserializeFromBytes(ev.Body);
-
-                if (response is not null && ev.BasicProperties.CorrelationId == requestId)
+                if (ev.BasicProperties.CorrelationId == requestId)
                 {
+                    response = (TResponse)serializer.DeserializeFromBytes(ev.Body);
                     responses.Add(response);
                 }
             }
@@ -56,7 +50,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 
         public async Task<TResponse> SendAsync(TRequest request)
         {
-            byte[] messageBytes = serializer.SerializeToBytes(request); // convert to bytes
+            byte[] messageBytes = serializer.SerializeToBytes(request);
 
             model.BasicPublish(exchange: "", routingKey: queue, basicProperties: props, body: messageBytes); // publish request
 
