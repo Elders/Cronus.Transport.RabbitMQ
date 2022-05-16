@@ -24,7 +24,6 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
         private ResponseConsumer<TRequest, TResponse> client;
         private RequestConsumer<TRequest, TResponse> server;
         private string route;
-
         private readonly ConsumerPerQueueChannelResolver channelResolver;
         private readonly BoundedContext boundedContext;
         private readonly RabbitMqOptions options;

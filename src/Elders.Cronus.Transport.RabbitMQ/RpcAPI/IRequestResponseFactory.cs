@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Reflection;
 
 namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 {
@@ -46,7 +47,20 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             if (handlers.Any() == false)
                 throw new ApplicationException("No handler registered for type: " + typeof(TRequest).FullName);
 
-            IRequestHandler<TRequest, TResponse> handler = (IRequestHandler<TRequest, TResponse>)Activator.CreateInstance(handlers.Key);
+
+            ConstructorInfo constructor = handlers.Key.GetConstructors().FirstOrDefault(c => c.GetParameters().Length != 0);
+            ParameterInfo[] injections = constructor?.GetParameters();
+            object[] implementations = null;
+
+            if (constructor is not null)
+            {
+                implementations = new object[injections.Length];
+
+                for (int i = 0; i < injections.Length; i++)
+                    implementations[i] = _services.GetService(injections[i].ParameterType);
+            }
+
+            IRequestHandler<TRequest, TResponse> handler = (IRequestHandler<TRequest, TResponse>)Activator.CreateInstance(handlers.Key, implementations);
             return handler;
         }
     }
@@ -54,6 +68,4 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
     public interface IRpcRequest { }
 
     public interface IRpcRequest<TResponse> : IRpcRequest { }
-
-    public interface IRpcResponse { }
 }
