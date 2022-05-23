@@ -115,6 +115,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
                 .SelectMany(mt => bcRabbitMqNamer.GetExchangeNames(mt).Select(x => new { Exchange = x, MessageType = mt }))
                 .GroupBy(x => x.Exchange)
                 .Distinct();
+
             foreach (var exchangeGroup in exchangeGroups)
             {
                 // Standard exchange

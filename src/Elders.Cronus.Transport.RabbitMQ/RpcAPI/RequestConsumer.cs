@@ -6,45 +6,50 @@ using Microsoft.Extensions.Logging;
 
 namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 {
-    public class RequestConsumer<TRequest, TResponse> : AsyncConsumerBase where TRequest : IRpcRequest<TResponse>
+    public class RequestConsumer<TRequest, TResponse> : AsyncConsumerBase
+        where TRequest : IRpcRequest<TResponse>
+        where TResponse : IRpcResponse, new()
     {
         private IRequestHandler<TRequest, TResponse> handler;
         private string queue;
+        private static string expiration = "30000";
 
         public RequestConsumer(string queue, IModel model, IRequestHandler<TRequest, TResponse> handler, ISerializer serializer, ILogger logger)
           : base(model, serializer, logger)
         {
             this.queue = queue;
             this.handler = handler;
-            model.QueueDeclare(queue);
+            model.QueueDeclare(queue, exclusive: false);
             model.BasicQos(0, 1, false);
-            model.BasicConsume(queue, autoAck: false, this); // Queue from which requests are consumes
+            model.BasicConsume(queue, autoAck: false, this); // We should do manual acknowledgement to spread the load equally over multiple servers
             logger.Info(() => $"RPC request consumer started for {queue}.");
         }
 
         protected override async Task DeliverMessageToSubscribersAsync(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)
         {
-            IBasicProperties replyProps = null;
-            IBasicProperties props = null;
             TRequest request = default;
             TResponse response = default;
 
-            try // Proccess request and publish respons 
+            try // Proccess request and publish response
             {
-                props = ev.BasicProperties;
-                replyProps = model.CreateBasicProperties();
-                replyProps.CorrelationId = props.CorrelationId; // correlate requests with the responses
-                request = (TRequest)serializer.DeserializeFromBytes(ev.Body);
-
-                logger.LogInformation($"Requested: {queue}");
-
-                response = await handler.HandleAsync(request);
+                request = serializer.DeserializeFromBytes<TRequest>(ev.Body);
+                response = await handler.HandleAsync(request).ConfigureAwait(false);
             }
-            catch (Exception ex) when (logger.ErrorException(ex, () => $"Request {queue}.{request} failed.")) { }
+            catch (Exception ex) when (logger.ErrorException(ex, () => $"Request listened on {queue} failed."))
+            {
+                response = new TResponse();
+                response.Error = ex.Message;
+            }
             finally
             {
+                IBasicProperties replyProps = model.CreateBasicProperties();
+                replyProps.CorrelationId = ev.BasicProperties.CorrelationId; // correlate requests with the responses
+                replyProps.ReplyTo = ev.BasicProperties.ReplyTo;
+                replyProps.Persistent = false;
+                replyProps.Expiration = expiration;
+
                 byte[] responseBytes = serializer.SerializeToBytes(response);
-                model.BasicPublish("", routingKey: props.ReplyTo, replyProps, responseBytes);
+                model.BasicPublish("", routingKey: replyProps.ReplyTo, replyProps, responseBytes);
                 model.BasicAck(ev.DeliveryTag, false);
             }
         }

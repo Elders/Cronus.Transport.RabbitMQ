@@ -44,9 +44,8 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
         {
             IGrouping<Type, Type> handlers = _requestHandlerTypes.FirstOrDefault(x => x.Contains(typeof(TRequest)));
 
-            if (handlers.Any() == false)
+            if (handlers is null)
                 throw new ApplicationException("No handler registered for type: " + typeof(TRequest).FullName);
-
 
             ConstructorInfo constructor = handlers.Key.GetConstructors().FirstOrDefault(c => c.GetParameters().Length != 0);
             ParameterInfo[] injections = constructor?.GetParameters();

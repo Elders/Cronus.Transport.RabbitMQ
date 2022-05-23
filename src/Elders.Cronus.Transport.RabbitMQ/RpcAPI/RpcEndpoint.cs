@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
@@ -14,12 +16,14 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 
     public interface IRpc<TRequest, TResponse> : IRpc
         where TRequest : IRpcRequest<TResponse>
+        where TResponse : IRpcResponse, new()
     {
         public Task<TResponse> SendAsync(TRequest request);
     }
 
     public class RpcEndpoint<TRequest, TResponse> : IRpc<TRequest, TResponse>
         where TRequest : IRpcRequest<TResponse>
+        where TResponse : IRpcResponse, new()
     {
         private ResponseConsumer<TRequest, TResponse> client;
         private RequestConsumer<TRequest, TResponse> server;
@@ -47,17 +51,37 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
         {
             client = client ?? StartClient();
 
-            TResponse response = await client.SendAsync(request).ConfigureAwait(false);
+            TResponse response = new TResponse();
+
+            try
+            {
+                response = await client.SendAsync(request).WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                string error = "The server not responding for too long...";
+                logger.ErrorException(ex, () => error);
+
+                response.Error = error;
+                return response;
+            }
+
             return response;
         }
 
         public void StartServer()
         {
-            IRabbitMqOptions scopedOptions = options.GetOptionsFor(boundedContext.Name);
-            IModel requestChannel = channelResolver.Resolve(route, scopedOptions, options.VHost);
-            IRequestHandler<TRequest, TResponse> handler = factory.CreateHandler<TRequest, TResponse>();
+            try
+            {
+                IRabbitMqOptions scopedOptions = options.GetOptionsFor(boundedContext.Name);
+                IModel requestChannel = channelResolver.Resolve(route, scopedOptions, options.VHost);
 
-            server = new RequestConsumer<TRequest, TResponse>(route, requestChannel, handler, serializer, logger);
+                IRequestHandler<TRequest, TResponse> handler = factory.CreateHandler<TRequest, TResponse>();
+
+                server = new RequestConsumer<TRequest, TResponse>(route, requestChannel, handler, serializer, logger);
+            }
+            catch (Exception ex) when (logger.ErrorException(ex, () => $"Unable to start rpc server for {route}.")) { }
+
         }
 
         public async Task StopConsumersAsync()
@@ -68,12 +92,25 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 
         private ResponseConsumer<TRequest, TResponse> StartClient()
         {
-            IRabbitMqOptions scopedOptions = options.GetOptionsFor(boundedContext.Name);
-            IModel requestChannel = channelResolver.Resolve(route, scopedOptions, options.VHost);
-            client = new ResponseConsumer<TRequest, TResponse>(route, requestChannel, serializer, logger);
-            return client;
+            try
+            {
+                var attributes = typeof(TRequest).GetCustomAttributes(typeof(DataContractAttribute), false);
+                var dataContractAttribute = attributes[0] as DataContractAttribute;
+                string destinationBC = dataContractAttribute.Namespace;
+
+                if (destinationBC is not null)
+                {
+                    IRabbitMqOptions scopedOptions = options.GetOptionsFor(destinationBC);
+                    IModel requestChannel = channelResolver.Resolve(route, scopedOptions, destinationBC);
+                    client = new ResponseConsumer<TRequest, TResponse>(route, requestChannel, serializer, logger);
+                    return client;
+                }
+            }
+            catch (Exception ex) when (logger.ErrorException(ex, () => $"Unable to start rpc client for {route}.")) { }
+
+            return null;
         }
 
-        private string GetRoute() => $"{boundedContext.Name}.{typeof(TRequest).Name}s";
+        private string GetRoute() => $"{typeof(TRequest).Name}s";
     }
 }
