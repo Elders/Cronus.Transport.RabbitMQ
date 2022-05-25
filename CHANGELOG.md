@@ -1,3 +1,13 @@
+# [8.0.0](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0...v8.0.0) (2022-05-25)
+
+
+### Bug Fixes
+
+* Add non-generic variant of AsyncConsumerBase for consumers who don't depend on Subscribers ([f671137](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/f6711371877f1e9a6d9f80b0a8a64b0d46b4b8d9))
+* bump RabbitMQ.Client from 6.2.4 to 6.3.0 ([f1bd806](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/f1bd806cd824a42cd459bb9382edcd708a8211c6))
+* Properly use base constructor ([a06f8b5](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/a06f8b5d5ac0a20e020414a3748181dee2ce5fbb))
+* Update Cronus ([7d4a528](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/7d4a5285106b212667714bce0a412577baf76e8f))
+
 # [8.0.0-preview.1](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0...v8.0.0-preview.1) (2022-04-11)
 
 
