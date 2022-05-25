@@ -57,13 +57,15 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             {
                 response = await client.SendAsync(request).WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (TimeoutException timedOutEx)
             {
                 string error = "The server not responding for too long...";
-                logger.ErrorException(ex, () => error);
-
+                logger.ErrorException(timedOutEx, () => error);
                 response.Error = error;
-                return response;
+            }
+            catch (Exception ex) when (logger.ErrorException(ex, () => ex.Message))
+            {
+                response.Error = ex.Message;
             }
 
             return response;
