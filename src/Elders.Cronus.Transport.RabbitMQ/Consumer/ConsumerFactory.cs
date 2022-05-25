@@ -1,5 +1,4 @@
 ﻿using Elders.Cronus.MessageProcessing;
-using Elders.Cronus.Transport.RabbitMQ.Consumer;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
