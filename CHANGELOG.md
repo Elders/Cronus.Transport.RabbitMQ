@@ -1,3 +1,10 @@
+## [8.0.1](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.0.0...v8.0.1) (2022-05-26)
+
+
+### Bug Fixes
+
+* Improve message delivering ([c2c2d5d](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/c2c2d5d4859ab3200f2f1d7670031151e7445c5f))
+
 # [8.0.0](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0...v8.0.0) (2022-05-25)
 
 
