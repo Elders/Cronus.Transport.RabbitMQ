@@ -5,6 +5,7 @@ using RabbitMQ.Client.Events;
 using System.IO;
 using System.Threading.Tasks;
 using System;
+using System.Collections.Generic;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
@@ -83,11 +84,14 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(ev.Body);
                 var subscribers = subscriberCollection.GetInterestedSubscribers(cronusMessage);
+                List<Task> deliverTasks = new List<Task>();
+
                 foreach (var subscriber in subscribers)
                 {
-                    // Async all at the same time
-                    await subscriber.ProcessAsync(cronusMessage).ConfigureAwait(false);
+                    deliverTasks.Add(subscriber.ProcessAsync(cronusMessage));
                 }
+
+                await Task.WhenAll(deliverTasks).ConfigureAwait(false);
             }
             catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to process message." + Environment.NewLine + cronusMessage is null ? "Failed to deserialize" : MessageAsString(cronusMessage))) { }
             finally
