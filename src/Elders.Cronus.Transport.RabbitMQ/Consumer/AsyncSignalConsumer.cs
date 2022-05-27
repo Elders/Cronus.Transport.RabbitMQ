@@ -16,17 +16,15 @@ namespace Elders.Cronus.Transport.RabbitMQ
     /// <typeparam name="TSubscriber"></typeparam>
     public class AsyncSignalConsumer<TSubscriber> : AsyncConsumerBase<TSubscriber>
     {
-        private readonly ISerializer serializer;
-        private readonly ILogger logger;
         private readonly ISubscriberCollection<TSubscriber> subscriberCollection;
 
         public AsyncSignalConsumer(string queue, IModel model, ISubscriberCollection<TSubscriber> subscriberCollection, ISerializer serializer, ILogger logger) :
             base(model, subscriberCollection, serializer, logger)
         {
-            this.serializer = serializer;
-            this.logger = logger;
             this.subscriberCollection = subscriberCollection;
             model.BasicConsume(queue, true, string.Empty, this);
+
+            logger.Debug(() => $"Consumer for {typeof(TSubscriber).Name} started.");
         }
 
         protected override async Task DeliverMessageToSubscribersAsync(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)
@@ -46,17 +44,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 await Task.WhenAll(deliverTasks).ConfigureAwait(false);
             }
             catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to process message." + Environment.NewLine + cronusMessage is null ? "Failed to deserialize" : MessageAsString(cronusMessage))) { }
-        }
-
-        private string MessageAsString(CronusMessage message)
-        {
-            using (var stream = new MemoryStream())
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                serializer.Serialize(stream, message);
-                stream.Position = 0;
-                return reader.ReadToEnd();
-            }
         }
     }
 }

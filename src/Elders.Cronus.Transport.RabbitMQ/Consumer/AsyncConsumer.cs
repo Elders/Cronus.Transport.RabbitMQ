@@ -15,6 +15,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             model.BasicQos(0, 1, false); // prefetch allow to avoid buffer of messages on the flight
             model.BasicConsume(queue, false, string.Empty, this); // we should use autoAck: false to avoid messages loosing
+
+            logger.Debug(() => $"Consumer for {typeof(TSubscriber).Name} started.");
         }
     }
 }

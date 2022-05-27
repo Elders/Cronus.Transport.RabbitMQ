@@ -48,7 +48,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             if (this.options == options)
                 return;
 
-            logger.Debug(() => "RabbitMqConsumerOptions changed from {@CurrentOptions} to {@NewOptions}.", this.options, options);
+            logger.Info(() => "RabbitMqConsumerOptions changed from {@CurrentOptions} to {@NewOptions}.", this.options, options);
 
             this.options = options;
 
