@@ -1,3 +1,10 @@
+## [8.0.2](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.0.1...v8.0.2) (2022-05-27)
+
+
+### Bug Fixes
+
+* bump Cronus from 8.0.1 to 8.0.4 ([5553a5e](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/5553a5e7aee08ea28d7433e01dfc936bc28b61d6))
+
 ## [8.0.1](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.0.0...v8.0.1) (2022-05-26)
 
 
