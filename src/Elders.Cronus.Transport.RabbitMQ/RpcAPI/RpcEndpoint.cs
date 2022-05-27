@@ -9,9 +9,9 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 {
     public interface IRpc
     {
-        public void StartServer();
+        internal void StartServer();
 
-        public Task StopConsumersAsync();
+        internal Task StopConsumersAsync();
     }
 
     public interface IRpc<TRequest, TResponse> : IRpc
@@ -71,7 +71,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             return response;
         }
 
-        public void StartServer()
+        void IRpc.StartServer()
         {
             try
             {
@@ -83,10 +83,9 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
                 server = new RequestConsumer<TRequest, TResponse>(route, requestChannel, handler, serializer, logger);
             }
             catch (Exception ex) when (logger.ErrorException(ex, () => $"Unable to start rpc server for {route}.")) { }
-
         }
 
-        public async Task StopConsumersAsync()
+        async Task IRpc.StopConsumersAsync()
         {
             await client.StopAsync().ConfigureAwait(false);
             await server.StopAsync().ConfigureAwait(false);

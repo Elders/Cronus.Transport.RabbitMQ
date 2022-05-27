@@ -10,11 +10,13 @@ using System.Collections.Generic;
 
 namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 {
-    public class ResponseConsumer<TRequest, TResponse> : AsyncConsumerBase where TRequest : IRpcRequest<TResponse>
+    public class ResponseConsumer<TRequest, TResponse> : AsyncConsumerBase
+        where TRequest : IRpcRequest<TResponse>
+        where TResponse : IRpcResponse, new()
     {
         private readonly ConcurrentDictionary<string, TaskCompletionSource<TResponse>> requestTracker = new ConcurrentDictionary<string, TaskCompletionSource<TResponse>>();
         private static HashSet<string> occupiedNames = new HashSet<string>();
-        private static string expiration = "30000";
+        private static string _timeout = "30000";
         private readonly string queueName;
         private readonly string queueToConsume;
 
@@ -34,7 +36,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             IBasicProperties props = model.CreateBasicProperties();
             props.CorrelationId = correlationId;
             props.ReplyTo = queueToConsume;
-            props.Expiration = expiration;
+            props.Expiration = _timeout;
             props.Persistent = false;
 
             byte[] messageBytes = serializer.SerializeToBytes(request);
@@ -50,8 +52,9 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 
         protected override Task DeliverMessageToSubscribersAsync(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer) // await responses and add to collection
         {
-            TResponse response = default;
+            RpcResponseTransmission transient = new RpcResponseTransmission();
             TaskCompletionSource<TResponse> task = default;
+            TResponse response = new TResponse();
 
             try
             {
@@ -60,15 +63,20 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
                     return Task.CompletedTask;
                 }
 
-                response = serializer.DeserializeFromBytes<TResponse>(ev.Body);
+                transient = (RpcResponseTransmission)serializer.DeserializeFromBytes(ev.Body);
+
+                response.Data = transient.Data;
+                response.Error = transient.Error;
+
                 task.TrySetResult(response);
 
                 return Task.CompletedTask;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (logger.ErrorException(ex, () => $"Unable to process response!"))
             {
+                response.Data = transient.Data;
+                response.Error = transient.Error;
                 task?.TrySetResult(response);
-                logger.ErrorException(ex, () => $"Unable to process response!");
             }
 
             return Task.CompletedTask;

@@ -12,7 +12,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
     {
         private IRequestHandler<TRequest, TResponse> handler;
         private string queue;
-        private static string expiration = "30000";
+        private static string _timeout = "30000";
 
         public RequestConsumer(string queue, IModel model, IRequestHandler<TRequest, TResponse> handler, ISerializer serializer, ILogger logger)
           : base(model, serializer, logger)
@@ -28,17 +28,17 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
         protected override async Task DeliverMessageToSubscribersAsync(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)
         {
             TRequest request = default;
-            TResponse response = default;
+            RpcResponseTransmission response = default;
 
             try // Proccess request and publish response
             {
-                request = serializer.DeserializeFromBytes<TRequest>(ev.Body);
-                response = await handler.HandleAsync(request).ConfigureAwait(false);
+                request = (TRequest)serializer.DeserializeFromBytes(ev.Body);
+                TResponse handlerResponse = await handler.HandleAsync(request).ConfigureAwait(false);
+                response = new RpcResponseTransmission(handlerResponse);
             }
             catch (Exception ex) when (logger.ErrorException(ex, () => $"Request listened on {queue} failed."))
             {
-                response = new TResponse();
-                response.Error = ex.Message;
+                response = RpcResponseTransmission.WithError(ex);
             }
             finally
             {
@@ -46,7 +46,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
                 replyProps.CorrelationId = ev.BasicProperties.CorrelationId; // correlate requests with the responses
                 replyProps.ReplyTo = ev.BasicProperties.ReplyTo;
                 replyProps.Persistent = false;
-                replyProps.Expiration = expiration;
+                replyProps.Expiration = _timeout;
 
                 byte[] responseBytes = serializer.SerializeToBytes(response);
                 model.BasicPublish("", routingKey: replyProps.ReplyTo, replyProps, responseBytes);
