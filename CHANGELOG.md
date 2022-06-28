@@ -1,3 +1,16 @@
+# [8.1.0](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.0.2...v8.1.0) (2022-06-28)
+
+
+### Bug Fixes
+
+* Add RpcResponse model for extended responses in our Rpc  and many other improvements ([b747f0f](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/b747f0fccf005c0e9db870681b6be9decc8b98a2))
+* Fix unable to resolve scoped service CronusContext when attempting to activate SingletonPerTenant ([267b162](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/267b1624037d3501a1f703a93514c9f3d8c4efcf))
+
+
+### Features
+
+* Add rabbitMq Rpc ([f5b9cef](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/f5b9cef0bb7bbbaf78e51f4a31054a18d1a3b6f0))
+
 # [8.1.0-preview.1](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.0.2...v8.1.0-preview.1) (2022-05-27)
 
 
