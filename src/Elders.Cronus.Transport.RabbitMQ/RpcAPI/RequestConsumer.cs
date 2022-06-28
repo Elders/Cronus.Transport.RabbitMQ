@@ -10,15 +10,15 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
         where TRequest : IRpcRequest<TResponse>
         where TResponse : IRpcResponse, new()
     {
-        private IRequestHandler<TRequest, TResponse> handler;
         private string queue;
+        private readonly IRequestResponseFactory factory;
         private static string _timeout = "30000";
 
-        public RequestConsumer(string queue, IModel model, IRequestHandler<TRequest, TResponse> handler, ISerializer serializer, ILogger logger)
+        public RequestConsumer(string queue, IModel model, IRequestResponseFactory factory, ISerializer serializer, ILogger logger)
           : base(model, serializer, logger)
         {
             this.queue = queue;
-            this.handler = handler;
+            this.factory = factory;
             model.QueueDeclare(queue, exclusive: false);
             model.BasicQos(0, 1, false);
             model.BasicConsume(queue, autoAck: false, this); // We should do manual acknowledgement to spread the load equally over multiple servers
@@ -33,6 +33,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             try // Proccess request and publish response
             {
                 request = (TRequest)serializer.DeserializeFromBytes(ev.Body);
+                IRequestHandler<TRequest, TResponse> handler = factory.CreateHandler<TRequest, TResponse>(request.Tenant);
                 TResponse handlerResponse = await handler.HandleAsync(request).ConfigureAwait(false);
                 response = new RpcResponseTransmission(handlerResponse);
             }

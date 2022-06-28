@@ -3,6 +3,8 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
+using Elders.Cronus.MessageProcessing;
 
 namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 {
@@ -16,18 +18,18 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
     {
         void RegisterHandlers(ILookup<Type, Type> handlers);
         ILookup<Type, Type> GetHandlers();
-        IRequestHandler<TRequest, TResponse> CreateHandler<TRequest, TResponse>() where TRequest : IRpcRequest<TResponse>;
+        IRequestHandler<TRequest, TResponse> CreateHandler<TRequest, TResponse>(string tenant) where TRequest : IRpcRequest<TResponse>;
     }
 
     public class RequestResponseFactory : IRequestResponseFactory
     {
         private ILookup<Type, Type> _requestHandlerTypes;
-        private readonly IServiceProvider _services;
+        private readonly IServiceProvider provider;
 
-        public RequestResponseFactory(IServiceProvider services)
+        public RequestResponseFactory(IServiceProvider provider)
         {
             _requestHandlerTypes = new List<Type>().ToLookup(x => x);
-            _services = services;
+            this.provider = provider;
         }
 
         public void RegisterHandlers(ILookup<Type, Type> handlers)
@@ -40,31 +42,40 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             return _requestHandlerTypes;
         }
 
-        public IRequestHandler<TRequest, TResponse> CreateHandler<TRequest, TResponse>() where TRequest : IRpcRequest<TResponse>
+        public IRequestHandler<TRequest, TResponse> CreateHandler<TRequest, TResponse>(string tenant) where TRequest : IRpcRequest<TResponse>
         {
             IGrouping<Type, Type> handlers = _requestHandlerTypes.FirstOrDefault(x => x.Contains(typeof(TRequest)));
 
             if (handlers is null)
                 throw new ApplicationException("No handler registered for type: " + typeof(TRequest).FullName);
 
+            // All Our Gods Have Abandoned Us and we are no more able to inject generics like this and to cast implementation to it's generic interface. See https://user-images.githubusercontent.com/40130484/175905317-818e1a0a-ff28-4e74-9470-a327a9d72e15.png
+            // But with Reflection we don't need the gods anymore. We can even provide request/response pattern without a dynamic  cast.
             ConstructorInfo constructor = handlers.Key.GetConstructors().FirstOrDefault(c => c.GetParameters().Length != 0);
             ParameterInfo[] injections = constructor?.GetParameters();
-            object[] implementations = null;
+            object[] implementations = new object[injections.Length];
 
-            if (constructor is not null)
+            using (var scope = provider.CreateScope())
             {
-                implementations = new object[injections.Length];
-
                 for (int i = 0; i < injections.Length; i++)
-                    implementations[i] = _services.GetService(injections[i].ParameterType);
+                {
+                    CronusContextFactory contextFactory = scope.ServiceProvider.GetRequiredService<CronusContextFactory>();
+                    contextFactory.GetContext(tenant, scope.ServiceProvider);
+
+                    implementations[i] = scope.ServiceProvider.GetRequiredService(injections[i].ParameterType);
+                }
             }
 
             IRequestHandler<TRequest, TResponse> handler = (IRequestHandler<TRequest, TResponse>)Activator.CreateInstance(handlers.Key, implementations);
+
             return handler;
         }
     }
 
     public interface IRpcRequest { }
 
-    public interface IRpcRequest<TResponse> : IRpcRequest { }
+    public interface IRpcRequest<TResponse> : IRpcRequest
+    {
+        internal string Tenant { get; set; }
+    }
 }

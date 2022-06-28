@@ -78,9 +78,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
                 IRabbitMqOptions scopedOptions = options.GetOptionsFor(boundedContext.Name);
                 IModel requestChannel = channelResolver.Resolve(route, scopedOptions, options.VHost);
 
-                IRequestHandler<TRequest, TResponse> handler = factory.CreateHandler<TRequest, TResponse>();
-
-                server = new RequestConsumer<TRequest, TResponse>(route, requestChannel, handler, serializer, logger);
+                server = new RequestConsumer<TRequest, TResponse>(route, requestChannel, factory, serializer, logger);
             }
             catch (Exception ex) when (logger.ErrorException(ex, () => $"Unable to start rpc server for {route}.")) { }
         }

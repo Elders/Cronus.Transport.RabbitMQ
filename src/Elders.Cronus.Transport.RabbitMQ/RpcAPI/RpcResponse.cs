@@ -5,9 +5,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
     public interface IRpcResponse
     {
         internal object Data { get; set; }
-
         public string Error { get; set; }
-
         public bool IsSuccessful { get { return Data is not null && string.IsNullOrEmpty(Error); } }
     }
 
