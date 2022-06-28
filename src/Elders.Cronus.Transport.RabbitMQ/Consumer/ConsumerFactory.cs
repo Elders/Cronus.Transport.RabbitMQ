@@ -1,12 +1,13 @@
-﻿using Elders.Cronus.MessageProcessing;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Collections.Concurrent;
+using Elders.Cronus.MessageProcessing;
+using Elders.Cronus.Transport.RabbitMQ.RpcAPI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
@@ -19,8 +20,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private readonly BoundedContext boundedContext;
         private readonly ISubscriberCollection<T> subscriberCollection;
         private readonly ConcurrentBag<AsyncConsumerBase> consumers = new ConcurrentBag<AsyncConsumerBase>();
-        private string queueName;
         private readonly RabbitMqOptions options;
+        private string queueName;
 
         public ConsumerFactory(IOptionsMonitor<RabbitMqOptions> optionsMonitor, ConsumerPerQueueChannelResolver channelResolver, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISerializer serializer, ISubscriberCollection<T> subscriberCollection, ILogger<ConsumerFactory<T>> logger)
         {
