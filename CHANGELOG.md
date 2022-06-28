@@ -1,3 +1,10 @@
+# [8.1.0-preview.2](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.0-preview.1...v8.1.0-preview.2) (2022-06-28)
+
+
+### Bug Fixes
+
+* Fix unable to resolve scoped service CronusContext when attempting to activate SingletonPerTenant ([267b162](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/267b1624037d3501a1f703a93514c9f3d8c4efcf))
+
 # [8.1.0-preview.1](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.0.2...v8.1.0-preview.1) (2022-05-27)
 
 
