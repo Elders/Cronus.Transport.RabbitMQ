@@ -10,6 +10,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
         [Range(1, int.MaxValue, ErrorMessage = "The configuration `Cronus:Transport:RabbitMq:Consumer:WorkersCount` allows values from 1 to 2147483647. For more information see here https://github.com/Elders/Cronus/blob/master/doc/Configuration.md")]
         public int WorkersCount { get; set; } = 10;
 
+        public int RpcTimeout { get; set; } = 10; // In seconds
+
         /// <summary>
         /// Drasticly changes the infrastructure behavior. This will create a separate queue per node and a message will be delivered to every node.
         /// </summary>
@@ -17,7 +19,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public override string ToString()
         {
-            return $"WorkersCount: {WorkersCount}";
+            return $"WorkersCount: {WorkersCount}, RpcTimeout: {10} sec.";
         }
 
         public bool Equals([AllowNull] RabbitMqConsumerOptions other)
@@ -25,7 +27,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             if (other is null)
                 return false;
 
-            return WorkersCount == other.WorkersCount && FanoutMode == other.FanoutMode;
+            return WorkersCount == other.WorkersCount && FanoutMode == other.FanoutMode && RpcTimeout == other.RpcTimeout;
         }
 
         public override bool Equals(object obj)
@@ -36,7 +38,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(WorkersCount, FanoutMode);
+            return HashCode.Combine(WorkersCount, FanoutMode, RpcTimeout);
         }
 
         public static bool operator ==(RabbitMqConsumerOptions left, RabbitMqConsumerOptions right)

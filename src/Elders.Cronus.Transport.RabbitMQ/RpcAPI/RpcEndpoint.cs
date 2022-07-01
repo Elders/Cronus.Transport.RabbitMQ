@@ -30,14 +30,16 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
         private string route;
         private readonly ConsumerPerQueueChannelResolver channelResolver;
         private readonly BoundedContext boundedContext;
+        private readonly RabbitMqConsumerOptions consumerOptions;
         private readonly RabbitMqOptions options;
         private readonly IRequestResponseFactory factory;
         private readonly ISerializer serializer;
         private readonly ILogger<RpcEndpoint<TRequest, TResponse>> logger;
 
-        public RpcEndpoint(IOptionsMonitor<RabbitMqOptions> options, IOptionsMonitor<BoundedContext> boundedContext, ConsumerPerQueueChannelResolver channelResolver, IRequestResponseFactory factory, ISerializer serializer, ILogger<RpcEndpoint<TRequest, TResponse>> logger)
+        public RpcEndpoint(IOptionsMonitor<RabbitMqOptions> options, IOptionsMonitor<BoundedContext> boundedContext, ConsumerPerQueueChannelResolver channelResolver, IRequestResponseFactory factory, ISerializer serializer, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptionsMonitor, ILogger<RpcEndpoint<TRequest, TResponse>> logger)
         {
             this.channelResolver = channelResolver;
+            this.consumerOptions = consumerOptionsMonitor.CurrentValue;
             this.boundedContext = boundedContext.CurrentValue;
             this.options = options.CurrentValue;
             this.factory = factory;
@@ -55,7 +57,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 
             try
             {
-                response = await client.SendAsync(request).WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+                response = await client.SendAsync(request).WaitAsync(TimeSpan.FromSeconds(consumerOptions.RpcTimeout)).ConfigureAwait(false);
             }
             catch (TimeoutException timedOutEx)
             {
