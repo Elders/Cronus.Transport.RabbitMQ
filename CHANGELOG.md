@@ -1,3 +1,10 @@
+## [8.1.1](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.0...v8.1.1) (2022-07-01)
+
+
+### Bug Fixes
+
+* Configure Rpc timeout via options ([58d2cb7](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/58d2cb7432d1941d124862fe4c7b7dc90e6ad15c))
+
 # [8.1.0](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.0.2...v8.1.0) (2022-06-28)
 
 
