@@ -1,3 +1,10 @@
+## [8.1.2](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.1...v8.1.2) (2022-07-11)
+
+
+### Bug Fixes
+
+* Enrich Rpc request with Respond and Fail capabilities ([8f9d958](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/8f9d958276e86e6d63420ca654a969d4b7356b0f))
+
 ## [8.1.1](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.0...v8.1.1) (2022-07-01)
 
 
