@@ -71,11 +71,4 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             return handler;
         }
     }
-
-    public interface IRpcRequest { }
-
-    public interface IRpcRequest<TResponse> : IRpcRequest
-    {
-        internal string Tenant { get; set; }
-    }
 }
