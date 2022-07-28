@@ -1,3 +1,10 @@
+## [8.1.4](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.3...v8.1.4) (2022-07-28)
+
+
+### Bug Fixes
+
+* Enrich RPC API with some logs when unable to resolve endpoint & RPC disabled. ([5e1060a](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/5e1060a4ee30eee7b403b75d892867c1a8cb8e28))
+
 ## [8.1.3](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.2...v8.1.3) (2022-07-22)
 
 
