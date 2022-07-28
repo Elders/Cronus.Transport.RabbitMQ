@@ -87,8 +87,8 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 
         async Task IRpc.StopConsumersAsync()
         {
-            await client.StopAsync().ConfigureAwait(false);
-            await server.StopAsync().ConfigureAwait(false);
+            await (client?.StopAsync()).ConfigureAwait(false);
+            await (server?.StopAsync()).ConfigureAwait(false);
         }
 
         private ResponseConsumer<TRequest, TResponse> StartClient()

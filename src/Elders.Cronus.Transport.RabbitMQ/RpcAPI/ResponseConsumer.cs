@@ -45,6 +45,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             requestTracker.TryAdd(correlationId, taskSource);
 
             model.BasicPublish(exchange: "", routingKey: queueName, basicProperties: props, body: messageBytes); // publish request
+            logger.LogDebug($"Publish request with id {correlationId}, to {queueName}");
 
             cancellationToken.Register(() => requestTracker.TryRemove(correlationId, out _));
             return taskSource.Task;

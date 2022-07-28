@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Microsoft.Extensions.Options;
 using Elders.Cronus.Transport.RabbitMQ.RpcAPI;
+using Microsoft.Extensions.Logging;
 
 namespace Elders.Cronus.Transport.RabbitMQ.Startup
 {
@@ -11,11 +12,13 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
     {
         private readonly CronusHostOptions hostOptions;
         private readonly IRequestResponseFactory requestFactory;
+        private readonly ILogger<RpcApiStartup> logger;
 
-        public RpcApiStartup(IOptionsMonitor<CronusHostOptions> cronusHostOptions, IRequestResponseFactory requestFactory)
+        public RpcApiStartup(IOptionsMonitor<CronusHostOptions> cronusHostOptions, IRequestResponseFactory requestFactory, ILogger<RpcApiStartup> logger)
         {
             this.hostOptions = cronusHostOptions.CurrentValue;
             this.requestFactory = requestFactory;
+            this.logger = logger;
         }
 
         public void Bootstrap()
@@ -24,7 +27,10 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
             {
                 ILookup<Type, Type> handlers = GetHandlers();
                 requestFactory.RegisterHandlers(handlers);
+                return;
             }
+
+            logger.LogInformation("Rpc API feature disabled.");
         }
 
         public ILookup<Type, Type> GetHandlers()

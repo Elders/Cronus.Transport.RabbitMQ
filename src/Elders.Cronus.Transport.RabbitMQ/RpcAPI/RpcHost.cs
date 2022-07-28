@@ -11,14 +11,16 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
     public class RpcHost : IRpcHost
     {
         private RabbitMqConsumerOptions options;
+        private CronusHostOptions hostOptions;
         private readonly List<object> services;
         private readonly IRequestResponseFactory factory;
         private readonly IServiceProvider provider;
         private readonly ILogger<RpcHost> logger;
 
-        public RpcHost(IServiceProvider provider, IOptionsMonitor<RabbitMqConsumerOptions> options, ILogger<RpcHost> logger, IRequestResponseFactory factory)
+        public RpcHost(IServiceProvider provider, IOptionsMonitor<RabbitMqConsumerOptions> options, IOptionsMonitor<CronusHostOptions> hostOptions, ILogger<RpcHost> logger, IRequestResponseFactory factory)
         {
             this.options = options.CurrentValue;
+            this.hostOptions = hostOptions.CurrentValue;
             this.factory = factory;
             this.provider = provider;
             this.logger = logger;
@@ -28,6 +30,12 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 
         public void Start()
         {
+            if (hostOptions.RpcApiEnabled == false)
+            {
+                logger.LogInformation("Rpc API feature disabled.");
+                return;
+            }
+
             try
             {
                 ILookup<Type, Type> handlerTypes = factory.GetHandlers();
@@ -40,7 +48,15 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
                         Type responseType = requestType.GetInterfaces().FirstOrDefault().GetGenericArguments().FirstOrDefault();
                         Type endpoint = typeof(IRpc<,>).MakeGenericType(requestType, responseType);
 
-                        services.AddRange(provider.GetServices(endpoint));
+                        IEnumerable<object> service = provider.GetServices(endpoint);
+
+                        if (service.Contains(null))
+                        {
+                            logger.LogError($"Unable to resolve endpoind {endpoint.GetInterface("IRpc").Name}<{requestType},{responseType}>.");
+                            continue;
+                        }
+
+                        services.AddRange(service);
                     }
                 }
 
@@ -72,7 +88,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
         {
             foreach (IRpc service in services)
             {
-                service.StopConsumersAsync().GetAwaiter().GetResult();
+                service?.StopConsumersAsync().GetAwaiter().GetResult();
             }
         }
 
