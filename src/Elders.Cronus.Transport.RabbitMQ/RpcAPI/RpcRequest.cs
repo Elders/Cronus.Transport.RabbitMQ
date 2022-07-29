@@ -9,6 +9,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
         internal string Tenant { get; set; }
     }
 
+    [DataContract(Name = "d6e57847-c558-4fc4-8501-cbe504efcf21")]
     public abstract class RpcRequest<TResponse> : IRpcRequest<RpcResponse<TResponse>>
     {
         [DataMember(Order = 0)]
