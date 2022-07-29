@@ -1,3 +1,10 @@
+## [8.1.5](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.4...v8.1.5) (2022-07-29)
+
+
+### Bug Fixes
+
+* Adds data contract for serialization ([dfd5785](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/dfd57852e1a0e7463b1d981f71e9da7771c713a6))
+
 ## [8.1.4](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.3...v8.1.4) (2022-07-28)
 
 
