@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -51,7 +52,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 
         public async Task<TResponse> SendAsync(TRequest request)
         {
-            client = client ?? StartClient();
+            client = client ?? await StartClientAsync().ConfigureAwait(false);
 
             TResponse response = new TResponse();
 
@@ -91,25 +92,37 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             await (server?.StopAsync()).ConfigureAwait(false);
         }
 
-        private ResponseConsumer<TRequest, TResponse> StartClient()
+        private static SemaphoreSlim threadGate = new SemaphoreSlim(1, 1);
+        private static bool isClientCreated = false;
+
+        private async Task<ResponseConsumer<TRequest, TResponse>> StartClientAsync()
         {
             try
             {
-                var attributes = typeof(TRequest).GetCustomAttributes(typeof(DataContractAttribute), false);
-                var dataContractAttribute = attributes[0] as DataContractAttribute;
-                string destinationBC = dataContractAttribute.Namespace;
+                await threadGate.WaitAsync(10000).ConfigureAwait(false);
 
-                if (destinationBC is not null)
+                if (isClientCreated == false)
                 {
-                    IRabbitMqOptions scopedOptions = options.GetOptionsFor(destinationBC);
-                    IModel requestChannel = channelResolver.Resolve(route, scopedOptions, destinationBC);
-                    client = new ResponseConsumer<TRequest, TResponse>(route, requestChannel, serializer, logger);
-                    return client;
+                    var attributes = typeof(TRequest).GetCustomAttributes(typeof(DataContractAttribute), false);
+                    var dataContractAttribute = attributes[0] as DataContractAttribute;
+                    string destinationBC = dataContractAttribute.Namespace;
+
+                    if (destinationBC is not null)
+                    {
+                        IRabbitMqOptions scopedOptions = options.GetOptionsFor(destinationBC);
+                        IModel requestChannel = channelResolver.Resolve(route, scopedOptions, destinationBC);
+                        client = new ResponseConsumer<TRequest, TResponse>(route, requestChannel, serializer, logger);
+                        isClientCreated = true;
+                    }
                 }
             }
             catch (Exception ex) when (logger.ErrorException(ex, () => $"Unable to start rpc client for {route}.")) { }
+            finally
+            {
+                threadGate?.Release();
+            }
 
-            return null;
+            return client;
         }
 
         private string GetRoute() => $"{typeof(TRequest).Name}s";

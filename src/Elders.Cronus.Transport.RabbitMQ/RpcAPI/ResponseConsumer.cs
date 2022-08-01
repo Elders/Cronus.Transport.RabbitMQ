@@ -85,24 +85,8 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 
         private string DeclareUniqueQueue()
         {
-            string queue = default;
-
-            try
-            {
-                Process[] applicationInstances = Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName);
-                int liveInstances = applicationInstances.Length;
-                do queue = $"{queueName}.client.{++liveInstances}";
-                while (occupiedNames.Contains(queue));
-
-                return model.QueueDeclare(queue).QueueName;
-            }
-            catch (Exception)
-            {
-                occupiedNames.Add(queue);
-                throw;
-            }
+            string queue = $"{queueName}.client.{Guid.NewGuid()}";
+            return model.QueueDeclare(queue).QueueName;
         }
     }
 }
-
-
