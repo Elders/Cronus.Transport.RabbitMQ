@@ -1,3 +1,10 @@
+## [8.1.6](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.5...v8.1.6) (2022-08-01)
+
+
+### Bug Fixes
+
+* Add SemaphoreSlim on client queue declaring ([d36324a](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/d36324a27a2703205bc43069c7875b1ca57bcee4))
+
 ## [8.1.5](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.4...v8.1.5) (2022-07-29)
 
 
