@@ -83,10 +83,30 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             return Task.CompletedTask;
         }
 
+        //private string DeclareUniqueQueue()
+        //{
+        //    string queue = $"{queueName}.client.{Guid.NewGuid()}";
+        //    return model.QueueDeclare(queue, exclusive: false).QueueName;
+        //}
+
         private string DeclareUniqueQueue()
         {
-            string queue = $"{queueName}.client.{Guid.NewGuid()}";
-            return model.QueueDeclare(queue).QueueName;
+            string queue = default;
+
+            try
+            {
+                Process[] applicationInstances = Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName);
+                int liveInstances = applicationInstances.Length;
+                do queue = $"{queueName}.client.{liveInstances++}";
+                while (occupiedNames.Contains(queue));
+
+                return model.QueueDeclare(queue, exclusive: false).QueueName;
+            }
+            catch (Exception)
+            {
+                occupiedNames.Add(queue);
+                throw;
+            }
         }
     }
 }

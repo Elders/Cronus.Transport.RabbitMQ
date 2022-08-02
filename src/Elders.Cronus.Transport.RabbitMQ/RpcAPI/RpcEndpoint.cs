@@ -99,7 +99,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
         {
             try
             {
-                await threadGate.WaitAsync(10000).ConfigureAwait(false);
+                await threadGate.WaitAsync(20000).ConfigureAwait(false);
 
                 if (isClientCreated == false)
                 {
