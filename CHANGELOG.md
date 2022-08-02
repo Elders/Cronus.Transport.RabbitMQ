@@ -1,3 +1,10 @@
+## [8.1.7](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.6...v8.1.7) (2022-08-02)
+
+
+### Bug Fixes
+
+* Mark client queue as not exclusive & return numeric client queue name ([19134f2](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/19134f2f2d05df2062d969056d388592621937a4))
+
 ## [8.1.6](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.5...v8.1.6) (2022-08-01)
 
 
