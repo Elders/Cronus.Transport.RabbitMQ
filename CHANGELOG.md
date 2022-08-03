@@ -1,3 +1,10 @@
+## [8.1.9](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.8...v8.1.9) (2022-08-03)
+
+
+### Bug Fixes
+
+* Code refactoring ([ff54acc](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/ff54acc4bd60b46d8f84a0ea7f79c0af1cde92b0))
+
 ## [8.1.8](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.7...v8.1.8) (2022-08-03)
 
 
