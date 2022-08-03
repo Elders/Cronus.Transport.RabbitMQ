@@ -72,18 +72,18 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
 
                     foreach (string exchangeName in exchangeNames)
                     {
-                        Dictionary<string, List<string>> gg;
-                        if (event2Handler.TryGetValue(exchangeName, out gg) == false)
+                        Dictionary<string, List<string>> message2Handlers;
+                        if (event2Handler.TryGetValue(exchangeName, out message2Handlers) == false)
                         {
-                            gg = new Dictionary<string, List<string>>();
-                            event2Handler.Add(exchangeName, gg);
+                            message2Handlers = new Dictionary<string, List<string>>();
+                            event2Handler.Add(exchangeName, message2Handlers);
                         }
 
                         List<string> handlers;
-                        if (gg.TryGetValue(messageContractId, out handlers) == false)
+                        if (message2Handlers.TryGetValue(messageContractId, out handlers) == false)
                         {
                             handlers = new List<string>();
-                            gg.Add(messageContractId, handlers);
+                            message2Handlers.Add(messageContractId, handlers);
                         }
 
                         handlers.Add(subscriber.Id);
