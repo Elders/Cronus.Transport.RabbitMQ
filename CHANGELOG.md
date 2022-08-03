@@ -1,3 +1,10 @@
+## [8.1.8](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.7...v8.1.8) (2022-08-03)
+
+
+### Bug Fixes
+
+* Fix queue name ([9a2ac56](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/9a2ac569b17e4193cd556aa92c072660a92da1d6))
+
 ## [8.1.7](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.6...v8.1.7) (2022-08-02)
 
 
