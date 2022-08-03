@@ -5,7 +5,6 @@ using RabbitMQ.Client.Events;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Threading;
-using System.Diagnostics;
 using System.Collections.Generic;
 
 namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
@@ -83,30 +82,10 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             return Task.CompletedTask;
         }
 
-        //private string DeclareUniqueQueue()
-        //{
-        //    string queue = $"{queueName}.client.{Guid.NewGuid()}";
-        //    return model.QueueDeclare(queue, exclusive: false).QueueName;
-        //}
-
         private string DeclareUniqueQueue()
         {
-            string queue = default;
-
-            try
-            {
-                Process[] applicationInstances = Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName);
-                int liveInstances = applicationInstances.Length;
-                do queue = $"{queueName}.client.{liveInstances++}";
-                while (occupiedNames.Contains(queue));
-
-                return model.QueueDeclare(queue, exclusive: false).QueueName;
-            }
-            catch (Exception)
-            {
-                occupiedNames.Add(queue);
-                throw;
-            }
+            string queue = $"{queueName}.client.{Guid.NewGuid().ToString().Substring(0, 8)}";
+            return model.QueueDeclare(queue, exclusive: false).QueueName;
         }
     }
 }
