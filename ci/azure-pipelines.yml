@@ -70,13 +70,6 @@ jobs:
     clean: true
     persistCredentials: true
 
-  - task: Bash@3
-    name: mynkow
-    inputs:
-      targetType: 'inline'
-      script: |
-        echo $SEMVER
-
   - task: UseDotNet@2
     displayName: 'Use .NET 6 Core sdk'
     inputs:
@@ -90,18 +83,7 @@ jobs:
       command: 'pack'
       packagesToPack: 'src/Elders.Cronus.Transport.RabbitMQ/*.csproj'
       versioningScheme: 'off'
-      buildProperties: 'PackageVersion=8.1.14'
-
-  - task: Bash@3
-    name: Release
-    env:
-      STAGING_PATH: $(Build.ArtifactStagingDirectory)
-      LOCAL_PATH: $(Build.Repository.LocalPath)
-    inputs:
-      targetType: 'inline'
-      script: |
-        npm install
-        npx semantic-release --no-ci
+      buildProperties: 'PackageVersion=$(SEMVER)'
 
   - task: NuGetCommand@2
     name: Publish
