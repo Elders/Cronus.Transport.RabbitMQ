@@ -49,8 +49,10 @@ jobs:
         export SEMVER=$(cat semver.txt)
         echo "##vso[task.setvariable variable=SEMVER;isOutput=true;]$SEMVER"
         if [ "$SEMVER" != "" ]; then export semverDefined="true"; fi
-        echo "The new version is displayed bellow. If not new version is going to be release it will be blank:"
+        echo "The new version is displayed bellow. If no new version is going to be release it will be blank:"
         echo "##vso[task.setvariable variable=semverDefined;isOutput=true;]$semverDefined"
+        echo $SEMVER
+        echo "$SEMVER"
 
   - task: DotNetCoreCLI@2
     inputs:
