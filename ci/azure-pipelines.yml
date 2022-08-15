@@ -46,10 +46,10 @@ jobs:
       script: |
         npm install
         npx semantic-release -d
-        cat semver.txt
         export SEMVER=$(cat semver.txt)
         echo "##vso[task.setvariable variable=SEMVER;isOutput=true;]$SEMVER"
         if [ "$SEMVER" != "" ]; then export semverDefined="true"; fi
+        echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
         echo "##vso[task.setvariable variable=semverDefined;isOutput=true;]$semverDefined"
 
   - task: DotNetCoreCLI@2
