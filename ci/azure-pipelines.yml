@@ -52,7 +52,6 @@ jobs:
         echo "The new version is displayed bellow. If no new version is going to be release it will be blank:"
         echo "##vso[task.setvariable variable=semverDefined;isOutput=true;]$semverDefined"
         echo $SEMVER
-        echo "$SEMVER"
 
   - task: DotNetCoreCLI@2
     inputs:
@@ -70,6 +69,13 @@ jobs:
   - checkout: self
     clean: true
     persistCredentials: true
+
+  - task: Bash@3
+    name: mynkow
+    inputs:
+      targetType: 'inline'
+      script: |
+        echo $SEMVER
 
   - task: UseDotNet@2
     displayName: 'Use .NET 6 Core sdk'
