@@ -1,3 +1,10 @@
+## [8.1.14](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.13...v8.1.14) (2022-08-15)
+
+
+### Bug Fixes
+
+* Update azure-pipelines.yml for Azure Pipelines ([d3cbb42](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/d3cbb429ade286bc05212df8031e0d1adf75cbca))
+
 ## [8.1.13](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.12...v8.1.13) (2022-08-15)
 
 
