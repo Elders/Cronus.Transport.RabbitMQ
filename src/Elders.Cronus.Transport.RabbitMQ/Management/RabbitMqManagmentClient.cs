@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Elders.Cronus.Transport.RabbitMQ.Management.Model;
+using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ.Management
 {
@@ -63,7 +64,9 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management
 
         private void TryInitializeApiHostName(string address)
         {
-            string result = $"{address.Trim()}:{portNumber}";
+            var endpoint = AmqpTcpEndpoint.Parse(address);
+
+            string result = $"{endpoint.HostName}:{endpoint.Port}";
             bool useSsl = false;
 
             if (string.IsNullOrEmpty(result)) return;

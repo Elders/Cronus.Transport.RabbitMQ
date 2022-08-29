@@ -32,7 +32,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public IEnumerable<string> GetUpstreamUris()
         {
-            return AmqpTcpEndpoint.ParseMultiple(Server).Select(x => $"{x}/{VHost}");
+            return AmqpTcpEndpoint.ParseMultiple(Server).Select(x => $"amqp://localhost/{VHost}");
         }
     }
 

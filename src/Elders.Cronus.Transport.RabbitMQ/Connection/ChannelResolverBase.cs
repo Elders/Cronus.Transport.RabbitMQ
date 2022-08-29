@@ -24,6 +24,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 lock (@lock) // Maybe we should make this lock per key?!?
                 {
+                    //if (channel is null || channel.IsClosed) maybe
                     channel = GetExistingChannel(resolveKey);
 
                     if (channel?.IsClosed == true)

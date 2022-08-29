@@ -13,30 +13,36 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
     {
         private readonly RabbitMqConsumerOptions consumerOptions;
         private readonly BoundedContext boundedContext;
+        private readonly ConnectionResolver connectionResolver;
         private readonly ISubscriberCollection<T> subscriberCollection;
         private readonly IRabbitMqConnectionFactory connectionFactory;
         private readonly BoundedContextRabbitMqNamer bcRabbitMqNamer;
+        private readonly IOptionsMonitor<RabbitMqOptions> optionsMonitor;
         private bool isSystemQueue = false;
         private readonly string queueName;
 
-        public RabbitMqStartup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<T> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer)
+        public RabbitMqStartup(ConnectionResolver connectionResolver,IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<T> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer, IOptionsMonitor<RabbitMqOptions> optionsMonitor)
         {
             this.boundedContext = boundedContext.CurrentValue;
             this.consumerOptions = consumerOptions.CurrentValue;
+            this.connectionResolver = connectionResolver;
             this.subscriberCollection = subscriberCollection;
             this.connectionFactory = connectionFactory;
             this.bcRabbitMqNamer = bcRabbitMqNamer;
-
+            this.optionsMonitor = optionsMonitor;
             isSystemQueue = typeof(ISystemHandler).IsAssignableFrom(typeof(T));
             queueName = GetQueueName(this.boundedContext.Name, this.consumerOptions.FanoutMode);
         }
 
         public void Bootstrap()
         {
-            using (var connection = connectionFactory.CreateConnection())
-            using (var channel = connection.CreateModel())
+            IRabbitMqOptions scopedOptions = optionsMonitor.CurrentValue.GetOptionsFor(boundedContext.Name);
+            IConnection connection = connectionResolver.Resolve(boundedContext.Name, scopedOptions);
+            IModel scopedChannel = connection.CreateModel();
+            //using (var connection = connectionFactory.CreateConnection())
+            //using (var channel = connection.CreateModel())
             {
-                RecoverModel(channel);
+                RecoverModel(scopedChannel);
             }
         }
 
@@ -107,7 +113,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
                         routingHeaders.Add(explicitHeader, bc);
                 }
             }
-
+            routingHeaders.Add("x-queue-type", "quorum");
             model.QueueDeclare(queueName, true, false, false, routingHeaders);
 
             var messageTypes = subscriberCollection.Subscribers.SelectMany(x => x.GetInvolvedMessageTypes()).Distinct().ToList();
@@ -150,85 +156,85 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
     [CronusStartup(Bootstraps.Configuration)]
     public class AppService_Startup : RabbitMqStartup<IApplicationService>
     {
-        public AppService_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<IApplicationService> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
+        public AppService_Startup(ConnectionResolver connectionResolver, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<IApplicationService> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer, IOptionsMonitor<RabbitMqOptions> optionsMonitor) : base(connectionResolver, consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer, optionsMonitor) { }
     }
 
     [CronusStartup(Bootstraps.Configuration)]
     public class CronusEventStoreIndex_Startup : RabbitMqStartup<ICronusEventStoreIndex>
     {
-        public CronusEventStoreIndex_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ICronusEventStoreIndex> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
+        public CronusEventStoreIndex_Startup(ConnectionResolver connectionResolver, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ICronusEventStoreIndex> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer, IOptionsMonitor<RabbitMqOptions> optionsMonitor) : base(connectionResolver, consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer, optionsMonitor) { }
     }
 
     [CronusStartup(Bootstraps.Configuration)]
     public class EventStoreIndex_Startup : RabbitMqStartup<IEventStoreIndex>
     {
-        public EventStoreIndex_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<IEventStoreIndex> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
+        public EventStoreIndex_Startup(ConnectionResolver connectionResolver, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<IEventStoreIndex> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer, IOptionsMonitor<RabbitMqOptions> optionsMonitor) : base(connectionResolver, consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer, optionsMonitor) { }
     }
 
     [CronusStartup(Bootstraps.Configuration)]
     public class Projection_Startup : RabbitMqStartup<IProjection>
     {
-        public Projection_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<IProjection> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
+        public Projection_Startup(ConnectionResolver connectionResolver, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<IProjection> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer, IOptionsMonitor<RabbitMqOptions> optionsMonitor) : base(connectionResolver, consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer, optionsMonitor) { }
     }
 
     [CronusStartup(Bootstraps.Configuration)]
     public class Port_Startup : RabbitMqStartup<IPort>
     {
-        public Port_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<IPort> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
+        public Port_Startup(ConnectionResolver connectionResolver, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<IPort> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer, IOptionsMonitor<RabbitMqOptions> optionsMonitor) : base(connectionResolver, consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer, optionsMonitor) { }
     }
 
     [CronusStartup(Bootstraps.Configuration)]
     public class Saga_Startup : RabbitMqStartup<ISaga>
     {
-        public Saga_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ISaga> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
+        public Saga_Startup(ConnectionResolver connectionResolver, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ISaga> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer, IOptionsMonitor<RabbitMqOptions> optionsMonitor) : base(connectionResolver, consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer, optionsMonitor) { }
     }
 
     [CronusStartup(Bootstraps.Configuration)]
     public class Gateway_Startup : RabbitMqStartup<IGateway>
     {
-        public Gateway_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<IGateway> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
+        public Gateway_Startup(ConnectionResolver connectionResolver, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<IGateway> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer, IOptionsMonitor<RabbitMqOptions> optionsMonitor) : base(connectionResolver, consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer, optionsMonitor) { }
     }
 
     [CronusStartup(Bootstraps.Configuration)]
     public class Trigger_Startup : RabbitMqStartup<ITrigger>
     {
-        public Trigger_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ITrigger> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
+        public Trigger_Startup(ConnectionResolver connectionResolver, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ITrigger> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer, IOptionsMonitor<RabbitMqOptions> optionsMonitor) : base(connectionResolver, consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer, optionsMonitor) { }
     }
 
     [CronusStartup(Bootstraps.Configuration)]
     public class SystemAppService_Startup : RabbitMqStartup<ISystemAppService>
     {
-        public SystemAppService_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ISystemAppService> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
+        public SystemAppService_Startup(ConnectionResolver connectionResolver, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ISystemAppService> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer, IOptionsMonitor<RabbitMqOptions> optionsMonitor) : base(connectionResolver, consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer, optionsMonitor) { }
     }
 
     [CronusStartup(Bootstraps.Configuration)]
     public class SystemSaga_Startup : RabbitMqStartup<ISystemSaga>
     {
-        public SystemSaga_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ISystemSaga> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
+        public SystemSaga_Startup(ConnectionResolver connectionResolver, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ISystemSaga> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer, IOptionsMonitor<RabbitMqOptions> optionsMonitor) : base(connectionResolver, consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer, optionsMonitor) { }
     }
 
     [CronusStartup(Bootstraps.Configuration)]
     public class SystemPort_Startup : RabbitMqStartup<ISystemPort>
     {
-        public SystemPort_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ISystemPort> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
+        public SystemPort_Startup(ConnectionResolver connectionResolver, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ISystemPort> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer, IOptionsMonitor<RabbitMqOptions> optionsMonitor) : base(connectionResolver, consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer, optionsMonitor) { }
     }
 
     [CronusStartup(Bootstraps.Configuration)]
     public class SystemTrigger_Startup : RabbitMqStartup<ISystemTrigger>
     {
-        public SystemTrigger_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ISystemTrigger> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
+        public SystemTrigger_Startup(ConnectionResolver connectionResolver, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ISystemTrigger> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer, IOptionsMonitor<RabbitMqOptions> optionsMonitor) : base(connectionResolver, consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer, optionsMonitor) { }
     }
 
     [CronusStartup(Bootstraps.Configuration)]
     public class SystemProjection_Startup : RabbitMqStartup<ISystemProjection>
     {
-        public SystemProjection_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ISystemProjection> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
+        public SystemProjection_Startup(ConnectionResolver connectionResolver, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<ISystemProjection> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer, IOptionsMonitor<RabbitMqOptions> optionsMonitor) : base(connectionResolver, consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer, optionsMonitor) { }
     }
 
     [CronusStartup(Bootstraps.Configuration)]
     public class MigrationHandler_Startup : RabbitMqStartup<IMigrationHandler>
     {
-        public MigrationHandler_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<IMigrationHandler> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
+        public MigrationHandler_Startup(ConnectionResolver connectionResolver, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISubscriberCollection<IMigrationHandler> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer, IOptionsMonitor<RabbitMqOptions> optionsMonitor) : base(connectionResolver, consumerOptions, boundedContext, subscriberCollection, connectionFactory, bcRabbitMqNamer,optionsMonitor) { }
     }
 }
 

@@ -24,10 +24,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 lock (connectionLock)
                 {
+                    connection = GetExistingConnection(key);
                     if (connection is null || connection.IsOpen == false)
                     {
-                        connection = GetExistingConnection(key);
-
                         connection = CreateConnection(key, options);
                     }
                 }
