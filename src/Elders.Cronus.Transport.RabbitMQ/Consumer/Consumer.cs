@@ -37,7 +37,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     logger.Warn(() => $"Consumer {boundedContext}.{typeof(T).Name} not started because there are no subscribers.");
                 }
 
-                consumerFactory.CreateAndStartConsumers();
+                consumerFactory.CreateAndStartConsumers(options.WorkersCount);
 
             }
             catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to start rabbitmq consumer.")) { }

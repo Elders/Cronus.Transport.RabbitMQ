@@ -18,8 +18,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
     {
         private readonly ISubscriberCollection<TSubscriber> subscriberCollection;
 
-        public AsyncSignalConsumer(string queue, IModel model, ISubscriberCollection<TSubscriber> subscriberCollection, ISerializer serializer, ILogger logger) :
-            base(model, subscriberCollection, serializer, logger)
+        public AsyncSignalConsumer(string queue, IModel model, ISubscriberCollection<TSubscriber> subscriberCollection, ISerializer serializer, ConsumerFactory<TSubscriber> factory, ILogger logger) :
+            base(model, subscriberCollection, serializer, factory, logger)
         {
             this.subscriberCollection = subscriberCollection;
             model.BasicConsume(queue, true, string.Empty, this);

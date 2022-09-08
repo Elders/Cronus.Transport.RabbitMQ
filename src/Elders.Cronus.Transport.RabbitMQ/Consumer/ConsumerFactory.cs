@@ -18,7 +18,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private readonly RabbitMqConsumerOptions consumerOptions;
         private readonly BoundedContext boundedContext;
         private readonly ISubscriberCollection<T> subscriberCollection;
-        private readonly ConcurrentBag<AsyncConsumerBase> consumers = new ConcurrentBag<AsyncConsumerBase>();
+        public readonly ConcurrentBag<AsyncConsumerBase> consumers = new ConcurrentBag<AsyncConsumerBase>();
         private readonly RabbitMqOptions options;
         private string queueName;
 
@@ -35,27 +35,37 @@ namespace Elders.Cronus.Transport.RabbitMQ
             queueName = GetQueueName(this.boundedContext.Name, this.consumerOptions.FanoutMode);
         }
 
-        public void CreateAndStartConsumers()
+        internal void CreateAndStartConsumers(int workersCount)
         {
             bool isTrigger = typeof(T).IsAssignableFrom(typeof(ITrigger));
 
-            for (int i = 0; i < consumerOptions.WorkersCount; i++)
+            for (int i = 0; i < workersCount; i++)
             {
                 IRabbitMqOptions scopedOptions = options.GetOptionsFor(boundedContext.Name);
                 string consumerChannelKey = $"{boundedContext.Name}_{typeof(T).Name}_{i}";
                 IModel channel = channelResolver.Resolve(consumerChannelKey, scopedOptions, options.VHost);
 
-                AsyncConsumerBase<T> asyncListener = isTrigger == true ?
-                    new AsyncSignalConsumer<T>(queueName, channel, subscriberCollection, serializer, logger) :
-                    new AsyncConsumer<T>(queueName, channel, subscriberCollection, serializer, logger);
+                AsyncConsumerBase<T> asyncListener = isTrigger ?
+                    new AsyncSignalConsumer<T>(queueName, channel, subscriberCollection, serializer, this, logger) :
+                    new AsyncConsumer<T>(queueName, channel, subscriberCollection, serializer, this, logger);
 
                 consumers.Add(asyncListener);
             }
         }
 
+        internal Task AsyncConsumerBase_Shutdown(object sender, ShutdownEventArgs @event)
+        {
+            AsyncConsumerBase<T> consumer = sender as AsyncConsumerBase<T>;
+            consumer.Model.Close(@event.ReplyCode, $"Consumer has been shutdowned. {@event.ReplyText}.");
+
+            CreateAndStartConsumers(1);
+
+            return Task.CompletedTask;
+        }
+
         public async Task StopAsync()
         {
-            IEnumerable<Task> stopTasks = consumers.Select(consumer => consumer.StopAsync());
+            IEnumerable<Task> stopTasks = consumers.Select(consumer => consumer?.StopAsync());
 
             await Task.WhenAll(stopTasks).ConfigureAwait(false);
         }

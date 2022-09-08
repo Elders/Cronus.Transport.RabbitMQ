@@ -22,30 +22,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.logger = logger;
             isСurrentlyConsuming = false;
             Received += AsyncListener_Received;
-            Registered += AsyncConsumerBase_Registered;
-            Shutdown += AsyncConsumerBase_Shutdown;
-            Unregistered += AsyncConsumerBase_Unregistered;
-            ConsumerCancelled += AsyncConsumerBase_ConsumerCancelled;
-        }
-
-        private Task AsyncConsumerBase_ConsumerCancelled(object sender, ConsumerEventArgs @event)
-        {
-            return Task.CompletedTask;
-        }
-
-        private Task AsyncConsumerBase_Unregistered(object sender, ConsumerEventArgs @event)
-        {
-            return Task.CompletedTask;
-        }
-
-        private Task AsyncConsumerBase_Shutdown(object sender, ShutdownEventArgs @event)
-        {
-            return Task.CompletedTask;
-        }
-
-        private Task AsyncConsumerBase_Registered(object sender, ConsumerEventArgs @event)
-        {
-            return Task.CompletedTask;
         }
 
         protected abstract Task DeliverMessageToSubscribersAsync(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer);
@@ -92,13 +68,14 @@ namespace Elders.Cronus.Transport.RabbitMQ
         }
     }
 
-    public class AsyncConsumerBase<TSubscriber> : AsyncConsumerBase
+    public abstract class AsyncConsumerBase<TSubscriber> : AsyncConsumerBase
     {
         private readonly ISubscriberCollection<TSubscriber> subscriberCollection;
 
-        public AsyncConsumerBase(IModel model, ISubscriberCollection<TSubscriber> subscriberCollection, ISerializer serializer, ILogger logger) : base(model, serializer, logger)
+        public AsyncConsumerBase(IModel model, ISubscriberCollection<TSubscriber> subscriberCollection, ISerializer serializer, ConsumerFactory<TSubscriber> consumerFactory, ILogger logger) : base(model, serializer, logger)
         {
             this.subscriberCollection = subscriberCollection;
+            Shutdown += consumerFactory.AsyncConsumerBase_Shutdown;
         }
 
         protected override async Task DeliverMessageToSubscribersAsync(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)

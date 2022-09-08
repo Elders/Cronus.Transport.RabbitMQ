@@ -31,6 +31,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                         if (channel?.IsClosed == true)
                         {
                             channels.Remove(resolveKey);
+                            channel.Dispose();
                             channel = null;
                         }
 
