@@ -57,6 +57,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             AsyncConsumerBase<T> consumer = sender as AsyncConsumerBase<T>;
             consumer.Model.Close(@event.ReplyCode, $"Consumer has been shutdowned. {@event.ReplyText}.");
+            logger.LogWarning(consumer.Model.CloseReason.ReplyText);
 
             CreateAndStartConsumers(1);
 

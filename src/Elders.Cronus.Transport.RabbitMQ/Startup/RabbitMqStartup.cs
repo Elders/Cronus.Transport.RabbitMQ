@@ -110,7 +110,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
                         routingHeaders.Add(explicitHeader, bc);
                 }
             }
-            routingHeaders.Add("x-queue-type", "quorum");
+
             model.QueueDeclare(queueName, true, false, false, routingHeaders);
 
             var messageTypes = subscriberCollection.Subscribers.SelectMany(x => x.GetInvolvedMessageTypes()).Distinct().ToList();
