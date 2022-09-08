@@ -24,21 +24,24 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 lock (@lock) // Maybe we should make this lock per key?!?
                 {
-                    channel = GetExistingChannel(resolveKey);
-
-                    if (channel?.IsClosed == true)
+                    if (channel is null || channel.IsClosed)
                     {
-                        channels.Remove(resolveKey);
-                        channel = null;
-                    }
+                        channel = GetExistingChannel(resolveKey);
 
-                    if (channel is null)
-                    {
-                        var connection = connectionResolver.Resolve(boundedContext, options);
-                        IModel scopedChannel = connection.CreateModel();
-                        scopedChannel.ConfirmSelect();
+                        if (channel?.IsClosed == true)
+                        {
+                            channels.Remove(resolveKey);
+                            channel = null;
+                        }
 
-                        channels.Add(resolveKey, scopedChannel);
+                        if (channel is null)
+                        {
+                            var connection = connectionResolver.Resolve(boundedContext, options);
+                            IModel scopedChannel = connection.CreateModel();
+                            scopedChannel.ConfirmSelect();
+
+                            channels.Add(resolveKey, scopedChannel);
+                        }
                     }
                 }
             }

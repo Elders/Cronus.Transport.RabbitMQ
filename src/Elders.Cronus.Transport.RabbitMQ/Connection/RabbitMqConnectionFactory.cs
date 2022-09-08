@@ -18,12 +18,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.logger = logger;
         }
 
-        public IConnection CreateConnection()
+        public IConnection CreateConnection(string connectionName)
         {
-            return CreateConnectionWithOptions(options);
+            return CreateConnectionWithOptions(connectionName, options);
         }
 
-        public IConnection CreateConnectionWithOptions(IRabbitMqOptions options)
+        public IConnection CreateConnectionWithOptions(string connectionName, IRabbitMqOptions options)
         {
             logger.Debug(() => "Loaded RabbitMQ options are {@Options}", options);
 
@@ -42,7 +42,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     connectionFactory.AutomaticRecoveryEnabled = true;
                     connectionFactory.EndpointResolverFactory = (_) => new MultipleEndpointResolver(options);
 
-                    return connectionFactory.CreateConnection();
+                    return connectionFactory.CreateConnection(clientProvidedName: connectionName);
                 }
                 catch (Exception ex)
                 {

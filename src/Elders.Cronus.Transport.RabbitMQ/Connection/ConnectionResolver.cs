@@ -16,24 +16,29 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.connectionFactory = connectionFactory;
         }
 
-        public IConnection Resolve(string key, IRabbitMqOptions options)
+        public IConnection Resolve(string name, IRabbitMqOptions options)
         {
-            IConnection connection = GetExistingConnection(key);
+            IConnection connection = GetExistingConnection(name);
 
             if (connection is null || connection.IsOpen == false)
             {
                 lock (connectionLock)
                 {
+                    connection = GetExistingConnection(name);
                     if (connection is null || connection.IsOpen == false)
                     {
-                        connection = GetExistingConnection(key);
-
-                        connection = CreateConnection(key, options);
+                        connection = CreateConnection(name, options);
                     }
                 }
             }
 
             return connection;
+        }
+
+        public void CloseConnection(string name, string reason = "Connection was mannualy closed.")
+        {
+            IConnection connection = GetExistingConnection(name);
+            connection.Close(1, reason, TimeSpan.FromSeconds(5));
         }
 
         private IConnection GetExistingConnection(string key)
@@ -43,10 +48,10 @@ namespace Elders.Cronus.Transport.RabbitMQ
             return connection;
         }
 
-        private IConnection CreateConnection(string key, IRabbitMqOptions options)
+        private IConnection CreateConnection(string name, IRabbitMqOptions options)
         {
-            IConnection connection = connectionFactory.CreateConnectionWithOptions(options);
-            connectionsPerVHost.TryAdd(key, connection);
+            IConnection connection = connectionFactory.CreateConnectionWithOptions(name, options);
+            connectionsPerVHost.TryAdd(name, connection);
 
             return connection;
         }

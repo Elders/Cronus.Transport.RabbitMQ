@@ -4,7 +4,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 {
     public interface IRabbitMqConnectionFactory
     {
-        IConnection CreateConnection();
-        IConnection CreateConnectionWithOptions(IRabbitMqOptions options);
+        IConnection CreateConnection(string connectionName);
+        IConnection CreateConnectionWithOptions(string connectionName, IRabbitMqOptions options);
     }
 }
