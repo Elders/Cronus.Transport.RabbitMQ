@@ -1,3 +1,10 @@
+## [8.1.16](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.15...v8.1.16) (2022-12-20)
+
+
+### Bug Fixes
+
+* Moves the scope for rpc consumer on the level above ([628aa81](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/628aa81a4675a4d5e1be8feaa4a1628554f00510))
+
 ## [8.1.15](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.14...v8.1.15) (2022-08-15)
 
 
