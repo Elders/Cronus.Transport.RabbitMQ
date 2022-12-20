@@ -18,18 +18,16 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
     {
         void RegisterHandlers(ILookup<Type, Type> handlers);
         ILookup<Type, Type> GetHandlers();
-        IRequestHandler<TRequest, TResponse> CreateHandler<TRequest, TResponse>(string tenant) where TRequest : IRpcRequest<TResponse>;
+        IRequestHandler<TRequest, TResponse> CreateHandler<TRequest, TResponse>(string tenant, IServiceProvider serviceProvider) where TRequest : IRpcRequest<TResponse>;
     }
 
     public class RequestResponseFactory : IRequestResponseFactory
     {
         private ILookup<Type, Type> _requestHandlerTypes;
-        private readonly IServiceProvider provider;
 
-        public RequestResponseFactory(IServiceProvider provider)
+        public RequestResponseFactory()
         {
             _requestHandlerTypes = new List<Type>().ToLookup(x => x);
-            this.provider = provider;
         }
 
         public void RegisterHandlers(ILookup<Type, Type> handlers)
@@ -42,7 +40,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             return _requestHandlerTypes;
         }
 
-        public IRequestHandler<TRequest, TResponse> CreateHandler<TRequest, TResponse>(string tenant) where TRequest : IRpcRequest<TResponse>
+        public IRequestHandler<TRequest, TResponse> CreateHandler<TRequest, TResponse>(string tenant, IServiceProvider serviceProvider) where TRequest : IRpcRequest<TResponse>
         {
             IGrouping<Type, Type> handlers = _requestHandlerTypes.FirstOrDefault(x => x.Contains(typeof(TRequest)));
 
@@ -55,15 +53,12 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             ParameterInfo[] injections = constructor?.GetParameters();
             object[] implementations = new object[injections.Length];
 
-            using (var scope = provider.CreateScope())
-            {
-                for (int i = 0; i < injections.Length; i++)
-                {
-                    CronusContextFactory contextFactory = scope.ServiceProvider.GetRequiredService<CronusContextFactory>();
-                    contextFactory.GetContext(tenant, scope.ServiceProvider);
+            CronusContextFactory contextFactory = serviceProvider.GetRequiredService<CronusContextFactory>();
+            contextFactory.GetContext(tenant, serviceProvider);
 
-                    implementations[i] = scope.ServiceProvider.GetRequiredService(injections[i].ParameterType);
-                }
+            for (int i = 0; i < injections.Length; i++)
+            {
+                implementations[i] = serviceProvider.GetRequiredService(injections[i].ParameterType);
             }
 
             IRequestHandler<TRequest, TResponse> handler = (IRequestHandler<TRequest, TResponse>)Activator.CreateInstance(handlers.Key, implementations);

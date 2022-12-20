@@ -35,9 +35,10 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
         private readonly RabbitMqOptions options;
         private readonly IRequestResponseFactory factory;
         private readonly ISerializer serializer;
+        private readonly IServiceProvider serviceProvider;
         private readonly ILogger<RpcEndpoint<TRequest, TResponse>> logger;
 
-        public RpcEndpoint(IOptionsMonitor<RabbitMqOptions> options, IOptionsMonitor<BoundedContext> boundedContext, ConsumerPerQueueChannelResolver channelResolver, IRequestResponseFactory factory, ISerializer serializer, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptionsMonitor, ILogger<RpcEndpoint<TRequest, TResponse>> logger)
+        public RpcEndpoint(IOptionsMonitor<RabbitMqOptions> options, IOptionsMonitor<BoundedContext> boundedContext, ConsumerPerQueueChannelResolver channelResolver, IRequestResponseFactory factory, ISerializer serializer, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptionsMonitor, IServiceProvider serviceProvider, ILogger<RpcEndpoint<TRequest, TResponse>> logger)
         {
             this.channelResolver = channelResolver;
             this.consumerOptions = consumerOptionsMonitor.CurrentValue;
@@ -45,6 +46,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             this.options = options.CurrentValue;
             this.factory = factory;
             this.serializer = serializer;
+            this.serviceProvider = serviceProvider;
             this.logger = logger;
 
             route = GetRoute();
@@ -81,7 +83,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
                 IRabbitMqOptions scopedOptions = options.GetOptionsFor(boundedContext.Name);
                 IModel requestChannel = channelResolver.Resolve(route, scopedOptions, options.VHost);
 
-                server = new RequestConsumer<TRequest, TResponse>(route, requestChannel, factory, serializer, logger);
+                server = new RequestConsumer<TRequest, TResponse>(route, requestChannel, factory, serializer, serviceProvider, logger);
             }
             catch (Exception ex) when (logger.ErrorException(ex, () => $"Unable to start rpc server for {route}.")) { }
         }
