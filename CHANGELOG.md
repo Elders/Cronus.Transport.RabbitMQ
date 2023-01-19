@@ -1,3 +1,5 @@
+# [9.0.0-preview.1](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.16...v9.0.0-preview.1) (2023-01-19)
+
 ## [8.1.16](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.15...v8.1.16) (2022-12-20)
 
 
