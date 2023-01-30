@@ -1,3 +1,10 @@
+# [9.0.0-preview.2](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.1...v9.0.0-preview.2) (2023-01-30)
+
+
+### Bug Fixes
+
+* Improves error handling and validation for RPC ([3a763c6](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/3a763c60581b60eb5894fc5bba1ae66416715d4f))
+
 # [9.0.0-preview.1](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.16...v9.0.0-preview.1) (2023-01-19)
 
 ## [8.1.16](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.15...v8.1.16) (2022-12-20)
