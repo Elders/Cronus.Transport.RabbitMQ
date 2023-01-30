@@ -5,6 +5,7 @@ using Elders.Cronus.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Runtime.Serialization;
 
 namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 {
@@ -38,14 +39,27 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 
             try
             {
+                var internalWrapperType = typeof(RpcResponse<>);
+
                 ILookup<Type, Type> handlerTypes = factory.GetHandlers();
 
-                foreach (IGrouping<Type, Type> handlers in handlerTypes)
+                foreach (IGrouping<Type, Type> handlers in handlerTypes) // <handler,request>
                 {
-                    foreach (Type handler in handlers)
+                    foreach (Type requestType in handlers)
                     {
-                        Type requestType = handler;
+                        CheckForDataContractNamespace(requestType, () => throw new Exception($"Missing Namespace in DataContract for {requestType.Name}"));
+
                         Type responseType = requestType.GetInterfaces().FirstOrDefault().GetGenericArguments().FirstOrDefault();
+                        if (internalWrapperType.IsAssignableFrom(responseType.GetGenericTypeDefinition()))
+                        {
+                            var unwrappedResponseType = responseType.GetGenericArguments().FirstOrDefault();
+                            CheckForDataContractNamespace(unwrappedResponseType, () => throw new Exception($"Missing Namespace in DataContract for {responseType.Name}"));
+                        }
+                        else
+                        {
+                            CheckForDataContractNamespace(responseType, () => throw new Exception($"Missing Namespace in DataContract for {responseType.Name}"));
+                        }
+
                         Type endpoint = typeof(IRpc<,>).MakeGenericType(requestType, responseType);
 
                         IEnumerable<object> service = provider.GetServices(endpoint);
@@ -69,6 +83,18 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
                 }
             }
             catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to start Rpc consumers.")) { }
+        }
+
+        private static void CheckForDataContractNamespace(Type type, Action action)
+        {
+            object[] attributes = type.GetCustomAttributes(typeof(DataContractAttribute), false);
+            DataContractAttribute dataContractAttribute = attributes[0] as DataContractAttribute;
+            if (dataContractAttribute is not null)
+            {
+                string @namespace = dataContractAttribute.Namespace;
+                if (@namespace is null)
+                    action();
+            }
         }
 
         private void OptionsChanged(RabbitMqConsumerOptions options)

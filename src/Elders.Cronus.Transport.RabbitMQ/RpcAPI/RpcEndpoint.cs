@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -111,14 +112,26 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 
                     if (destinationBC is not null)
                     {
-                        IRabbitMqOptions scopedOptions = options.GetOptionsFor(destinationBC);
-                        IModel requestChannel = channelResolver.Resolve(route, scopedOptions, destinationBC);
-                        client = new ResponseConsumer<TRequest, TResponse>(route, requestChannel, serializer, logger);
-                        isClientCreated = true;
+                        var cfgFound = options.ExternalServices?.Where(opt => opt.BoundedContext.Equals(destinationBC, System.StringComparison.OrdinalIgnoreCase)).Any();
+                        if (cfgFound.HasValue && cfgFound.Value)
+                        {
+                            IRabbitMqOptions scopedOptions = options.GetOptionsFor(destinationBC);
+                            IModel requestChannel = channelResolver.Resolve(route, scopedOptions, destinationBC);
+                            client = new ResponseConsumer<TRequest, TResponse>(route, requestChannel, serializer, logger);
+                            isClientCreated = true;
+                        }
+                        else
+                        {
+                            throw new Exception($"There is a missing configuration Cronus:Transport:RabbitMQ:ExternalServices. Destination BC is {destinationBC}.");
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception($"Missing Namespace in DataContract for {typeof(TRequest).Name}");
                     }
                 }
             }
-            catch (Exception ex) when (logger.ErrorException(ex, () => $"Unable to start rpc client for {route}.")) { }
+            catch (Exception ex) when (logger.ErrorException(ex, () => $"Unable to start RPC client for {route} to destination BC.")) { }
             finally
             {
                 threadGate?.Release();
