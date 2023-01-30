@@ -10,6 +10,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{D147CC47-3
 		..\docs\Configuration.md = ..\docs\Configuration.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elders.Cronus.Transport.RabbitMQ.Playground.Rpc.Requests", "Elders.Cronus.Transport.RabbitMQ.Playground.Rpc.Requests\Elders.Cronus.Transport.RabbitMQ.Playground.Rpc.Requests.csproj", "{5ECE640D-296C-47A0-B241-E7CEB734BBEF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elders.Cronus.Transport.RabbitMQ.Playground.Rpc.Responses", "Elders.Cronus.Transport.RabbitMQ.Playground.Rpc.Responses\Elders.Cronus.Transport.RabbitMQ.Playground.Rpc.Responses.csproj", "{6D280966-8151-40AE-9423-CC2ED925604D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,6 +24,14 @@ Global
 		{32EA2250-01B3-4171-9AE7-214037A0D524}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{32EA2250-01B3-4171-9AE7-214037A0D524}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{32EA2250-01B3-4171-9AE7-214037A0D524}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5ECE640D-296C-47A0-B241-E7CEB734BBEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5ECE640D-296C-47A0-B241-E7CEB734BBEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5ECE640D-296C-47A0-B241-E7CEB734BBEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5ECE640D-296C-47A0-B241-E7CEB734BBEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D280966-8151-40AE-9423-CC2ED925604D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D280966-8151-40AE-9423-CC2ED925604D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D280966-8151-40AE-9423-CC2ED925604D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D280966-8151-40AE-9423-CC2ED925604D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
