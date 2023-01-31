@@ -1,3 +1,10 @@
+# [9.0.0-preview.3](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.2...v9.0.0-preview.3) (2023-01-31)
+
+
+### Bug Fixes
+
+* Handles the case when the rpc handler have parameterless constructor ([032d725](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/032d7250ad1ad38d48d0ab2e390394e68958cc28))
+
 # [9.0.0-preview.2](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.1...v9.0.0-preview.2) (2023-01-30)
 
 
