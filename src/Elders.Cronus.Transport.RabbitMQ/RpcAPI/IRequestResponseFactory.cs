@@ -36,14 +36,6 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 
         }
 
-        private void ValidateContracts(ILookup<Type, Type> handlers)
-        {
-            foreach (var handler in handlers)
-            {
-
-            }
-        }
-
         public ILookup<Type, Type> GetHandlers()
         {
             return _requestHandlerTypes;
@@ -60,7 +52,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             contextFactory.GetContext(tenant, serviceProvider);
 
             ConstructorInfo[] constructors = handlers.Key.GetConstructors();
-            if (constructors.Length == 1)
+            if (constructors.Length == 1 && constructors.First().GetParameters().Length == 0)
             {
                 IRequestHandler<TRequest, TResponse> handler = (IRequestHandler<TRequest, TResponse>)Activator.CreateInstance(handlers.Key);
 
