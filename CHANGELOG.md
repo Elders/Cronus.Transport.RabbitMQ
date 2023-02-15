@@ -1,3 +1,12 @@
+## [8.1.17](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.16...v8.1.17) (2023-02-15)
+
+
+### Bug Fixes
+
+* Handles the case when the rpc handler have parameterless constructor ([621a081](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/621a08138cdef9796a6388a35a5843f5722f821c))
+* Improves error handling and validation for RPC ([510f019](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/510f019e75fb07343af74af8cf866d7108140e5f))
+* Removes OnChange method for RabbitMqConsumerOptions and fixes some issues related to creating an instances of rpc handlers ([bed5a98](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/bed5a986092b389116d53dcc87d2a4ab9cfbd8bd))
+
 ## [8.1.16](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.15...v8.1.16) (2022-12-20)
 
 
