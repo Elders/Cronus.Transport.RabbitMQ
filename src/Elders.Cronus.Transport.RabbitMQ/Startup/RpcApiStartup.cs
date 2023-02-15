@@ -33,7 +33,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
             logger.LogInformation("Rpc API feature disabled.");
         }
 
-        public ILookup<Type, Type> GetHandlers()
+        private static ILookup<Type, Type> GetHandlers()
         {
             ILookup<Type, Type> handlers = new DefaulAssemblyScanner()
                  .Scan()
@@ -50,7 +50,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
             return handlers;
         }
 
-        private IEnumerable<Type> GetHandledRequestTypes(Type type)
+        private static IEnumerable<Type> GetHandledRequestTypes(Type type)
         {
             IEnumerable<Type> handlerInterfaces = type.GetInterfaces()
                  .Where(i =>
