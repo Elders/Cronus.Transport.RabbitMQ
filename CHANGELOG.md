@@ -1,3 +1,10 @@
+# [9.0.0-preview.4](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.3...v9.0.0-preview.4) (2023-02-15)
+
+
+### Bug Fixes
+
+* Removes OnChange method for RabbitMqConsumerOptions ([ee17100](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/ee17100012adab925c3759fdc5dc2437ca6d322b))
+
 # [9.0.0-preview.3](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.2...v9.0.0-preview.3) (2023-01-31)
 
 
