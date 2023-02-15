@@ -10,21 +10,18 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 {
     public class RpcHost : IRpcHost
     {
-        private RabbitMqConsumerOptions options;
         private CronusHostOptions hostOptions;
         private readonly List<object> services;
         private readonly IRequestResponseFactory factory;
         private readonly IServiceProvider provider;
         private readonly ILogger<RpcHost> logger;
 
-        public RpcHost(IServiceProvider provider, IOptionsMonitor<RabbitMqConsumerOptions> options, IOptionsMonitor<CronusHostOptions> hostOptions, ILogger<RpcHost> logger, IRequestResponseFactory factory)
+        public RpcHost(IServiceProvider provider, IOptionsMonitor<CronusHostOptions> hostOptions, ILogger<RpcHost> logger, IRequestResponseFactory factory)
         {
-            this.options = options.CurrentValue;
             this.hostOptions = hostOptions.CurrentValue;
             this.factory = factory;
             this.provider = provider;
             this.logger = logger;
-            options.OnChange(OptionsChanged);
             services = new List<object>();
         }
 
@@ -69,19 +66,6 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
                 }
             }
             catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to start Rpc consumers.")) { }
-        }
-
-        private void OptionsChanged(RabbitMqConsumerOptions options)
-        {
-            if (this.options == options)
-                return;
-
-            logger.Info(() => "RabbitMqConsumerOptions changed from {@CurrentOptions} to {@NewOptions}.", this.options, options);
-
-            this.options = options;
-
-            Stop();
-            Start();
         }
 
         public void Stop()
