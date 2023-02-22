@@ -33,10 +33,10 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 string boundedContext = message.BoundedContext;
 
-                List<string> exchanges = GetExistingExchangesNames(message);
+                IEnumerable<string> exchanges = GetExistingExchangesNames(message);
                 foreach (string exchange in exchanges)
                 {
-                    IRabbitMqOptions scopedOptions = options.GetOptionsFor(message.BoundedContext);
+                    IRabbitMqOptions scopedOptions = options.GetOptionsFor(boundedContext);
                     IModel exchangeModel = channelResolver.Resolve(exchange, scopedOptions, boundedContext);
                     IBasicProperties props = exchangeModel.CreateBasicProperties();
                     props = BuildMessageProperties(props, message);
@@ -85,13 +85,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
             return properties;
         }
 
-        private List<string> GetExistingExchangesNames(CronusMessage message)
+        private IEnumerable<string> GetExistingExchangesNames(CronusMessage message)
         {
-            List<string> exchanges = rabbitMqNamer.GetExchangeNames(message.Payload.GetType()).ToList();
+            IEnumerable<string> exchanges = rabbitMqNamer.GetExchangeNames(message.Payload.GetType());
 
             if (message.GetPublishDelay() > 1000)
             {
-                exchanges = exchanges.Select(e => $"{e}.Scheduler").ToList();
+                exchanges = exchanges.Select(e => $"{e}.Scheduler");
             }
 
             return exchanges;
