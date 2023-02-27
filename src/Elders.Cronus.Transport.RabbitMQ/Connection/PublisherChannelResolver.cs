@@ -9,8 +9,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public override IModel Resolve(string exchange, IRabbitMqOptions options, string boundedContext)
         {
-            string channelKey = $"{boundedContext}_{options.GetType().Name}_{exchange}";
-            string connectionKey = options.VHost;
+            string channelKey = $"{boundedContext}_{options.GetType().Name}_{exchange}_{options.Server}";
+            string connectionKey = $"{options.VHost}_{options.Server}";
 
             IModel channel = GetExistingChannel(channelKey);
 

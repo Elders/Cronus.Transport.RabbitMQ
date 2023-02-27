@@ -41,7 +41,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             for (int i = 0; i < consumerOptions.WorkersCount; i++)
             {
-                IRabbitMqOptions scopedOptions = options.GetOptionsFor(boundedContext.Name);
+                IRabbitMqOptions scopedOptions = options.GetOptionsFor(boundedContext.Name).Single();
                 string consumerChannelKey = $"{boundedContext.Name}_{typeof(T).Name}_{i}";
                 IModel channel = channelResolver.Resolve(consumerChannelKey, scopedOptions, options.VHost);
 

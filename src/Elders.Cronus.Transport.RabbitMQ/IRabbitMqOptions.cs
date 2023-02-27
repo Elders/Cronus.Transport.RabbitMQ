@@ -1,4 +1,6 @@
-﻿namespace Elders.Cronus.Transport.RabbitMQ
+﻿using System.Collections.Generic;
+
+namespace Elders.Cronus.Transport.RabbitMQ
 {
     public interface IRabbitMqOptions
     {
@@ -9,7 +11,8 @@
         string Username { get; set; }
         string VHost { get; set; }
         string ApiAddress { get; set; }
+        public string BoundedContext { get; set; }
         FederatedExchangeOptions FederatedExchange { get; set; }
-        IRabbitMqOptions GetOptionsFor(string boundedContext);
+        IEnumerable<IRabbitMqOptions> GetOptionsFor(string boundedContext);
     }
 }

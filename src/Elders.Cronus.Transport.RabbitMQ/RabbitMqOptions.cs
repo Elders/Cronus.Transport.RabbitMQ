@@ -36,7 +36,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         internal List<RabbitMqOptions> ExternalServices { get; set; }
 
-        public IRabbitMqOptions GetOptionsFor(string boundedContext)
+        public IEnumerable<IRabbitMqOptions> GetOptionsFor(string boundedContext)
         {
             var fromCfg = ExternalServices?.Where(opt => opt.BoundedContext.Equals(boundedContext, System.StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
             if (fromCfg is null == false)
@@ -49,10 +49,10 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 if (fromCfg.AdminPort == AdminPortDefault) fromCfg.AdminPort = AdminPort;
                 if (string.IsNullOrEmpty(fromCfg.ApiAddress)) fromCfg.ApiAddress = ApiAddress;
 
-                return fromCfg;
+                return new List<IRabbitMqOptions>() { fromCfg };
             }
 
-            return this;
+            return new List<IRabbitMqOptions>() { this };
         }
     }
 

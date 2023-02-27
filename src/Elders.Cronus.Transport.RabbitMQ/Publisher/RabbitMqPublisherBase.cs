@@ -36,13 +36,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 IEnumerable<string> exchanges = GetExistingExchangesNames(message);
                 foreach (string exchange in exchanges)
                 {
-                    IRabbitMqOptions scopedOptions = options.GetOptionsFor(boundedContext);
-                    IModel exchangeModel = channelResolver.Resolve(exchange, scopedOptions, boundedContext);
-                    IBasicProperties props = exchangeModel.CreateBasicProperties();
-                    props = BuildMessageProperties(props, message);
-
-                    byte[] body = serializer.SerializeToBytes(message);
-                    exchangeModel.BasicPublish(exchange, string.Empty, false, props, body);
+                    IEnumerable<IRabbitMqOptions> scopedOptions = options.GetOptionsFor(boundedContext);
+                    Publish(message, boundedContext, exchange, scopedOptions);
                 }
 
                 return true;
@@ -63,6 +58,19 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     stream.Position = 0;
                     return reader.ReadToEnd();
                 }
+            }
+        }
+
+        private void Publish(CronusMessage message, string boundedContext, string exchange, IEnumerable<IRabbitMqOptions> scopedOptions)
+        {
+            foreach (IRabbitMqOptions opt in scopedOptions)
+            {
+                IModel exchangeModel = channelResolver.Resolve(exchange, opt, boundedContext);
+                IBasicProperties props = exchangeModel.CreateBasicProperties();
+                props = BuildMessageProperties(props, message);
+
+                byte[] body = serializer.SerializeToBytes(message);
+                exchangeModel.BasicPublish(exchange, string.Empty, false, props, body);
             }
         }
 

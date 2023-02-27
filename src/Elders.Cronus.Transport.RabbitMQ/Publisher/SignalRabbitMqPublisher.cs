@@ -34,13 +34,8 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
                 IEnumerable<string> exchanges = rabbitMqNamer.GetExchangeNames(message.Payload.GetType());
                 foreach (var exchange in exchanges)
                 {
-                    IRabbitMqOptions scopedOptions = options.GetOptionsFor(message.BoundedContext);
-                    IModel exchangeModel = channelResolver.Resolve(exchange, scopedOptions, boundedContext);
-                    IBasicProperties props = exchangeModel.CreateBasicProperties();
-                    props = BuildMessageProperties(props, message);
-
-                    byte[] body = serializer.SerializeToBytes(message);
-                    exchangeModel.BasicPublish(exchange, string.Empty, false, props, body);
+                    IEnumerable<IRabbitMqOptions> scopedOptions = options.GetOptionsFor(message.BoundedContext);
+                    Publish(message, boundedContext, exchange, scopedOptions);
                 }
 
                 return true;
@@ -48,6 +43,19 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
             catch (Exception ex) when (logger.WarnException(ex, () => $"Unable to publish {message.Payload.GetType()}"))
             {
                 return false;
+            }
+        }
+
+        private void Publish(CronusMessage message, string boundedContext, string exchange, IEnumerable<IRabbitMqOptions> scopedOptions)
+        {
+            foreach (var opt in scopedOptions)
+            {
+                IModel exchangeModel = channelResolver.Resolve(exchange, opt, boundedContext);
+                IBasicProperties props = exchangeModel.CreateBasicProperties();
+                props = BuildMessageProperties(props, message);
+
+                byte[] body = serializer.SerializeToBytes(message);
+                exchangeModel.BasicPublish(exchange, string.Empty, false, props, body);
             }
         }
 
