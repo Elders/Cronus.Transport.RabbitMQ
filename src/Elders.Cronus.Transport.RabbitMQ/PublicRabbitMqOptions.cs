@@ -39,19 +39,22 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public IEnumerable<IRabbitMqOptions> GetOptionsFor(string boundedContext)
         {
-            var options = new List<IRabbitMqOptions>() { this };
+            List<IRabbitMqOptions> options = new List<IRabbitMqOptions>() { this };
 
-            foreach (var srvOpt in ExternalServers.Where(opt => opt.BoundedContext.Equals(boundedContext, System.StringComparison.OrdinalIgnoreCase)))
+            if (ExternalServers is not null && ExternalServers.Any())
             {
-                if (srvOpt.Server.Equals(ServerDefault, System.StringComparison.OrdinalIgnoreCase)) srvOpt.Server = Server;
-                if (srvOpt.Port == PortDefault) srvOpt.Port = Port;
-                if (srvOpt.VHost.Equals(VHostDefault, System.StringComparison.OrdinalIgnoreCase)) srvOpt.VHost = VHost;
-                if (srvOpt.Username.Equals(UsernameDefault, System.StringComparison.OrdinalIgnoreCase)) srvOpt.Username = Username;
-                if (srvOpt.Password.Equals(PasswordDefault, System.StringComparison.OrdinalIgnoreCase)) srvOpt.Password = Password;
-                if (srvOpt.AdminPort == AdminPortDefault) srvOpt.AdminPort = AdminPort;
-                if (string.IsNullOrEmpty(srvOpt.ApiAddress)) srvOpt.ApiAddress = ApiAddress;
+                foreach (var srvOpt in ExternalServers.Where(opt => opt.BoundedContext.Equals(boundedContext, System.StringComparison.OrdinalIgnoreCase)))
+                {
+                    if (srvOpt.Server.Equals(ServerDefault, System.StringComparison.OrdinalIgnoreCase)) srvOpt.Server = Server;
+                    if (srvOpt.Port == PortDefault) srvOpt.Port = Port;
+                    if (srvOpt.VHost.Equals(VHostDefault, System.StringComparison.OrdinalIgnoreCase)) srvOpt.VHost = VHost;
+                    if (srvOpt.Username.Equals(UsernameDefault, System.StringComparison.OrdinalIgnoreCase)) srvOpt.Username = Username;
+                    if (srvOpt.Password.Equals(PasswordDefault, System.StringComparison.OrdinalIgnoreCase)) srvOpt.Password = Password;
+                    if (srvOpt.AdminPort == AdminPortDefault) srvOpt.AdminPort = AdminPort;
+                    if (string.IsNullOrEmpty(srvOpt.ApiAddress)) srvOpt.ApiAddress = ApiAddress;
 
-                options.Add(srvOpt);
+                    options.Add(srvOpt);
+                }
             }
 
             return options;
