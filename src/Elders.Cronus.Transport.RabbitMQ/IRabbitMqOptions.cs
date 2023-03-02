@@ -10,6 +10,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         string Server { get; set; }
         string Username { get; set; }
         string VHost { get; set; }
+        bool UseSsl { get; set; }
         string ApiAddress { get; set; }
         public string BoundedContext { get; set; }
         FederatedExchangeOptions FederatedExchange { get; set; }

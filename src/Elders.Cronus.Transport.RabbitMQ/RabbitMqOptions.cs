@@ -34,6 +34,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public FederatedExchangeOptions FederatedExchange { get; set; }
 
+        public bool UseSsl { get; set; } = false;
+
         internal List<RabbitMqOptions> ExternalServices { get; set; }
 
         public IEnumerable<IRabbitMqOptions> GetOptionsFor(string boundedContext)

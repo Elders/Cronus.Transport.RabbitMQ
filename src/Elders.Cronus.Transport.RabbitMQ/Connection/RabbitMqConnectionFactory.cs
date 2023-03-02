@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -40,7 +41,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     connectionFactory.VirtualHost = options.VHost;
                     connectionFactory.DispatchConsumersAsync = true;
                     connectionFactory.AutomaticRecoveryEnabled = true;
-                    connectionFactory.EndpointResolverFactory = (_) => new MultipleEndpointResolver(options);
+                    connectionFactory.Ssl.Enabled = options.UseSsl;
+                    connectionFactory.EndpointResolverFactory = (_) => MultipleEndpointResolver.ComposeEndpointResolver(options);
 
                     return connectionFactory.CreateConnection();
                 }
@@ -61,7 +63,23 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private class MultipleEndpointResolver : DefaultEndpointResolver
         {
-            public MultipleEndpointResolver(IRabbitMqOptions options) : base(AmqpTcpEndpoint.ParseMultiple(options.Server)) { }
+            MultipleEndpointResolver(AmqpTcpEndpoint[] amqpTcpEndpoints) : base(amqpTcpEndpoints) { }
+
+            public static MultipleEndpointResolver ComposeEndpointResolver(IRabbitMqOptions options)
+            {
+                AmqpTcpEndpoint[] endpoints = AmqpTcpEndpoint.ParseMultiple(options.Server);
+
+                if (options.UseSsl is false)
+                    return new MultipleEndpointResolver(endpoints);
+
+                foreach (AmqpTcpEndpoint endp in endpoints)
+                {
+                    endp.Ssl.Enabled = true;
+                    endp.Ssl.ServerName = options.Server;
+                }
+
+                return new MultipleEndpointResolver(endpoints);
+            }
         }
     }
 }
