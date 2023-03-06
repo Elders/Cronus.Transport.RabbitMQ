@@ -5,6 +5,8 @@ using System.Linq;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
+
+
     public class PublicRabbitMqOptions : IRabbitMqOptions
     {
         const string BoundedContextDefault = "implicit";
@@ -35,6 +37,10 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public FederatedExchangeOptions FederatedExchange { get; set; } = new FederatedExchangeOptions();
 
+        public bool UseSsl { get; set; } = false;
+
+        public string FederationUpstreamUri { get; set; }
+
         internal List<PublicRabbitMqOptions> ExternalServers { get; set; }
 
         public IEnumerable<IRabbitMqOptions> GetOptionsFor(string boundedContext)
@@ -62,7 +68,24 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public IEnumerable<string> GetUpstreamUris()
         {
-            return AmqpTcpEndpoint.ParseMultiple(Server).Select(x => $"{x}/{VHost}");
+            if (string.IsNullOrEmpty(FederationUpstreamUri))
+            {
+                return GetDefaultUpstreamUri();
+            }
+            else
+            {
+                return AmqpTcpEndpoint.ParseMultiple(FederationUpstreamUri)
+                    .Select(endpoint =>
+                    {
+                        endpoint.Ssl.Enabled = UseSsl;
+                        return endpoint.ToString();
+                    });
+            }
+        }
+
+        private IEnumerable<string> GetDefaultUpstreamUri()
+        {
+            yield return $"amqp://{Username}:{Password}@localhost:{PortDefault}/{VHost}";
         }
     }
 
