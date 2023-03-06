@@ -36,6 +36,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public bool UseSsl { get; set; } = false;
 
+        public string FederationUpstreamUri { get; set; }
+
         internal List<RabbitMqOptions> ExternalServices { get; set; }
 
         public IEnumerable<IRabbitMqOptions> GetOptionsFor(string boundedContext)
@@ -51,10 +53,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 if (fromCfg.AdminPort == AdminPortDefault) fromCfg.AdminPort = AdminPort;
                 if (string.IsNullOrEmpty(fromCfg.ApiAddress)) fromCfg.ApiAddress = ApiAddress;
 
-                return new List<IRabbitMqOptions>() { fromCfg };
+                yield return fromCfg;
+                yield break;
             }
 
-            return new List<IRabbitMqOptions>() { this };
+            yield return this;
         }
     }
 
