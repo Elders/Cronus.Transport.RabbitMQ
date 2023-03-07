@@ -5,12 +5,12 @@ using System.Linq;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class PublicRabbitMqOptions : IRabbitMqConfigurations
+    public class PublicRabbitMqOptionsCollection
     {
-        public List<PublicRabbitMqConfigurations> Settings { get; set; }
+        public List<PublicRabbitMqOptions> PublicClustersOptions { get; set; }
     }
 
-    public class PublicRabbitMqConfigurations : IRabbitMqOptions
+    public class PublicRabbitMqOptions : IRabbitMqOptions
     {
         const string BoundedContextDefault = "implicit";
         const string ServerDefault = "127.0.0.1";
@@ -77,18 +77,18 @@ namespace Elders.Cronus.Transport.RabbitMQ
         public int MaxHops { get; set; } = 1;
     }
 
-    public class PublicRabbitMqOptionsProvider : CronusOptionsProviderBase<PublicRabbitMqOptions>
+    public class PublicRabbitMqOptionsProvider : CronusOptionsProviderBase<PublicRabbitMqOptionsCollection>
     {
         public const string SettingKey = "cronus:transport:publicrabbitmq";
 
         public PublicRabbitMqOptionsProvider(IConfiguration configuration) : base(configuration) { }
 
-        public override void Configure(PublicRabbitMqOptions options)
+        public override void Configure(PublicRabbitMqOptionsCollection options)
         {
-            options.Settings = new List<PublicRabbitMqConfigurations>();
-            List<PublicRabbitMqConfigurations> cfg = configuration.GetRequiredSection(SettingKey).Get<List<PublicRabbitMqConfigurations>>();
+            options.PublicClustersOptions = new List<PublicRabbitMqOptions>();
+            List<PublicRabbitMqOptions> cfg = configuration.GetRequiredSection(SettingKey).Get<List<PublicRabbitMqOptions>>();
 
-            options.Settings.AddRange(cfg);
+            options.PublicClustersOptions.AddRange(cfg);
         }
     }
 }

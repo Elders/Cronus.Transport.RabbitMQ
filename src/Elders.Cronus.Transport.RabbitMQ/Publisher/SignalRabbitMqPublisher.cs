@@ -13,9 +13,9 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
         private readonly SignalMessagesRabbitMqNamer rabbitMqNamer;
         private readonly ISerializer serializer;
         private readonly ILogger<SignalRabbitMqPublisher> logger;
-        private readonly PublicRabbitMqOptions options;
+        private readonly PublicRabbitMqOptionsCollection options;
 
-        public SignalRabbitMqPublisher(ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, IOptionsMonitor<PublicRabbitMqOptions> optionsMonitor, SignalMessagesRabbitMqNamer rabbitMqNamer, PublisherChannelResolver channelResolver, ISerializer serializer, ILogger<SignalRabbitMqPublisher> logger)
+        public SignalRabbitMqPublisher(ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, IOptionsMonitor<PublicRabbitMqOptionsCollection> optionsMonitor, SignalMessagesRabbitMqNamer rabbitMqNamer, PublisherChannelResolver channelResolver, ISerializer serializer, ILogger<SignalRabbitMqPublisher> logger)
             : base(tenantResolver, boundedContext.CurrentValue, logger)
         {
             this.rabbitMqNamer = rabbitMqNamer;
@@ -34,7 +34,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
                 IEnumerable<string> exchanges = rabbitMqNamer.GetExchangeNames(message.Payload.GetType());
                 foreach (var exchange in exchanges)
                 {
-                    Publish(message, boundedContext, exchange, options.Settings);
+                    Publish(message, boundedContext, exchange, options.PublicClustersOptions);
                 }
 
                 return true;

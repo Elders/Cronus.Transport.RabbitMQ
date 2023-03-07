@@ -14,11 +14,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
         static readonly ILogger logger = CronusLogger.CreateLogger(typeof(PublishedLanguageStartup));
 
         private readonly RabbitMqOptions options;
-        private readonly PublicRabbitMqOptions publicRmqOptions;
+        private readonly PublicRabbitMqOptionsCollection publicRmqOptions;
         private readonly PublicMessagesRabbitMqNamer publicRabbitMqNamer;
         private readonly SignalMessagesRabbitMqNamer signalRabbitMqNamer;
 
-        public RabbitMqInfrastructure(IOptionsMonitor<RabbitMqOptions> options, IOptionsMonitor<PublicRabbitMqOptions> publicOptions, PublicMessagesRabbitMqNamer rabbitMqNamer, SignalMessagesRabbitMqNamer signalRabbitMqNamer)
+        public RabbitMqInfrastructure(IOptionsMonitor<RabbitMqOptions> options, IOptionsMonitor<PublicRabbitMqOptionsCollection> publicOptions, PublicMessagesRabbitMqNamer rabbitMqNamer, SignalMessagesRabbitMqNamer signalRabbitMqNamer)
         {
             this.options = options.CurrentValue;
             this.publicRmqOptions = publicOptions.CurrentValue;
@@ -33,7 +33,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 RabbitMqManagementClient priv = new RabbitMqManagementClient(options);
                 CreateVHost(priv, options);
 
-                foreach (var opt in publicRmqOptions.Settings)
+                foreach (var opt in publicRmqOptions.PublicClustersOptions)
                 {
                     RabbitMqManagementClient pub = new RabbitMqManagementClient(opt);
                     CreateVHost(pub, opt);
@@ -42,7 +42,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 if (ChecksIfHavePublishedLanguageConfigurations())
                     logger.Warn(() => "Missing configurations for public rabbitMq.");
                 else
-                    foreach (PublicRabbitMqConfigurations publicSettings in publicRmqOptions.Settings)
+                    foreach (PublicRabbitMqOptions publicSettings in publicRmqOptions.PublicClustersOptions)
                         CreatePublishedLanguageConnection(priv, publicSettings);
             }
             catch (Exception ex)
@@ -54,7 +54,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private bool ChecksIfHavePublishedLanguageConfigurations()
         {
             // We are sure that if missing configurations for public rabbitMq VHost by default equals "/"
-            return publicRmqOptions.Settings.Any();
+            return publicRmqOptions.PublicClustersOptions.Any();
         }
 
         private void CreateVHost(RabbitMqManagementClient client, IRabbitMqOptions options)
@@ -68,7 +68,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
         }
 
-        private void CreatePublishedLanguageConnection(RabbitMqManagementClient downstreamClient, PublicRabbitMqConfigurations publicSettings)
+        private void CreatePublishedLanguageConnection(RabbitMqManagementClient downstreamClient, PublicRabbitMqOptions publicSettings)
         {
             IEnumerable<string> publicExchangeNames = publicRabbitMqNamer.GetExchangeNames(typeof(IPublicEvent));
             IEnumerable<string> signalExchangeNames = signalRabbitMqNamer.GetExchangeNames(typeof(ISignal));

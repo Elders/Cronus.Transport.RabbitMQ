@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class RabbitMqOptions : IRabbitMqOptions, IRabbitMqConfigurations
+    public class RabbitMqOptions : IRabbitMqOptions
     {
         const string BoundedContextDefault = "implicit";
         const string ServerDefault = "127.0.0.1";
