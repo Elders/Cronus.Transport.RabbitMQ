@@ -5,9 +5,12 @@ using System.Linq;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
+    public class PublicRabbitMqOptions : IRabbitMqConfigurations
+    {
+        public List<PublicRabbitMqConfigurations> Settings { get; set; }
+    }
 
-
-    public class PublicRabbitMqOptions : IRabbitMqOptions
+    public class PublicRabbitMqConfigurations : IRabbitMqOptions
     {
         const string BoundedContextDefault = "implicit";
         const string ServerDefault = "127.0.0.1";
@@ -41,29 +44,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public string FederationUpstreamUri { get; set; }
 
-        internal List<PublicRabbitMqOptions> ExternalServers { get; set; }
-
-        public IEnumerable<IRabbitMqOptions> GetOptionsFor(string boundedContext)
+        public IRabbitMqOptions GetOptionsFor(string boundedContext)
         {
-            List<IRabbitMqOptions> options = new List<IRabbitMqOptions>() { this };
-
-            if (ExternalServers is not null && ExternalServers.Any())
-            {
-                foreach (var srvOpt in ExternalServers.Where(opt => opt.BoundedContext.Equals(boundedContext, System.StringComparison.OrdinalIgnoreCase)))
-                {
-                    if (srvOpt.Server.Equals(ServerDefault, System.StringComparison.OrdinalIgnoreCase)) srvOpt.Server = Server;
-                    if (srvOpt.Port == PortDefault) srvOpt.Port = Port;
-                    if (srvOpt.VHost.Equals(VHostDefault, System.StringComparison.OrdinalIgnoreCase)) srvOpt.VHost = VHost;
-                    if (srvOpt.Username.Equals(UsernameDefault, System.StringComparison.OrdinalIgnoreCase)) srvOpt.Username = Username;
-                    if (srvOpt.Password.Equals(PasswordDefault, System.StringComparison.OrdinalIgnoreCase)) srvOpt.Password = Password;
-                    if (srvOpt.AdminPort == AdminPortDefault) srvOpt.AdminPort = AdminPort;
-                    if (string.IsNullOrEmpty(srvOpt.ApiAddress)) srvOpt.ApiAddress = ApiAddress;
-
-                    options.Add(srvOpt);
-                }
-            }
-
-            return options;
+            return this;
         }
 
         public IEnumerable<string> GetUpstreamUris()
@@ -102,7 +85,10 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public override void Configure(PublicRabbitMqOptions options)
         {
-            configuration.GetSection(SettingKey).Bind(options, opt => opt.BindNonPublicProperties = true);
+            options.Settings = new List<PublicRabbitMqConfigurations>();
+            List<PublicRabbitMqConfigurations> cfg = configuration.GetRequiredSection(SettingKey).Get<List<PublicRabbitMqConfigurations>>();
+
+            options.Settings.AddRange(cfg);
         }
     }
 }

@@ -47,17 +47,16 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private void CreateAndStartTriggerConsumers()
         {
-            foreach (IRabbitMqOptions scopedOptions in options.GetOptionsFor(boundedContext.Name))
+            IRabbitMqOptions scopedOptions = options.GetOptionsFor(boundedContext.Name);
+
+            for (int i = 0; i < consumerOptions.WorkersCount; i++)
             {
-                for (int i = 0; i < consumerOptions.WorkersCount; i++)
-                {
-                    string consumerChannelKey = $"{boundedContext.Name}_{typeof(T).Name}_{i}";
-                    IModel channel = channelResolver.Resolve(consumerChannelKey, scopedOptions, options.VHost);
+                string consumerChannelKey = $"{boundedContext.Name}_{typeof(T).Name}_{i}";
+                IModel channel = channelResolver.Resolve(consumerChannelKey, scopedOptions, options.VHost);
 
-                    AsyncConsumerBase<T> asyncListener = new AsyncSignalConsumer<T>(queueName, channel, subscriberCollection, serializer, logger);
+                AsyncConsumerBase<T> asyncListener = new AsyncSignalConsumer<T>(queueName, channel, subscriberCollection, serializer, logger);
 
-                    consumers.Add(asyncListener);
-                }
+                consumers.Add(asyncListener);
             }
         }
 

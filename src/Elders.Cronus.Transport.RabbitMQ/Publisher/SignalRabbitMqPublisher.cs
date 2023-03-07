@@ -34,8 +34,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
                 IEnumerable<string> exchanges = rabbitMqNamer.GetExchangeNames(message.Payload.GetType());
                 foreach (var exchange in exchanges)
                 {
-                    IEnumerable<IRabbitMqOptions> scopedOptions = options.GetOptionsFor(message.BoundedContext);
-                    Publish(message, boundedContext, exchange, scopedOptions);
+                    Publish(message, boundedContext, exchange, options.Settings);
                 }
 
                 return true;

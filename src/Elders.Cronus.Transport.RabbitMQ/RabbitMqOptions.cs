@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
-    public class RabbitMqOptions : IRabbitMqOptions
+    public class RabbitMqOptions : IRabbitMqOptions, IRabbitMqConfigurations
     {
         const string BoundedContextDefault = "implicit";
         const string ServerDefault = "127.0.0.1";
@@ -40,7 +40,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         internal List<RabbitMqOptions> ExternalServices { get; set; }
 
-        public IEnumerable<IRabbitMqOptions> GetOptionsFor(string boundedContext)
+        public IRabbitMqOptions GetOptionsFor(string boundedContext)
         {
             var fromCfg = ExternalServices?.Where(opt => opt.BoundedContext.Equals(boundedContext, System.StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
             if (fromCfg is null == false)
@@ -53,11 +53,10 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 if (fromCfg.AdminPort == AdminPortDefault) fromCfg.AdminPort = AdminPort;
                 if (string.IsNullOrEmpty(fromCfg.ApiAddress)) fromCfg.ApiAddress = ApiAddress;
 
-                yield return fromCfg;
-                yield break;
+                return fromCfg;
             }
 
-            yield return this;
+            return this;
         }
     }
 

@@ -82,11 +82,9 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
         {
             try
             {
-                IEnumerable<IRabbitMqOptions> scopedOptions = options.GetOptionsFor(boundedContext.Name);
+                IRabbitMqOptions scopedOptions = options.GetOptionsFor(boundedContext.Name);
 
-                IRabbitMqOptions rmqOptions = scopedOptions.Single();
-
-                IModel requestChannel = channelResolver.Resolve(route, rmqOptions, options.VHost);
+                IModel requestChannel = channelResolver.Resolve(route, scopedOptions, options.VHost);
 
                 server = new RequestConsumer<TRequest, TResponse>(route, requestChannel, factory, serializer, serviceProvider, logger);
             }
@@ -119,7 +117,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
                         var cfgFound = options.ExternalServices?.Where(opt => opt.BoundedContext.Equals(destinationBC, System.StringComparison.OrdinalIgnoreCase)).Any();
                         if (cfgFound.HasValue && cfgFound.Value)
                         {
-                            IRabbitMqOptions scopedOptions = options.GetOptionsFor(destinationBC).Single();
+                            IRabbitMqOptions scopedOptions = options.GetOptionsFor(destinationBC);
                             IModel requestChannel = channelResolver.Resolve(route, scopedOptions, destinationBC);
                             client = new ResponseConsumer<TRequest, TResponse>(route, requestChannel, serializer, logger);
                             isClientCreated = true;

@@ -15,9 +15,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private readonly PublisherChannelResolver channelResolver;
         private readonly IRabbitMqNamer rabbitMqNamer;
         private readonly ILogger logger;
-        private readonly IRabbitMqOptions options;
+        private readonly IRabbitMqConfigurations options;
 
-        public RabbitMqPublisherBase(ISerializer serializer, PublisherChannelResolver channelResolver, ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, IRabbitMqOptions options, IRabbitMqNamer rabbitMqNamer, ILogger logger)
+        public RabbitMqPublisherBase(ISerializer serializer, PublisherChannelResolver channelResolver, ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, IRabbitMqConfigurations options, IRabbitMqNamer rabbitMqNamer, ILogger logger)
             : base(tenantResolver, boundedContext.CurrentValue, logger)
         {
             this.serializer = serializer;
@@ -36,8 +36,10 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 IEnumerable<string> exchanges = GetExistingExchangesNames(message);
                 foreach (string exchange in exchanges)
                 {
-                    IEnumerable<IRabbitMqOptions> scopedOptions = options.GetOptionsFor(boundedContext);
-                    Publish(message, boundedContext, exchange, scopedOptions);
+                    if (options.GetType().Equals(typeof(PublicRabbitMqOptions)))
+                        PublicPublish(message, boundedContext, exchange, options as PublicRabbitMqOptions);
+                    else if (options.GetType().Equals(typeof(RabbitMqOptions)))
+                        Publish(message, boundedContext, exchange, options as RabbitMqOptions);
                 }
 
                 return true;
@@ -61,16 +63,21 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
         }
 
-        private void Publish(CronusMessage message, string boundedContext, string exchange, IEnumerable<IRabbitMqOptions> scopedOptions)
+        private void Publish(CronusMessage message, string boundedContext, string exchange, IRabbitMqOptions options)
         {
-            foreach (IRabbitMqOptions opt in scopedOptions)
-            {
-                IModel exchangeModel = channelResolver.Resolve(exchange, opt, boundedContext);
-                IBasicProperties props = exchangeModel.CreateBasicProperties();
-                props = BuildMessageProperties(props, message);
+            IModel exchangeModel = channelResolver.Resolve(exchange, options, boundedContext);
+            IBasicProperties props = exchangeModel.CreateBasicProperties();
+            props = BuildMessageProperties(props, message);
 
-                byte[] body = serializer.SerializeToBytes(message);
-                exchangeModel.BasicPublish(exchange, string.Empty, false, props, body);
+            byte[] body = serializer.SerializeToBytes(message);
+            exchangeModel.BasicPublish(exchange, string.Empty, false, props, body);
+        }
+
+        private void PublicPublish(CronusMessage message, string boundedContext, string exchange, PublicRabbitMqOptions options)
+        {
+            foreach (IRabbitMqOptions opt in options.Settings)
+            {
+                Publish(message, boundedContext, exchange, opt);
             }
         }
 
