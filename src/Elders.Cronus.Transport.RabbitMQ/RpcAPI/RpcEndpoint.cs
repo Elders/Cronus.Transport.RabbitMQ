@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -82,6 +83,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             try
             {
                 IRabbitMqOptions scopedOptions = options.GetOptionsFor(boundedContext.Name);
+
                 IModel requestChannel = channelResolver.Resolve(route, scopedOptions, options.VHost);
 
                 server = new RequestConsumer<TRequest, TResponse>(route, requestChannel, factory, serializer, serviceProvider, logger);

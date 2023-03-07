@@ -39,15 +39,35 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             bool isTrigger = typeof(T).IsAssignableFrom(typeof(ITrigger));
 
+            if (isTrigger)
+                CreateAndStartTriggerConsumers();
+            else
+                CreateAndStartNormalConsumers();
+        }
+
+        private void CreateAndStartTriggerConsumers()
+        {
+            IRabbitMqOptions scopedOptions = options.GetOptionsFor(boundedContext.Name);
+
             for (int i = 0; i < consumerOptions.WorkersCount; i++)
             {
-                IRabbitMqOptions scopedOptions = options.GetOptionsFor(boundedContext.Name);
                 string consumerChannelKey = $"{boundedContext.Name}_{typeof(T).Name}_{i}";
                 IModel channel = channelResolver.Resolve(consumerChannelKey, scopedOptions, options.VHost);
 
-                AsyncConsumerBase<T> asyncListener = isTrigger == true ?
-                    new AsyncSignalConsumer<T>(queueName, channel, subscriberCollection, serializer, logger) :
-                    new AsyncConsumer<T>(queueName, channel, subscriberCollection, serializer, logger);
+                AsyncConsumerBase<T> asyncListener = new AsyncSignalConsumer<T>(queueName, channel, subscriberCollection, serializer, logger);
+
+                consumers.Add(asyncListener);
+            }
+        }
+
+        private void CreateAndStartNormalConsumers()
+        {
+            for (int i = 0; i < consumerOptions.WorkersCount; i++)
+            {
+                string consumerChannelKey = $"{boundedContext.Name}_{typeof(T).Name}_{i}";
+                IModel channel = channelResolver.Resolve(consumerChannelKey, options, options.VHost);
+
+                AsyncConsumerBase<T> asyncListener = new AsyncConsumer<T>(queueName, channel, subscriberCollection, serializer, logger);
 
                 consumers.Add(asyncListener);
             }

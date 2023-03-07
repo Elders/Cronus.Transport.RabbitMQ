@@ -8,8 +8,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
 {
     public class PublicRabbitMqPublisher : RabbitMqPublisherBase<IPublicEvent>
     {
-        public PublicRabbitMqPublisher(ISerializer serializer, PublisherChannelResolver channelResolver, ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, IOptionsMonitor<PublicRabbitMqOptions> options, PublicMessagesRabbitMqNamer publicRabbitMqNamer, ILogger<PublicRabbitMqPublisher> logger)
-            : base(serializer, channelResolver, tenantResolver, boundedContext, options.CurrentValue, publicRabbitMqNamer, logger) { }
+        private readonly IOptionsMonitor<PublicRabbitMqOptionsCollection> options;
+
+        public PublicRabbitMqPublisher(ISerializer serializer, PublisherChannelResolver channelResolver, ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, IOptionsMonitor<PublicRabbitMqOptionsCollection> options, PublicMessagesRabbitMqNamer publicRabbitMqNamer, ILogger<PublicRabbitMqPublisher> logger)
+            : base(serializer, channelResolver, tenantResolver, boundedContext, publicRabbitMqNamer, logger)
+        {
+            this.options = options;
+        }
 
         protected override IBasicProperties BuildMessageProperties(IBasicProperties properties, CronusMessage message)
         {
@@ -33,6 +38,14 @@ namespace Elders.Cronus.Transport.RabbitMQ
             else
             {
                 return base.BuildMessageProperties(properties, message);
+            }
+        }
+
+        protected override IEnumerable<IRabbitMqOptions> GetOptionsFor(CronusMessage message)
+        {
+            foreach (var publicRabbitMqConfig in options.CurrentValue.PublicClustersOptions)
+            {
+                yield return publicRabbitMqConfig;
             }
         }
     }

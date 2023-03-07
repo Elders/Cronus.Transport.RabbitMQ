@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Worker">
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -8,10 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Cronus" Version="9.0.0-preview.25" />
-    <PackageReference Include="Cronus.Persistence.Cassandra" Version="9.0.0-preview.17" />
-    <PackageReference Include="Cronus.Projections.Cassandra" Version="9.0.0-preview.2" />
-    <PackageReference Include="Cronus.Serialization.NewtonsoftJson" Version="8.1.1-preview.1" />
+    <PackageReference Include="Cronus" Version="9.0.0-preview.28" />
+    <PackageReference Include="Cronus.Persistence.Cassandra" Version="9.0.0-preview.21" />
+    <PackageReference Include="Cronus.Projections.Cassandra" Version="9.0.0-preview.3" />
+    <PackageReference Include="Cronus.Serialization.NewtonsoftJson" Version="9.0.0-preview.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
   </ItemGroup>
 
