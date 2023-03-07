@@ -1,3 +1,10 @@
+# [9.0.0-preview.5](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.4...v9.0.0-preview.5) (2023-03-07)
+
+
+### Features
+
+* Publish messages to multiple public servers via TLS ([796712f](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/796712fe3f52e04b17d2a3eb8d32e43b22527221))
+
 # [9.0.0-preview.4](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.3...v9.0.0-preview.4) (2023-02-15)
 
 
