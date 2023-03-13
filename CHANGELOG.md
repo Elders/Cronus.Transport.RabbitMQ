@@ -1,3 +1,10 @@
+# [9.0.0-preview.6](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.5...v9.0.0-preview.6) (2023-03-13)
+
+
+### Bug Fixes
+
+* Fixes publishing of public events ([7e9c9c3](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/7e9c9c30debd4be0cef9154b33856bc3a00f80f8))
+
 # [9.0.0-preview.5](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.4...v9.0.0-preview.5) (2023-03-07)
 
 
