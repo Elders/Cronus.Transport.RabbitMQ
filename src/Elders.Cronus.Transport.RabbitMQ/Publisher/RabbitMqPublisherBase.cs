@@ -55,19 +55,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             properties.Headers = new Dictionary<string, object>();
             properties.Headers.Add(message.Payload.GetType().GetContractId(), boundedContext);
-
-            string heartbeatTtl = message.GetTTL(); // https://www.rabbitmq.com/ttl.html#per-message-ttl-in-publishers
-            if (string.IsNullOrEmpty(heartbeatTtl) == false)
-                properties.Expiration = heartbeatTtl;
-
-            else
-            {   
-                long ttl = message.GetPublishDelay(); // https://www.rabbitmq.com/ttl.html#per-message-ttl-in-publishers
-                if (ttl > 1000)
-                    properties.Expiration = ttl.ToString();
-            }
-
+            properties.Expiration = message.GetTtl();
             properties.Persistent = true;
+
             return properties;
         }
 
@@ -75,10 +65,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             IEnumerable<string> exchanges = rabbitMqNamer.GetExchangeNames(message.Payload.GetType());
 
-            if (message.GetPublishDelay() > 1000)
-            {
+            if (string.IsNullOrEmpty(message.GetTtl()) == false)
                 exchanges = exchanges.Select(e => $"{e}.Delayer");
-            }
 
             return exchanges;
         }
