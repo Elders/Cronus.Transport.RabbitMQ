@@ -64,11 +64,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
 
             properties.Headers = new Dictionary<string, object>();
             properties.Headers.Add(message.Payload.GetType().GetContractId(), boundedContext);
-
-            string ttl = message.GetTTL(); // https://www.rabbitmq.com/ttl.html#per-message-ttl-in-publishers
-            if (string.IsNullOrEmpty(ttl) == false)
-                properties.Expiration = ttl;
-
+            properties.Expiration = message.GetTtl();
             properties.Persistent = false;
             properties.DeliveryMode = 1;
 

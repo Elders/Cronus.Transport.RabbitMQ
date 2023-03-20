@@ -24,9 +24,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 string messageContractId = message.Payload.GetType().GetContractId();
 
                 properties.Headers = new Dictionary<string, object>();
-
-                if (message.GetPublishDelay() > 1000)
-                    properties.Headers.Add("x-delay", message.GetPublishDelay());
+                properties.Expiration = message.GetTtl();
 
                 foreach (var recipientHandler in message.RecipientHandlers)
                 {

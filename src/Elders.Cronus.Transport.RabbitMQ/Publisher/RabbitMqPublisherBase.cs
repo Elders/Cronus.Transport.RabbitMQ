@@ -34,7 +34,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     Publish(message, boundedContext, exchange, scopedOpt);
                 }
             }
-
             return true;
         }
 
@@ -56,14 +55,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             properties.Headers = new Dictionary<string, object>();
             properties.Headers.Add(message.Payload.GetType().GetContractId(), boundedContext);
-
-            if (message.GetPublishDelay() > 1000) // ttl for message
-                properties.Headers.Add("x-delay", message.GetPublishDelay());
-
-            string ttl = message.GetTTL(); // https://www.rabbitmq.com/ttl.html#per-message-ttl-in-publishers
-            if (string.IsNullOrEmpty(ttl) == false)
-                properties.Expiration = ttl;
-
+            properties.Expiration = message.GetTtl();
             properties.Persistent = true;
 
             return properties;
@@ -73,10 +65,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             IEnumerable<string> exchanges = rabbitMqNamer.GetExchangeNames(message.Payload.GetType());
 
-            if (message.GetPublishDelay() > 1000)
-            {
-                exchanges = exchanges.Select(e => $"{e}.Scheduler");
-            }
+            if (string.IsNullOrEmpty(message.GetTtl()) == false)
+                exchanges = exchanges.Select(e => $"{e}.Delayer");
 
             return exchanges;
         }

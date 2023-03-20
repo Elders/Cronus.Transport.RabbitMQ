@@ -110,11 +110,24 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
 
             model.QueueDeclare(queueName, true, false, false, routingHeaders);
 
-            var messageTypes = subscriberCollection.Subscribers.SelectMany(x => x.GetInvolvedMessageTypes()).Distinct().ToList();
+            var messageTypes = subscriberCollection.Subscribers.SelectMany(x => x.GetInvolvedMessageTypes()).Where(mt => typeof(ISystemMessage).IsAssignableFrom(mt) == isSystemQueue).Distinct().ToList();
             var exchangeGroups = messageTypes
                 .SelectMany(mt => bcRabbitMqNamer.GetExchangeNames(mt).Select(x => new { Exchange = x, MessageType = mt }))
                 .GroupBy(x => x.Exchange)
                 .Distinct();
+
+            bool thereIsAScheduledQueue = false;
+            string scheduledQueue = string.Empty;
+
+            if (exchangeGroups.Any())
+            {
+                routingHeaders.Add("x-dead-letter-exchange", exchangeGroups.First().Key);
+
+                scheduledQueue = $"{queueName}.Scheduled";
+                model.QueueDeclare(scheduledQueue, true, false, false, routingHeaders);
+
+                thereIsAScheduledQueue = true;
+            }
 
             foreach (var exchangeGroup in exchangeGroups)
             {
@@ -122,11 +135,8 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
                 string standardExchangeName = exchangeGroup.Key;
                 model.ExchangeDeclare(standardExchangeName, PipelineType.Headers.ToString(), true);
 
-                // Scheduler exchange
-                string schedulerExchangeName = $"{standardExchangeName}.Scheduler";
-                var args = new Dictionary<string, object>();
-                args.Add("x-delayed-type", PipelineType.Headers.ToString());
-                model.ExchangeDeclare(schedulerExchangeName, "x-delayed-message", true, false, args);
+                string deadLetterExchangeName = $"{standardExchangeName}.Delayer";
+                model.ExchangeDeclare(deadLetterExchangeName, ExchangeType.Headers, true, false);
 
                 var bindHeaders = new Dictionary<string, object>();
                 bindHeaders.Add("x-match", "any");
@@ -141,8 +151,11 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
                         bindHeaders.Add($"{msgType.GetContractId()}@{handler}", msgType.GetBoundedContext(boundedContext.Name));
                     }
                 }
+
                 model.QueueBind(queueName, standardExchangeName, string.Empty, bindHeaders);
-                model.QueueBind(queueName, schedulerExchangeName, string.Empty, bindHeaders);
+
+                if (thereIsAScheduledQueue)
+                    model.QueueBind(scheduledQueue, deadLetterExchangeName, string.Empty, bindHeaders);
             }
         }
     }
