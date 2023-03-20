@@ -1,3 +1,11 @@
+# [9.0.0-preview.7](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.6...v9.0.0-preview.7) (2023-03-20)
+
+
+### Features
+
+* Adds dead-lettered queues as a new way of scheduling messages ([735e2f6](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/735e2f6255c1650b33317e6aca1875a6768b81a5))
+* Adds dead-lettered queues as a new way of scheduling messages ([2804557](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/28045575a49c1a97dbdc6e32d12d7b52ee4fe840))
+
 # [9.0.0-preview.6](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.5...v9.0.0-preview.6) (2023-03-13)
 
 
