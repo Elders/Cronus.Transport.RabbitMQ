@@ -1,3 +1,11 @@
+# [9.0.0-preview.8](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.7...v9.0.0-preview.8) (2023-03-22)
+
+
+### Bug Fixes
+
+* Adds checks for duplicate bind headers on starting ([34be6eb](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/34be6ebcec50ffb4d213ea05bbf9ba7597884597))
+* Updates Cronus ([c89d9bb](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/c89d9bb18a4cc5c9cfce321588cdf24a3727a734))
+
 # [9.0.0-preview.7](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.6...v9.0.0-preview.7) (2023-03-20)
 
 
