@@ -148,7 +148,9 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
                     var handlers = event2Handler[standardExchangeName][msgType.GetContractId()];
                     foreach (var handler in handlers)
                     {
-                        bindHeaders.Add($"{msgType.GetContractId()}@{handler}", msgType.GetBoundedContext(boundedContext.Name));
+                        string key = $"{msgType.GetContractId()}@{handler}";
+                        if (bindHeaders.ContainsKey(key) == false)
+                            bindHeaders.Add(key, msgType.GetBoundedContext(boundedContext.Name));
                     }
                 }
 
