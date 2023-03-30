@@ -1,3 +1,10 @@
+# [9.0.0-preview.9](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.8...v9.0.0-preview.9) (2023-03-30)
+
+
+### Bug Fixes
+
+* Disables creation of trigger scheduled queues ([4f2be45](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/4f2be45b9ec874c95830803d5f9217b302df4aad))
+
 # [9.0.0-preview.8](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.7...v9.0.0-preview.8) (2023-03-22)
 
 
