@@ -119,7 +119,9 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
             bool thereIsAScheduledQueue = false;
             string scheduledQueue = string.Empty;
 
-            if (exchangeGroups.Any())
+            bool isTriggerQueue = typeof(T).Name.Equals(typeof(ITrigger).Name) || typeof(T).Name.Equals(typeof(ISystemTrigger).Name);
+
+            if (exchangeGroups.Any() && isTriggerQueue == false)
             {
                 routingHeaders.Add("x-dead-letter-exchange", exchangeGroups.First().Key);
 
@@ -134,9 +136,6 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
                 // Standard exchange
                 string standardExchangeName = exchangeGroup.Key;
                 model.ExchangeDeclare(standardExchangeName, PipelineType.Headers.ToString(), true);
-
-                string deadLetterExchangeName = $"{standardExchangeName}.Delayer";
-                model.ExchangeDeclare(deadLetterExchangeName, ExchangeType.Headers, true, false);
 
                 var bindHeaders = new Dictionary<string, object>();
                 bindHeaders.Add("x-match", "any");
@@ -157,7 +156,11 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
                 model.QueueBind(queueName, standardExchangeName, string.Empty, bindHeaders);
 
                 if (thereIsAScheduledQueue)
+                {
+                    string deadLetterExchangeName = $"{standardExchangeName}.Delayer";
+                    model.ExchangeDeclare(deadLetterExchangeName, ExchangeType.Headers, true, false);
                     model.QueueBind(scheduledQueue, deadLetterExchangeName, string.Empty, bindHeaders);
+                }
             }
         }
     }
