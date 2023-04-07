@@ -1,3 +1,10 @@
+# [9.0.0-preview.11](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.10...v9.0.0-preview.11) (2023-04-07)
+
+
+### Bug Fixes
+
+* Serialize CronusMessage in all cases when publishing message ([008fa84](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/008fa8435c9d8166cff8ca929aaffd2af62cc527))
+
 # [9.0.0-preview.10](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.9...v9.0.0-preview.10) (2023-04-07)
 
 
