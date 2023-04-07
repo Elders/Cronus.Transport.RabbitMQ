@@ -8,9 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Cronus" Version="9.0.0-preview.30" />
-    <PackageReference Include="Cronus.Persistence.Cassandra" Version="9.0.0-preview.21" />
-    <PackageReference Include="Cronus.Projections.Cassandra" Version="9.0.0-preview.3" />
+    <PackageReference Include="Cronus" Version="9.0.0-preview.37" />
+    <PackageReference Include="Cronus.Persistence.Cassandra" Version="9.0.0-preview.24" />
+    <PackageReference Include="Cronus.Projections.Cassandra" Version="9.0.0-preview.4" />
     <PackageReference Include="Cronus.Serialization.NewtonsoftJson" Version="9.0.0-preview.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
   </ItemGroup>

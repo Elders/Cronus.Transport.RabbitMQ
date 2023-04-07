@@ -27,11 +27,15 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
 
         protected override bool PublishInternal(CronusMessage message)
         {
+            Type messageType = null;
+
             try
             {
                 string boundedContext = message.BoundedContext;
 
-                IEnumerable<string> exchanges = rabbitMqNamer.GetExchangeNames(message.Payload.GetType());
+                messageType = message.GetMessageType();
+
+                IEnumerable<string> exchanges = rabbitMqNamer.GetExchangeNames(messageType);
                 foreach (var exchange in exchanges)
                 {
                     Publish(message, boundedContext, exchange, options.PublicClustersOptions);
@@ -39,7 +43,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
 
                 return true;
             }
-            catch (Exception ex) when (logger.WarnException(ex, () => $"Unable to publish {message.Payload.GetType()}"))
+            catch (Exception ex) when (logger.WarnException(ex, () => $"Unable to publish {messageType}"))
             {
                 return false;
             }

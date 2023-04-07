@@ -21,7 +21,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             if (message.IsRepublished)
             {
                 string boundedContext = message.Headers[MessageHeader.BoundedContext];
-                string messageContractId = message.Payload.GetType().GetContractId();
+                string messageContractId = message.GetMessageType().GetContractId();
 
                 properties.Headers = new Dictionary<string, object>();
                 properties.Expiration = message.GetTtl();

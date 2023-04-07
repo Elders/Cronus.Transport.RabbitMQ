@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -45,8 +46,15 @@ namespace Elders.Cronus.Transport.RabbitMQ
             IBasicProperties props = exchangeModel.CreateBasicProperties();
             props = BuildMessageProperties(props, message);
 
-            byte[] body = serializer.SerializeToBytes(message);
-            exchangeModel.BasicPublish(exchange, string.Empty, false, props, body);
+            if (message.PayloadRaw.Length > 0)
+            {
+                exchangeModel.BasicPublish(exchange, string.Empty, false, props, message.PayloadRaw);
+            }
+            else
+            {
+                byte[] body = serializer.SerializeToBytes(message);
+                exchangeModel.BasicPublish(exchange, string.Empty, false, props, body);
+            }
         }
 
         protected virtual IBasicProperties BuildMessageProperties(IBasicProperties properties, CronusMessage message)
@@ -54,7 +62,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             string boundedContext = message.Headers[MessageHeader.BoundedContext];
 
             properties.Headers = new Dictionary<string, object>();
-            properties.Headers.Add(message.Payload.GetType().GetContractId(), boundedContext);
+            properties.Headers.Add(message.GetMessageType().GetContractId(), boundedContext);
             properties.Expiration = message.GetTtl();
             properties.Persistent = true;
 
@@ -63,7 +71,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private IEnumerable<string> GetExistingExchangesNames(CronusMessage message)
         {
-            IEnumerable<string> exchanges = rabbitMqNamer.GetExchangeNames(message.Payload.GetType());
+            Type messageType = message.GetMessageType();
+
+            IEnumerable<string> exchanges = rabbitMqNamer.GetExchangeNames(messageType);
 
             if (string.IsNullOrEmpty(message.GetTtl()) == false)
                 exchanges = exchanges.Select(e => $"{e}.Delayer");
