@@ -46,15 +46,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
             IBasicProperties props = exchangeModel.CreateBasicProperties();
             props = BuildMessageProperties(props, message);
 
-            if (message.PayloadRaw.Length > 0)
-            {
-                exchangeModel.BasicPublish(exchange, string.Empty, false, props, message.PayloadRaw);
-            }
-            else
-            {
-                byte[] body = serializer.SerializeToBytes(message);
-                exchangeModel.BasicPublish(exchange, string.Empty, false, props, body);
-            }
+            byte[] body = serializer.SerializeToBytes(message);
+            exchangeModel.BasicPublish(exchange, string.Empty, false, props, body);
         }
 
         protected virtual IBasicProperties BuildMessageProperties(IBasicProperties properties, CronusMessage message)
