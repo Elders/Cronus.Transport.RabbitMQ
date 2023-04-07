@@ -1,3 +1,10 @@
+# [9.0.0-preview.10](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.9...v9.0.0-preview.10) (2023-04-07)
+
+
+### Features
+
+* Optimizes the public event replays ([f3f09d1](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/f3f09d18e639568a5876ec2ef29250953e2494f0))
+
 # [9.0.0-preview.9](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.8...v9.0.0-preview.9) (2023-03-30)
 
 
