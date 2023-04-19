@@ -26,7 +26,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         protected abstract Task DeliverMessageToSubscribersAsync(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer);
 
-        public async Task StopAsync()
+        public Task StopAsync()
         {
             // 1. We detach the listener so ther will be no new messages coming from the queue
             Received -= AsyncListener_Received;
@@ -38,7 +38,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 // Ofcourse the host could be forcibly shut down but we are doing our best.
             }
 
-            await Task.CompletedTask.ConfigureAwait(false);
+            return Task.CompletedTask;
         }
 
         private async Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)
