@@ -67,7 +67,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
             string boundedContext = message.Headers[MessageHeader.BoundedContext];
 
             properties.Headers = new Dictionary<string, object>();
-            properties.Headers.Add(message.Payload.GetType().GetContractId(), boundedContext);
+            properties.Headers.Add(message.GetMessageType().GetContractId(), boundedContext);
             properties.Expiration = message.GetTtl();
             properties.Persistent = false;
             properties.DeliveryMode = 1;

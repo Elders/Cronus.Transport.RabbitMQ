@@ -32,6 +32,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
             try
             {
                 cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(ev.Body);
+                cronusMessage = ExpandRawPayload(cronusMessage);
+
                 var subscribers = subscriberCollection.GetInterestedSubscribers(cronusMessage);
                 List<Task> deliverTasks = new List<Task>();
 
