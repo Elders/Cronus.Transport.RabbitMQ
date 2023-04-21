@@ -1,3 +1,10 @@
+# [9.0.0-preview.12](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.11...v9.0.0-preview.12) (2023-04-21)
+
+
+### Features
+
+* Handles CronusMessage messages containing raw Payload ([519a8c8](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/519a8c8d9193fdfba664be812a41314a050deaa8))
+
 # [9.0.0-preview.11](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.10...v9.0.0-preview.11) (2023-04-07)
 
 
