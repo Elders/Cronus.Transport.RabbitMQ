@@ -1,3 +1,10 @@
+# [8.2.0](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.17...v8.2.0) (2023-04-28)
+
+
+### Features
+
+* Handles raw messages ([d5ad87f](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/d5ad87f47fc7cc585d0a79409b82d7abd0d78575))
+
 ## [8.1.17](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.1.16...v8.1.17) (2023-02-15)
 
 
