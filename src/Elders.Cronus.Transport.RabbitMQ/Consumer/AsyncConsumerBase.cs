@@ -83,6 +83,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
             try
             {
                 cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(ev.Body);
+                cronusMessage = ExpandRawPayload(cronusMessage);
+
                 var subscribers = subscriberCollection.GetInterestedSubscribers(cronusMessage);
                 List<Task> deliverTasks = new List<Task>();
 
@@ -101,6 +103,17 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     consumer.Model.BasicAck(ev.DeliveryTag, false);
                 }
             }
+        }
+
+        protected CronusMessage ExpandRawPayload(CronusMessage cronusMessage)
+        {
+            if (cronusMessage.Payload is null && cronusMessage.PayloadRaw?.Length > 0)
+            {
+                IMessage payload = serializer.DeserializeFromBytes(cronusMessage.PayloadRaw) as IMessage;
+                return new CronusMessage(payload, cronusMessage.Headers);
+            }
+
+            return cronusMessage;
         }
     }
 }
