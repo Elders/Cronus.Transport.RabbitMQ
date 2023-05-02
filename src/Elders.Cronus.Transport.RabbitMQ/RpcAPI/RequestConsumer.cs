@@ -24,8 +24,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             this.serviceProvider = serviceProvider;
             model.QueueDeclare(queue, exclusive: false);
             model.BasicQos(0, 1, false);
-            model.BasicConsume(queue, autoAck: false, this); // We should do manual acknowledgement to spread the load equally over multiple servers
-            logger.Info(() => $"RPC request consumer started for {queue}.");
+            model.BasicConsume(queue, autoAck: false, this); // We should do manual acknowledgement to spread the load equally over multiple 
         }
 
         protected override async Task DeliverMessageToSubscribersAsync(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)
