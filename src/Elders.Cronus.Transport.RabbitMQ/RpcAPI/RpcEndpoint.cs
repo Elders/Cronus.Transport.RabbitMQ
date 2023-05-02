@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -83,10 +82,12 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             try
             {
                 IRabbitMqOptions scopedOptions = options.GetOptionsFor(boundedContext.Name);
-
                 IModel requestChannel = channelResolver.Resolve(route, scopedOptions, options.VHost);
 
-                server = new RequestConsumer<TRequest, TResponse>(route, requestChannel, factory, serializer, serviceProvider, logger);
+                for (int workerNumber = 0; workerNumber < consumerOptions.RpcWorkersCount; workerNumber++)
+                    server = new RequestConsumer<TRequest, TResponse>(route, requestChannel, factory, serializer, serviceProvider, logger);
+
+                logger.Info(() => $"{consumerOptions.RpcWorkersCount} RPC request consumers started for {route}.");
             }
             catch (Exception ex) when (logger.ErrorException(ex, () => $"Unable to start rpc server for {route}.")) { }
         }
