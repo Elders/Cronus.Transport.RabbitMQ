@@ -12,6 +12,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public int RpcTimeout { get; set; } = 10; // In seconds
 
+        public int RpcWorkersCount { get; set; } = 10;
+
         /// <summary>
         /// Drasticly changes the infrastructure behavior. This will create a separate queue per node and a message will be delivered to every node.
         /// </summary>
