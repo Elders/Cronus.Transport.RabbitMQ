@@ -1,3 +1,10 @@
+# [9.0.0-preview.13](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.12...v9.0.0-preview.13) (2023-05-02)
+
+
+### Features
+
+* Adds options for consumers count when starting the RPC ([21c1445](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/21c144590ee8836a10be4939fdd3747c35e1b5b7))
+
 # [9.0.0-preview.12](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.11...v9.0.0-preview.12) (2023-04-21)
 
 
