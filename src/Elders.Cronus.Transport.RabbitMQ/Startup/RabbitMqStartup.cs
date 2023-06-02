@@ -119,9 +119,9 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
             bool thereIsAScheduledQueue = false;
             string scheduledQueue = string.Empty;
 
-            bool isTriggerQueue = typeof(T).Name.Equals(typeof(ITrigger).Name) || typeof(T).Name.Equals(typeof(ISystemTrigger).Name);
+            bool isSagaQueue = typeof(T).Name.Equals(typeof(ISaga).Name) || typeof(T).Name.Equals(typeof(ISystemSaga).Name);
 
-            if (exchangeGroups.Any() && isTriggerQueue == false)
+            if (exchangeGroups.Any() && isSagaQueue)
             {
                 routingHeaders.Add("x-dead-letter-exchange", exchangeGroups.First().Key);
 
