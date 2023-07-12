@@ -1,7 +1,4 @@
-﻿using Elders.Cronus.Multitenancy;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using RabbitMQ.Client;
+﻿using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,8 +11,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private readonly PublisherChannelResolver channelResolver;
         private readonly IRabbitMqNamer rabbitMqNamer;
 
-        public RabbitMqPublisherBase(ISerializer serializer, PublisherChannelResolver channelResolver, ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, IRabbitMqNamer rabbitMqNamer, ILogger logger)
-            : base(tenantResolver, boundedContext.CurrentValue, logger)
+        public RabbitMqPublisherBase(ISerializer serializer, PublisherChannelResolver channelResolver, IRabbitMqNamer rabbitMqNamer, IEnumerable<DelegatingPublishHandler> handlers)
+            : base(handlers)
         {
             this.serializer = serializer;
             this.channelResolver = channelResolver;

@@ -9,8 +9,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
     {
         private readonly IOptionsMonitor<RabbitMqOptions> optionsMonitor;
 
-        public PrivateRabbitMqPublisher(ISerializer serializer, PublisherChannelResolver channelResolver, ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, IOptionsMonitor<RabbitMqOptions> optionsMonitor, BoundedContextRabbitMqNamer rabbitMqNamer, ILogger<PrivateRabbitMqPublisher<TMessage>> logger)
-            : base(serializer, channelResolver, tenantResolver, boundedContext, rabbitMqNamer, logger)
+        public PrivateRabbitMqPublisher(ISerializer serializer, PublisherChannelResolver channelResolver, ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, IOptionsMonitor<RabbitMqOptions> optionsMonitor, BoundedContextRabbitMqNamer rabbitMqNamer, ILogger<PrivateRabbitMqPublisher<TMessage>> logger, IEnumerable<DelegatingPublishHandler> handlers)
+            : base(serializer, channelResolver, rabbitMqNamer, handlers)
         {
             this.optionsMonitor = optionsMonitor;
         }

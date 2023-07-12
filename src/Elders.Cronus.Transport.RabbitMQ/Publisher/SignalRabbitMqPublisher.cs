@@ -1,5 +1,4 @@
-﻿using Elders.Cronus.Multitenancy;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using System;
@@ -15,8 +14,8 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
         private readonly ILogger<SignalRabbitMqPublisher> logger;
         private readonly PublicRabbitMqOptionsCollection options;
 
-        public SignalRabbitMqPublisher(ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, IOptionsMonitor<PublicRabbitMqOptionsCollection> optionsMonitor, SignalMessagesRabbitMqNamer rabbitMqNamer, PublisherChannelResolver channelResolver, ISerializer serializer, ILogger<SignalRabbitMqPublisher> logger)
-            : base(tenantResolver, boundedContext.CurrentValue, logger)
+        public SignalRabbitMqPublisher(IOptionsMonitor<PublicRabbitMqOptionsCollection> optionsMonitor, SignalMessagesRabbitMqNamer rabbitMqNamer, PublisherChannelResolver channelResolver, ISerializer serializer, ILogger<SignalRabbitMqPublisher> logger, IEnumerable<DelegatingPublishHandler> handlers)
+            : base(handlers)
         {
             this.rabbitMqNamer = rabbitMqNamer;
             options = optionsMonitor.CurrentValue;
