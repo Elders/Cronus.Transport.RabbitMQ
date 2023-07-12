@@ -1,3 +1,10 @@
+# [9.0.0-preview.17](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.16...v9.0.0-preview.17) (2023-07-12)
+
+
+### Bug Fixes
+
+* Checks for null before invoking Stop ([976fc80](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/976fc80f6499077602f00feca518b6cf37371db9))
+
 # [9.0.0-preview.16](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.15...v9.0.0-preview.16) (2023-07-12)
 
 
