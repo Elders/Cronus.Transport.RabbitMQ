@@ -1,3 +1,10 @@
+# [9.0.0-preview.16](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.15...v9.0.0-preview.16) (2023-07-12)
+
+
+### Bug Fixes
+
+* Updates packages and fixes breaking changes ([964c41e](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/964c41e9ede46655e54d10157d97f30afcb030cc))
+
 # [9.0.0-preview.15](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.14...v9.0.0-preview.15) (2023-06-07)
 
 
