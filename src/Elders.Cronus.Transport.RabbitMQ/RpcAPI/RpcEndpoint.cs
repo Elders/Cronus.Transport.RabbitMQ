@@ -94,8 +94,11 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 
         async Task IRpc.StopConsumersAsync()
         {
-            await (client?.StopAsync()).ConfigureAwait(false);
-            await (server?.StopAsync()).ConfigureAwait(false);
+            if (client is not null)
+                await client.StopAsync().ConfigureAwait(false);
+
+            if (server is not null)
+                await server.StopAsync().ConfigureAwait(false);
         }
 
         private static SemaphoreSlim threadGate = new SemaphoreSlim(1, 1);
