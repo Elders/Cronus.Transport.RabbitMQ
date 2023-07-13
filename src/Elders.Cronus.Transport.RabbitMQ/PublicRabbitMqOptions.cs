@@ -61,7 +61,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     .Select(endpoint =>
                     {
                         endpoint.Ssl.Enabled = UseSsl;
-                        return endpoint.ToString();
+                        return $"{endpoint}/{VHost}";
                     });
             }
         }
