@@ -1,3 +1,10 @@
+# [9.0.0-preview.18](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.17...v9.0.0-preview.18) (2023-07-13)
+
+
+### Bug Fixes
+
+* Explicitly configure federation exchange via config file ([a8e3493](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/a8e3493073373e6f9a01d6bd3e002f6a8b70ff28))
+
 # [9.0.0-preview.17](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.16...v9.0.0-preview.17) (2023-07-12)
 
 
