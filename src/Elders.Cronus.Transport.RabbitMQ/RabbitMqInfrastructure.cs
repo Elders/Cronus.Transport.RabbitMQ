@@ -67,13 +67,17 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private void CreatePublishedLanguageConnection(RabbitMqManagementClient downstreamClient, PublicRabbitMqOptions publicSettings)
         {
+            var upstreams = publicSettings.GetUpstreamUris();
+            if (upstreams.Any() == false)
+                return;
+
             IEnumerable<string> publicExchangeNames = publicRabbitMqNamer.GetExchangeNames(typeof(IPublicEvent));
             IEnumerable<string> signalExchangeNames = signalRabbitMqNamer.GetExchangeNames(typeof(ISignal));
             IEnumerable<string> exchanges = publicExchangeNames.Concat(signalExchangeNames);
 
             foreach (var exchange in exchanges)
             {
-                foreach (var upstream in publicSettings.GetUpstreamUris())
+                foreach (var upstream in upstreams)
                 {
                     FederatedExchange federatedExchange = new FederatedExchange()
                     {

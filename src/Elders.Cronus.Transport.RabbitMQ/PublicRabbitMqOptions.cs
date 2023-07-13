@@ -53,7 +53,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             if (string.IsNullOrEmpty(FederationUpstreamUri))
             {
-                return GetDefaultUpstreamUri();
+                return Enumerable.Empty<string>();
             }
             else
             {
