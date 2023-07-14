@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
 namespace Elders.Cronus.Transport.RabbitMQ
@@ -38,11 +39,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public bool UseAsyncDispatcher { get; set; }
 
-        public FederatedExchangeOptions FederatedExchange { get; set; } = new FederatedExchangeOptions();
+        public FederatedExchangeOptions FederatedExchange { get; set; }
 
         public bool UseSsl { get; set; } = false;
-
-        public string FederationUpstreamUri { get; set; }
 
         public IRabbitMqOptions GetOptionsFor(string boundedContext)
         {
@@ -51,17 +50,17 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public IEnumerable<string> GetUpstreamUris()
         {
-            if (string.IsNullOrEmpty(FederationUpstreamUri))
+            if (FederatedExchange is null)
             {
                 return Enumerable.Empty<string>();
             }
             else
             {
-                return AmqpTcpEndpoint.ParseMultiple(FederationUpstreamUri)
+                return AmqpTcpEndpoint.ParseMultiple(FederatedExchange.UpstreamUri)
                     .Select(endpoint =>
                     {
-                        endpoint.Ssl.Enabled = UseSsl;
-                        return endpoint.ToString();
+                        endpoint.Ssl.Enabled = FederatedExchange.UseSsl;
+                        return $"{endpoint}/{FederatedExchange.VHost}";
                     });
             }
         }
@@ -74,6 +73,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
     public class FederatedExchangeOptions
     {
+        [Required]
+        public string UpstreamUri { get; set; }
+        [Required]
+        public string VHost { get; set; }
+        public bool UseSsl { get; set; } = false;
         public int MaxHops { get; set; } = 1;
     }
 

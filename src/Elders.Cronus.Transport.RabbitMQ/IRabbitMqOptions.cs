@@ -5,7 +5,6 @@
         int AdminPort { get; set; }
         int Port { get; set; }
         bool UseSsl { get; set; }
-        string FederationUpstreamUri { get; set; }
         string Password { get; set; }
         string Server { get; set; }
         string Username { get; set; }
