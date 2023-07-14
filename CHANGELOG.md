@@ -1,3 +1,10 @@
+# [9.0.0-preview.19](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.18...v9.0.0-preview.19) (2023-07-14)
+
+
+### Features
+
+* Extends the FederatedExchange config options ([1d8fc16](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/1d8fc169ff89820b138c5d614dd3942a914976b3))
+
 # [9.0.0-preview.18](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.17...v9.0.0-preview.18) (2023-07-13)
 
 
