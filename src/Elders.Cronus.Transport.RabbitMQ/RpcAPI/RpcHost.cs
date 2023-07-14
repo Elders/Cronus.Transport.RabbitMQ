@@ -63,7 +63,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 
                         if (service.Contains(null))
                         {
-                            logger.LogError($"Unable to resolve endpoind {endpoint.GetInterface("IRpc").Name}<{requestType},{responseType}>.");
+                            logger.LogError($"Unable to resolve endpoint {endpoint.GetInterface("IRpc").Name}<{requestType},{responseType}>.");
                             continue;
                         }
 
