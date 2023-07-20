@@ -48,8 +48,8 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             if (handlers is null)
                 throw new ApplicationException("No handler registered for type: " + typeof(TRequest).FullName);
 
-            CronusContextFactory contextFactory = serviceProvider.GetRequiredService<CronusContextFactory>();
-            contextFactory.GetContext(tenant, serviceProvider);
+            DefaultCronusContextFactory contextFactory = serviceProvider.GetRequiredService<DefaultCronusContextFactory>();
+            contextFactory.Create(tenant, serviceProvider);
 
             ConstructorInfo[] constructors = handlers.Key.GetConstructors();
             if (constructors.Length == 1 && constructors.First().GetParameters().Length == 0)

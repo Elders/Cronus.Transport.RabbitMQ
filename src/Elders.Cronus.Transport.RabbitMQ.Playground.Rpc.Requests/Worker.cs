@@ -7,12 +7,14 @@ namespace Elders.Cronus.Transport.RabbitMQ.Playground.Rpc.Requests
     {
         private readonly IServiceProvider provider;
         private readonly ICronusHost cronusHost;
+        private readonly DefaultCronusContextFactory cronusContextFactory;
         private readonly ILogger<Worker> _logger;
 
-        public Worker(IServiceProvider provider, ICronusHost cronusHost, ILogger<Worker> logger)
+        public Worker(IServiceProvider provider, ICronusHost cronusHost, DefaultCronusContextFactory cronusContextFactory, ILogger<Worker> logger)
         {
             this.provider = provider;
             this.cronusHost = cronusHost;
+            this.cronusContextFactory = cronusContextFactory;
             _logger = logger;
         }
 
@@ -26,8 +28,8 @@ namespace Elders.Cronus.Transport.RabbitMQ.Playground.Rpc.Requests
 
             using (var scrope = provider.CreateScope())
             {
-                var context = scrope.ServiceProvider.GetRequiredService<CronusContext>();
-                context.Tenant = "elders";
+                var context = cronusContextFactory.Create("elders", scrope.ServiceProvider);
+
                 var rpc = scrope.ServiceProvider.GetRequiredService<IRpc<NumberRequest, RpcResponse<NumberResponse>>>();
                 Console.WriteLine();
                 List<Task> tasks = new List<Task>();
@@ -58,7 +60,6 @@ namespace Elders.Cronus.Transport.RabbitMQ.Playground.Rpc.Requests
 
                 await Task.WhenAll(tasks);
             }
-
         }
     }
 }
