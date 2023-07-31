@@ -64,7 +64,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
                     return Task.CompletedTask;
                 }
 
-                transient = (RpcResponseTransmission)serializer.DeserializeFromBytes(ev.Body);
+                transient = serializer.DeserializeFromBytes<RpcResponseTransmission>(ev.Body.ToArray());
 
                 response.Data = transient.Data;
                 response.Error = transient.Error;

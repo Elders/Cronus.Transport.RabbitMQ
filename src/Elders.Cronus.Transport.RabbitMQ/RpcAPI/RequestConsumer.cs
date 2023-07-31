@@ -36,7 +36,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 
                 try // Proccess request and publish response
                 {
-                    request = (TRequest)serializer.DeserializeFromBytes(ev.Body);
+                    request = serializer.DeserializeFromBytes<TRequest>(ev.Body.ToArray());
 
                     IRequestHandler<TRequest, TResponse> handler = factory.CreateHandler<TRequest, TResponse>(request.Tenant, scope.ServiceProvider);
                     TResponse handlerResponse = await handler.HandleAsync(request).ConfigureAwait(false);

@@ -55,17 +55,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 isСurrentlyConsuming = false;
             }
         }
-
-        protected string MessageAsString(CronusMessage message)
-        {
-            using (var stream = new MemoryStream())
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                serializer.Serialize(stream, message);
-                stream.Position = 0;
-                return reader.ReadToEnd();
-            }
-        }
     }
 
     public class AsyncConsumerBase<TSubscriber> : AsyncConsumerBase
@@ -82,7 +71,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             CronusMessage cronusMessage = null;
             try
             {
-                cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(ev.Body);
+                cronusMessage = serializer.DeserializeFromBytes<CronusMessage>(ev.Body.ToArray());
                 cronusMessage = ExpandRawPayload(cronusMessage);
 
                 var subscribers = subscriberCollection.GetInterestedSubscribers(cronusMessage);
@@ -95,7 +84,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
                 await Task.WhenAll(deliverTasks).ConfigureAwait(false);
             }
-            catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to process message." + Environment.NewLine + cronusMessage is null ? "Failed to deserialize" : MessageAsString(cronusMessage))) { }
+            catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to process message." + Environment.NewLine + cronusMessage is null ? "Failed to deserialize" : serializer.SerializeToString(cronusMessage))) { }
             finally
             {
                 if (consumer.Model.IsOpen)
@@ -109,7 +98,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             if (cronusMessage.Payload is null && cronusMessage.PayloadRaw?.Length > 0)
             {
-                IMessage payload = serializer.DeserializeFromBytes(cronusMessage.PayloadRaw) as IMessage;
+                IMessage payload = serializer.DeserializeFromBytes<IMessage>(cronusMessage.PayloadRaw);
                 return new CronusMessage(payload, cronusMessage.Headers);
             }
 

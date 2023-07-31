@@ -31,7 +31,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             CronusMessage cronusMessage = null;
             try
             {
-                cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(ev.Body);
+                cronusMessage = serializer.DeserializeFromBytes<CronusMessage>(ev.Body.ToArray());
                 cronusMessage = ExpandRawPayload(cronusMessage);
 
                 var subscribers = subscriberCollection.GetInterestedSubscribers(cronusMessage);
@@ -44,7 +44,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
                 await Task.WhenAll(deliverTasks).ConfigureAwait(false);
             }
-            catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to process message." + Environment.NewLine + cronusMessage is null ? "Failed to deserialize" : MessageAsString(cronusMessage))) { }
+            catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to process message." + Environment.NewLine + cronusMessage is null ? "Failed to deserialize" : serializer.SerializeToString(cronusMessage))) { }
         }
     }
 }
