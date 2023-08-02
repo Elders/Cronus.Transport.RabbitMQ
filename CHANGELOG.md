@@ -1,3 +1,10 @@
+# [9.0.0-preview.22](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.21...v9.0.0-preview.22) (2023-08-02)
+
+
+### Bug Fixes
+
+* Properly publishes signals to the same BC ([a710985](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/a710985c76d7d44f50834d0dbb723c4a4402f510))
+
 # [9.0.0-preview.21](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.20...v9.0.0-preview.21) (2023-07-31)
 
 # [9.0.0-preview.20](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.19...v9.0.0-preview.20) (2023-07-20)
