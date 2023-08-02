@@ -9,14 +9,18 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
     public sealed class SignalRabbitMqPublisher : PublisherBase<ISignal>
     {
         private readonly PublisherChannelResolver channelResolver;
+        private readonly BoundedContext boundedContext;
+        private readonly RabbitMqOptions internalOptions;
         private readonly SignalMessagesRabbitMqNamer rabbitMqNamer;
         private readonly ISerializer serializer;
         private readonly ILogger<SignalRabbitMqPublisher> logger;
         private readonly PublicRabbitMqOptionsCollection options;
 
-        public SignalRabbitMqPublisher(IOptionsMonitor<PublicRabbitMqOptionsCollection> optionsMonitor, SignalMessagesRabbitMqNamer rabbitMqNamer, PublisherChannelResolver channelResolver, ISerializer serializer, ILogger<SignalRabbitMqPublisher> logger, IEnumerable<DelegatingPublishHandler> handlers)
+        public SignalRabbitMqPublisher(IOptionsMonitor<BoundedContext> boundedContextOptionsMonitor, IOptionsMonitor<RabbitMqOptions> internalOptionsMonitor, IOptionsMonitor<PublicRabbitMqOptionsCollection> optionsMonitor, SignalMessagesRabbitMqNamer rabbitMqNamer, PublisherChannelResolver channelResolver, ISerializer serializer, ILogger<SignalRabbitMqPublisher> logger, IEnumerable<DelegatingPublishHandler> handlers)
             : base(handlers)
         {
+            this.boundedContext = boundedContextOptionsMonitor.CurrentValue;
+            this.internalOptions = internalOptionsMonitor.CurrentValue;
             this.rabbitMqNamer = rabbitMqNamer;
             options = optionsMonitor.CurrentValue;
             this.channelResolver = channelResolver;
@@ -30,14 +34,21 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
 
             try
             {
-                string boundedContext = message.BoundedContext;
-
+                string messageBC = message.BoundedContext;
                 messageType = message.GetMessageType();
-
                 IEnumerable<string> exchanges = rabbitMqNamer.GetExchangeNames(messageType);
+                bool isInternalSignal = boundedContext.Name.Equals(messageBC, StringComparison.OrdinalIgnoreCase); // if the message will be published internally to the same BC
+
                 foreach (var exchange in exchanges)
                 {
-                    Publish(message, boundedContext, exchange, options.PublicClustersOptions);
+                    if (isInternalSignal)
+                    {
+                        PublishInternally(message, messageBC, exchange, internalOptions);
+                    }
+                    else
+                    {
+                        PublishPublically(message, messageBC, exchange, options.PublicClustersOptions);
+                    }
                 }
 
                 return true;
@@ -48,17 +59,37 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
             }
         }
 
-        private void Publish(CronusMessage message, string boundedContext, string exchange, IEnumerable<IRabbitMqOptions> scopedOptions)
+        private void PublishInternally(CronusMessage message, string boundedContext, string exchange, IRabbitMqOptions internalOptions)
         {
+            IModel exchangeModel = channelResolver.Resolve(exchange, internalOptions, boundedContext);
+            IBasicProperties props = exchangeModel.CreateBasicProperties();
+            props = BuildMessageProperties(props, message);
+
+            PublishUsingChannel(message, exchange, exchangeModel, props);
+        }
+
+        private void PublishPublically(CronusMessage message, string boundedContext, string exchange, IEnumerable<IRabbitMqOptions> scopedOptions)
+        {
+            IBasicProperties props = null;
+
             foreach (var opt in scopedOptions)
             {
                 IModel exchangeModel = channelResolver.Resolve(exchange, opt, boundedContext);
-                IBasicProperties props = exchangeModel.CreateBasicProperties();
-                props = BuildMessageProperties(props, message);
 
-                byte[] body = serializer.SerializeToBytes(message);
-                exchangeModel.BasicPublish(exchange, string.Empty, false, props, body);
+                if (props == null)
+                {
+                    props = exchangeModel.CreateBasicProperties();
+                    props = BuildMessageProperties(props, message);
+                }
+
+                PublishUsingChannel(message, exchange, exchangeModel, props);
             }
+        }
+
+        private void PublishUsingChannel(CronusMessage message, string exchange, IModel exchangeModel, IBasicProperties properties)
+        {
+            byte[] body = serializer.SerializeToBytes(message);
+            exchangeModel.BasicPublish(exchange, string.Empty, false, properties, body);
         }
 
         private IBasicProperties BuildMessageProperties(IBasicProperties properties, CronusMessage message)
