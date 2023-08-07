@@ -1,3 +1,11 @@
+# [9.0.0-preview.23](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.22...v9.0.0-preview.23) (2023-08-07)
+
+
+### Bug Fixes
+
+* Publishing a signal internally to a BC will not be routed through the public BC ([ce434f7](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/ce434f796846844d4b6c3b0c60bd561511a95898))
+* Updates packages ([f76a308](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/f76a308ab1f50ed7f3d84b14d2acdf024e089ee6))
+
 # [9.0.0-preview.22](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.21...v9.0.0-preview.22) (2023-08-02)
 
 
