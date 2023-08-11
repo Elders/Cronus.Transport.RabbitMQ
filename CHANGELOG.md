@@ -1,3 +1,10 @@
+# [9.0.0-preview.24](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.23...v9.0.0-preview.24) (2023-08-11)
+
+
+### Bug Fixes
+
+* Updates Cronus and Newtonsoft ([5456869](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/54568690f3438cf8a27b908121adddab5d51cbef))
+
 # [9.0.0-preview.23](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.22...v9.0.0-preview.23) (2023-08-07)
 
 
