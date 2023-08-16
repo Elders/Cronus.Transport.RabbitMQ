@@ -1,10 +1,6 @@
 ﻿using Elders.Cronus.MessageProcessing;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
@@ -24,27 +20,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
             model.BasicConsume(queue, false, string.Empty, this);
 
             logger.Debug(() => $"Consumer for {typeof(TSubscriber).Name} started.");
-        }
-
-        protected override async Task DeliverMessageToSubscribersAsync(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)
-        {
-            CronusMessage cronusMessage = null;
-            try
-            {
-                cronusMessage = serializer.DeserializeFromBytes<CronusMessage>(ev.Body.ToArray());
-                cronusMessage = ExpandRawPayload(cronusMessage);
-
-                var subscribers = subscriberCollection.GetInterestedSubscribers(cronusMessage);
-                List<Task> deliverTasks = new List<Task>();
-
-                foreach (var subscriber in subscribers)
-                {
-                    deliverTasks.Add(subscriber.ProcessAsync(cronusMessage));
-                }
-
-                await Task.WhenAll(deliverTasks).ConfigureAwait(false);
-            }
-            catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to process message." + Environment.NewLine + cronusMessage is null ? "Failed to deserialize" : serializer.SerializeToString(cronusMessage))) { }
         }
     }
 }
