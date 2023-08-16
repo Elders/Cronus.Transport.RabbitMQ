@@ -1,3 +1,10 @@
+# [9.0.0-preview.26](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.25...v9.0.0-preview.26) (2023-08-16)
+
+
+### Bug Fixes
+
+* Fixes manual ack for Signal messages ([b60b36e](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/b60b36e737ae963f8e2947fd791ded0c6f0e2d5d))
+
 # [9.0.0-preview.25](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.24...v9.0.0-preview.25) (2023-08-16)
 
 # [9.0.0-preview.24](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.23...v9.0.0-preview.24) (2023-08-11)
