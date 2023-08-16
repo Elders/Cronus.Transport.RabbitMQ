@@ -21,7 +21,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             base(model, subscriberCollection, serializer, logger)
         {
             this.subscriberCollection = subscriberCollection;
-            model.BasicConsume(queue, true, string.Empty, this);
+            model.BasicConsume(queue, false, string.Empty, this);
 
             logger.Debug(() => $"Consumer for {typeof(TSubscriber).Name} started.");
         }
