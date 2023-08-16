@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.IO;
 using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
@@ -26,7 +25,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         protected abstract Task DeliverMessageToSubscribersAsync(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer);
 
-        public Task StopAsync()
+        public async Task StopAsync()
         {
             // 1. We detach the listener so ther will be no new messages coming from the queue
             Received -= AsyncListener_Received;
@@ -36,9 +35,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 // We are trying to wait all consumers to finish their current work.
                 // Ofcourse the host could be forcibly shut down but we are doing our best.
+
+                await Task.Delay(10).ConfigureAwait(false);
             }
 
-            return Task.CompletedTask;
+            if (model.IsOpen)
+                model.Abort();
         }
 
         private async Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)

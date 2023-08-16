@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Elders.Cronus.MessageProcessing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -24,7 +25,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.logger = logger;
         }
 
-        public void Start()
+        public Task StartAsync()
         {
             try
             {
@@ -37,11 +38,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             }
             catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to start rabbitmq consumer.")) { }
+
+            return Task.CompletedTask;
         }
 
-        public void Stop()
+        public Task StopAsync()
         {
-            consumerFactory.StopAsync().GetAwaiter().GetResult();
+            return consumerFactory.StopAsync();
         }
     }
 }

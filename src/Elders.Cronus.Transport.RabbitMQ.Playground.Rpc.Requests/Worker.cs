@@ -22,7 +22,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Playground.Rpc.Requests
         {
             _logger.LogInformation("Starting service...");
 
-            cronusHost.Start();
+            await cronusHost.StartAsync().ConfigureAwait(false);
 
             _logger.LogInformation("Service started!");
 

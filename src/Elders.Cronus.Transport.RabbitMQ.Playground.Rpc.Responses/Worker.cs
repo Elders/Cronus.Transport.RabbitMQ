@@ -15,7 +15,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Playground.Rpc.Responses
         {
             _logger.LogInformation("Starting service...");
 
-            cronusHost.Start();
+            await cronusHost.StartAsync().ConfigureAwait(false);
 
 
             _logger.LogInformation("Service started!");
