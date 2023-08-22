@@ -14,6 +14,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         protected readonly ISerializer serializer;
         protected readonly IModel model;
         private bool isСurrentlyConsuming;
+
         public AsyncConsumerBase(IModel model, ISerializer serializer, ILogger logger) : base(model)
         {
             this.model = model;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Elders.Cronus.MessageProcessing;
 using Microsoft.Extensions.Logging;
@@ -9,6 +10,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 {
     public class Consumer<T> : IConsumer<T> where T : IMessageHandler
     {
+        CancellationTokenSource tokenSource = new CancellationTokenSource();
         private readonly ILogger logger;
         private readonly BoundedContext boundedContext;
         private readonly ISubscriberCollection<T> subscriberCollection;
@@ -31,10 +33,10 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 if (subscriberCollection.Subscribers.Any() == false)
                 {
-                    logger.Warn(() => $"Consumer {boundedContext}.{typeof(T).Name} not started because there are no subscribers.");
+                    logger.Info(() => $"Consumer {boundedContext}.{typeof(T).Name} not started because there are no subscribers.");
                 }
 
-                consumerFactory.CreateAndStartConsumers();
+                consumerFactory.CreateAndStartConsumers(tokenSource.Token);
 
             }
             catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to start rabbitmq consumer.")) { }
@@ -44,6 +46,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public Task StopAsync()
         {
+            tokenSource.Cancel();
             return consumerFactory.StopAsync();
         }
     }

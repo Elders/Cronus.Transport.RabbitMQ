@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Elders.Cronus.Discoveries;
+using Elders.Cronus.Transport.RabbitMQ.Startup;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Elders.Cronus.Transport.RabbitMQ
@@ -20,6 +21,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
             var consumerModel = new DiscoveredModel(typeof(IConsumer<>), typeof(Consumer<>), ServiceLifetime.Singleton);
             consumerModel.CanOverrideDefaults = true;
             yield return consumerModel;
+
+            yield return new DiscoveredModel(typeof(SchedulePoker<>), typeof(SchedulePoker<>), ServiceLifetime.Singleton);
 
             yield return new DiscoveredModel(typeof(ConsumerFactory<>), typeof(ConsumerFactory<>), ServiceLifetime.Singleton);
 
