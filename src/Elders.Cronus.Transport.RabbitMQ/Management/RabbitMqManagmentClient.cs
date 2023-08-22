@@ -18,9 +18,13 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management
         readonly string username;
         readonly string password;
         readonly int portNumber;
+        readonly bool useSsl;
+        readonly int sslEnabledPort = 443;
+        readonly int sslDisabledPort = 15672;
         readonly JsonSerializerOptions settings;
 
         readonly bool runningOnMono;
+
         readonly Action<HttpWebRequest> configureRequest;
         readonly TimeSpan defaultTimeout = TimeSpan.FromSeconds(20);
         readonly TimeSpan timeout;
@@ -28,16 +32,17 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management
         private readonly List<string> apiAddressCollection;
         private string lastKnownApiAddress;
 
-        public RabbitMqManagementClient(IRabbitMqOptions settings) : this(settings.ApiAddress ?? settings.Server, settings.Username, settings.Password) { }
+        public RabbitMqManagementClient(IRabbitMqOptions settings) : this(settings.ApiAddress ?? settings.Server, settings.Username, settings.Password, useSsl: settings.UseSsl) { }
 
-        public RabbitMqManagementClient(string apiAddresses, string username, string password, int portNumber = 15672, TimeSpan? timeout = null, Action<HttpWebRequest> configureRequest = null)
+        public RabbitMqManagementClient(string apiAddresses, string username, string password, bool useSsl = false, TimeSpan? timeout = null, Action<HttpWebRequest> configureRequest = null)
         {
-            this.portNumber = portNumber;
+            this.portNumber = useSsl ? sslEnabledPort : sslDisabledPort;
+            this.useSsl = useSsl;
             this.apiAddressCollection = new List<string>();
             string[] parsedAddresses = apiAddresses.Split(',', StringSplitOptions.RemoveEmptyEntries);
             foreach (var apiAddress in parsedAddresses)
             {
-                TryInitializeApiHostName(apiAddress);
+                TryInitializeApiHostName(apiAddress, useSsl);
             }
             if (apiAddressCollection.Any() == false) throw new ArgumentException("Invalid API addresses", nameof(apiAddresses));
 
@@ -61,18 +66,16 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management
             };
         }
 
-        private void TryInitializeApiHostName(string address)
+        private void TryInitializeApiHostName(string address, bool useSsl)
         {
             string result = $"{address.Trim()}:{portNumber}";
-            bool useSsl = false;
 
             if (string.IsNullOrEmpty(result)) return;
 
-            if (result.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-                useSsl = true;
+            string schema = useSsl ? "https://" : "http://";
 
-            if (useSsl == false)
-                result = result.Contains("http://") ? result : "http://" + result;
+            result = result.Contains(schema) ? result : schema + result;
+
             if (UrlRegex.IsMatch(result) && Uri.TryCreate(result, UriKind.Absolute, out _))
             {
                 apiAddressCollection.Add(result);
@@ -294,7 +297,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Management
             try
             {
                 HttpWebRequest myRequest = (HttpWebRequest)WebRequest.Create(address);
-                myRequest.Timeout = 500;
+                myRequest.Timeout = 1000;
                 HttpWebResponse response = (HttpWebResponse)myRequest.GetResponse();
 
                 if (response.StatusCode == HttpStatusCode.OK)

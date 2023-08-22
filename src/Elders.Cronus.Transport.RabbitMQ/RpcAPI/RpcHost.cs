@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 
 namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 {
@@ -26,7 +27,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             services = new List<object>();
         }
 
-        public void Start()
+        public async Task StartAsync()
         {
             if (hostOptions.RpcApiEnabled == false)
             {
@@ -63,7 +64,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 
                         if (service.Contains(null))
                         {
-                            logger.LogError($"Unable to resolve endpoind {endpoint.GetInterface("IRpc").Name}<{requestType},{responseType}>.");
+                            logger.LogError($"Unable to resolve endpoint {endpoint.GetInterface("IRpc").Name}<{requestType},{responseType}>.");
                             continue;
                         }
 
@@ -94,17 +95,17 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             }
         }
 
-        public void Stop()
+        public async Task StopAsync()
         {
             foreach (IRpc service in services)
             {
-                service?.StopConsumersAsync().GetAwaiter().GetResult();
+                await service?.StopConsumersAsync();
             }
         }
 
         public void Dispose()
         {
-            Stop();
+            StopAsync().GetAwaiter().GetResult();
         }
     }
 }

@@ -11,7 +11,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             return new DiscoveryResult<IPublisher<IMessage>>(GetModels(), services => services
                                                                                         .AddOptions<RabbitMqOptions, RabbitMqOptionsProvider>()
-                                                                                        .AddOptions<PublicRabbitMqOptions, PublicRabbitMqOptionsProvider>());
+                                                                                        .AddOptions<PublicRabbitMqOptionsCollection, PublicRabbitMqOptionsProvider>());
         }
 
         IEnumerable<DiscoveredModel> GetModels()

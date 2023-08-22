@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.IO;
 using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
@@ -15,6 +14,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         protected readonly ISerializer serializer;
         protected readonly IModel model;
         private bool isСurrentlyConsuming;
+
         public AsyncConsumerBase(IModel model, ISerializer serializer, ILogger logger) : base(model)
         {
             this.model = model;
@@ -36,9 +36,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 // We are trying to wait all consumers to finish their current work.
                 // Ofcourse the host could be forcibly shut down but we are doing our best.
+
+                await Task.Delay(10).ConfigureAwait(false);
             }
 
-            await Task.CompletedTask.ConfigureAwait(false);
+            if (model.IsOpen)
+                model.Abort();
         }
 
         private async Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)
@@ -53,17 +56,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
             finally
             {
                 isСurrentlyConsuming = false;
-            }
-        }
-
-        protected string MessageAsString(CronusMessage message)
-        {
-            using (var stream = new MemoryStream())
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                serializer.Serialize(stream, message);
-                stream.Position = 0;
-                return reader.ReadToEnd();
             }
         }
     }
@@ -82,7 +74,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             CronusMessage cronusMessage = null;
             try
             {
-                cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(ev.Body);
+                cronusMessage = serializer.DeserializeFromBytes<CronusMessage>(ev.Body.ToArray());
                 cronusMessage = ExpandRawPayload(cronusMessage);
 
                 var subscribers = subscriberCollection.GetInterestedSubscribers(cronusMessage);
@@ -95,7 +87,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
                 await Task.WhenAll(deliverTasks).ConfigureAwait(false);
             }
-            catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to process message." + Environment.NewLine + cronusMessage is null ? "Failed to deserialize" : MessageAsString(cronusMessage))) { }
+            catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to process message." + Environment.NewLine + cronusMessage is null ? "Failed to deserialize" : serializer.SerializeToString(cronusMessage))) { }
             finally
             {
                 if (consumer.Model.IsOpen)
@@ -109,7 +101,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             if (cronusMessage.Payload is null && cronusMessage.PayloadRaw?.Length > 0)
             {
-                IMessage payload = serializer.DeserializeFromBytes(cronusMessage.PayloadRaw) as IMessage;
+                IMessage payload = serializer.DeserializeFromBytes<IMessage>(cronusMessage.PayloadRaw);
                 return new CronusMessage(payload, cronusMessage.Headers);
             }
 

@@ -44,7 +44,8 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             requestTracker.TryAdd(correlationId, taskSource);
 
             model.BasicPublish(exchange: "", routingKey: queueName, basicProperties: props, body: messageBytes); // publish request
-            logger.LogDebug($"Publish request with id {correlationId}, to {queueName}");
+
+            logger.Debug(() => $"Publish request with id {correlationId}, to {queueName}");
 
             cancellationToken.Register(() => requestTracker.TryRemove(correlationId, out _));
             return taskSource.Task;
@@ -63,7 +64,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
                     return Task.CompletedTask;
                 }
 
-                transient = (RpcResponseTransmission)serializer.DeserializeFromBytes(ev.Body);
+                transient = serializer.DeserializeFromBytes<RpcResponseTransmission>(ev.Body.ToArray());
 
                 response.Data = transient.Data;
                 response.Error = transient.Error;

@@ -1,0 +1,11 @@
+﻿{
+  "profiles": {
+    "Elders.Cronus.Transport.RabbitMQ.Playground.Rpc.Requests": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

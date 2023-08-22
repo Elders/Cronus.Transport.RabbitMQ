@@ -14,14 +14,14 @@ namespace Elders.Cronus.Transport.RabbitMQ
         static readonly ILogger logger = CronusLogger.CreateLogger(typeof(PublishedLanguageStartup));
 
         private readonly RabbitMqOptions options;
-        private readonly PublicRabbitMqOptions publicOptions;
+        private readonly PublicRabbitMqOptionsCollection publicRmqOptions;
         private readonly PublicMessagesRabbitMqNamer publicRabbitMqNamer;
         private readonly SignalMessagesRabbitMqNamer signalRabbitMqNamer;
 
-        public RabbitMqInfrastructure(IOptionsMonitor<RabbitMqOptions> options, IOptionsMonitor<PublicRabbitMqOptions> publicOptions, PublicMessagesRabbitMqNamer rabbitMqNamer, SignalMessagesRabbitMqNamer signalRabbitMqNamer)
+        public RabbitMqInfrastructure(IOptionsMonitor<RabbitMqOptions> options, IOptionsMonitor<PublicRabbitMqOptionsCollection> publicOptions, PublicMessagesRabbitMqNamer rabbitMqNamer, SignalMessagesRabbitMqNamer signalRabbitMqNamer)
         {
             this.options = options.CurrentValue;
-            this.publicOptions = publicOptions.CurrentValue;
+            this.publicRmqOptions = publicOptions.CurrentValue;
             this.publicRabbitMqNamer = rabbitMqNamer;
             this.signalRabbitMqNamer = signalRabbitMqNamer;
         }
@@ -33,24 +33,25 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 RabbitMqManagementClient priv = new RabbitMqManagementClient(options);
                 CreateVHost(priv, options);
 
-                RabbitMqManagementClient pub = new RabbitMqManagementClient(publicOptions);
-                CreateVHost(pub, publicOptions);
+                foreach (var opt in publicRmqOptions.PublicClustersOptions)
+                {
+                    RabbitMqManagementClient pub = new RabbitMqManagementClient(opt);
+                    CreateVHost(pub, opt);
+                }
 
-                if (ChecksIfHavePublishedLanguageConfigurations())
+                if (ChecksIfHavePublishedLanguageConfigurations() == false)
                     logger.Warn(() => "Missing configurations for public rabbitMq.");
-                else
-                    CreatePublishedLanguageConnection(priv, publicOptions);
+
+                foreach (PublicRabbitMqOptions publicSettings in publicRmqOptions.PublicClustersOptions)
+                    CreatePublishedLanguageConnection(priv, publicSettings);
             }
-            catch (Exception ex)
-            {
-                logger.ErrorException(ex, () => ex.Message);
-            }
+            catch (Exception ex) when (logger.ErrorException(ex, () => ex.Message)) { }
         }
 
         private bool ChecksIfHavePublishedLanguageConfigurations()
         {
             // We are sure that if missing configurations for public rabbitMq VHost by default equals "/"
-            return publicOptions.VHost.Equals("/");
+            return publicRmqOptions.PublicClustersOptions.Any();
         }
 
         private void CreateVHost(RabbitMqManagementClient client, IRabbitMqOptions options)
@@ -64,24 +65,28 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
         }
 
-        private void CreatePublishedLanguageConnection(RabbitMqManagementClient downstreamClient, PublicRabbitMqOptions publicOptions)
+        private void CreatePublishedLanguageConnection(RabbitMqManagementClient downstreamClient, PublicRabbitMqOptions publicSettings)
         {
+            var upstreams = publicSettings.GetUpstreamUris();
+            if (upstreams.Any() == false)
+                return;
+
             IEnumerable<string> publicExchangeNames = publicRabbitMqNamer.GetExchangeNames(typeof(IPublicEvent));
             IEnumerable<string> signalExchangeNames = signalRabbitMqNamer.GetExchangeNames(typeof(ISignal));
             IEnumerable<string> exchanges = publicExchangeNames.Concat(signalExchangeNames);
 
             foreach (var exchange in exchanges)
             {
-                foreach (var upstream in publicOptions.GetUpstreamUris())
+                foreach (var upstream in upstreams)
                 {
                     FederatedExchange federatedExchange = new FederatedExchange()
                     {
-                        Name = publicOptions.VHost + $"--{exchange.ToLower()}",
+                        Name = publicSettings.VHost + $"--{exchange.ToLower()}",
                         Value = new FederatedExchange.ValueParameters()
                         {
                             Uri = upstream,
                             Exchange = exchange,
-                            MaxHops = publicOptions.FederatedExchange.MaxHops
+                            MaxHops = publicSettings.FederatedExchange.MaxHops
                         }
                     };
                     downstreamClient.CreateFederatedExchange(federatedExchange, options.VHost);
@@ -93,12 +98,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 Policy policy = new Policy()
                 {
                     VHost = options.VHost,
-                    Name = publicOptions.VHost + $"--{exchange.ToLower()}",
+                    Name = publicSettings.VHost + $"--{exchange.ToLower()}",
                     Pattern = $"{exchange}$",
                     Priority = 1,
                     Definition = new Policy.DefinitionDto()
                     {
-                        FederationUpstream = publicOptions.VHost + $"--{exchange.ToLower()}"
+                        FederationUpstream = publicSettings.VHost + $"--{exchange.ToLower()}"
                     }
                 };
                 downstreamClient.CreatePolicy(policy, options.VHost);

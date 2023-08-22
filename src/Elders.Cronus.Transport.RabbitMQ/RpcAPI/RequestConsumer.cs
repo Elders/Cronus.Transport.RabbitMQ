@@ -24,7 +24,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             this.serviceProvider = serviceProvider;
             model.QueueDeclare(queue, exclusive: false);
             model.BasicQos(0, 1, false);
-            model.BasicConsume(queue, autoAck: false, this); // We should do manual acknowledgement to spread the load equally over multiple 
+            model.BasicConsume(queue, autoAck: false, this); // We should do manual acknowledgement to spread the load equally over multiple servers
         }
 
         protected override async Task DeliverMessageToSubscribersAsync(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)
@@ -36,7 +36,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 
                 try // Proccess request and publish response
                 {
-                    request = (TRequest)serializer.DeserializeFromBytes(ev.Body);
+                    request = serializer.DeserializeFromBytes<TRequest>(ev.Body.ToArray());
 
                     IRequestHandler<TRequest, TResponse> handler = factory.CreateHandler<TRequest, TResponse>(request.Tenant, scope.ServiceProvider);
                     TResponse handlerResponse = await handler.HandleAsync(request).ConfigureAwait(false);

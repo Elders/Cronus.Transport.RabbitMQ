@@ -13,6 +13,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
         /// <param name="messageType">The message type.</param>
         /// <returns>The exchange names.</returns>
         IEnumerable<string> GetExchangeNames(Type messageType);
+
+        IEnumerable<string> GetExchangeNames(CronusMessage cronusMessage) => GetExchangeNames(cronusMessage.Payload.GetType());
     }
 
     public sealed class BoundedContextRabbitMqNamer : IRabbitMqNamer
@@ -89,6 +91,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
     public sealed class SignalMessagesRabbitMqNamer : IRabbitMqNamer
     {
+        private readonly BoundedContext boundedContext;
+
+        public SignalMessagesRabbitMqNamer(IOptionsMonitor<BoundedContext> options)
+        {
+            this.boundedContext = options.CurrentValue;
+        }
+
         public IEnumerable<string> GetExchangeNames(Type messageType)
         {
             if (typeof(ISignal).IsAssignableFrom(messageType))
@@ -96,6 +105,27 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 // No BoundedContext here, because the bounded context is global here
                 string systemMarker = typeof(ISystemMessage).IsAssignableFrom(messageType) ? "cronus." : string.Empty;
                 yield return $"{systemMarker}Signals";
+            }
+        }
+
+        public IEnumerable<string> GetExchangeNames(CronusMessage cronusMessage)
+        {
+            Type payloadType = cronusMessage.Payload.GetType();
+            if (typeof(ISignal).IsAssignableFrom(payloadType))
+            {
+                bool isInternal = boundedContext.Name.Equals(cronusMessage.BoundedContext, StringComparison.OrdinalIgnoreCase);
+
+                // No BoundedContext here, because the bounded context is global here
+                string systemMarker = typeof(ISystemMessage).IsAssignableFrom(payloadType) ? "cronus." : string.Empty;
+
+                if (isInternal)
+                {
+                    yield return $"{boundedContext}.{systemMarker}Signals";
+                }
+                else
+                {
+                    yield return $"{systemMarker}Signals";
+                }
             }
         }
     }
