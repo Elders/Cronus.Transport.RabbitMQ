@@ -1,3 +1,40 @@
+# [9.0.0](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.3.0...v9.0.0) (2023-08-22)
+
+
+### Bug Fixes
+
+* Adds checks for duplicate bind headers on starting ([34be6eb](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/34be6ebcec50ffb4d213ea05bbf9ba7597884597))
+* Adds schedulePoker which will properly manage scheduled messages ([4401523](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/4401523f7e3c213129c5a819bd57ad32baabfc3d))
+* Checks for null before invoking Stop ([976fc80](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/976fc80f6499077602f00feca518b6cf37371db9))
+* disables creation of all scheduled queues except for ISaga and ISystemSaga queue ([931cfd0](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/931cfd084046a60a8f957c09ed04ea91b9791196))
+* Disables creation of trigger scheduled queues ([4f2be45](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/4f2be45b9ec874c95830803d5f9217b302df4aad))
+* Explicitly configure federation exchange via config file ([a8e3493](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/a8e3493073373e6f9a01d6bd3e002f6a8b70ff28))
+* Fixes manual ack for Signal messages ([b60b36e](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/b60b36e737ae963f8e2947fd791ded0c6f0e2d5d))
+* Fixes publishing of public events ([7e9c9c3](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/7e9c9c30debd4be0cef9154b33856bc3a00f80f8))
+* Handles the case when the rpc handler have parameterless constructor ([032d725](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/032d7250ad1ad38d48d0ab2e390394e68958cc28))
+* Improves error handling and validation for RPC ([3a763c6](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/3a763c60581b60eb5894fc5bba1ae66416715d4f))
+* Properly publishes signals to the same BC ([a710985](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/a710985c76d7d44f50834d0dbb723c4a4402f510))
+* Publishing a signal internally to a BC will not be routed through the public BC ([ce434f7](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/ce434f796846844d4b6c3b0c60bd561511a95898))
+* Removes OnChange method for RabbitMqConsumerOptions ([ee17100](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/ee17100012adab925c3759fdc5dc2437ca6d322b))
+* Serialize CronusMessage in all cases when publishing message ([008fa84](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/008fa8435c9d8166cff8ca929aaffd2af62cc527))
+* Updates Cronus ([c89d9bb](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/c89d9bb18a4cc5c9cfce321588cdf24a3727a734))
+* Updates Cronus and Newtonsoft ([5456869](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/54568690f3438cf8a27b908121adddab5d51cbef))
+* Updates packages ([f76a308](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/f76a308ab1f50ed7f3d84b14d2acdf024e089ee6))
+* Updates packages ([64d4fda](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/64d4fdaecd10b44978c287dcb8e46d8dba5f85c6))
+* Updates packages ([3c27b5b](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/3c27b5b755c1b90c074f805d389a3edb8c9a8282))
+* Updates packages and fixes breaking changes ([964c41e](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/964c41e9ede46655e54d10157d97f30afcb030cc))
+
+
+### Features
+
+* Adds dead-lettered queues as a new way of scheduling messages ([735e2f6](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/735e2f6255c1650b33317e6aca1875a6768b81a5))
+* Adds dead-lettered queues as a new way of scheduling messages ([2804557](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/28045575a49c1a97dbdc6e32d12d7b52ee4fe840))
+* Adds options for consumers count when starting the RPC ([21c1445](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/21c144590ee8836a10be4939fdd3747c35e1b5b7))
+* Extends the FederatedExchange config options ([1d8fc16](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/1d8fc169ff89820b138c5d614dd3942a914976b3))
+* Handles CronusMessage messages containing raw Payload ([519a8c8](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/519a8c8d9193fdfba664be812a41314a050deaa8))
+* Optimizes the public event replays ([f3f09d1](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/f3f09d18e639568a5876ec2ef29250953e2494f0))
+* Publish messages to multiple public servers via TLS ([796712f](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/796712fe3f52e04b17d2a3eb8d32e43b22527221))
+
 # [8.3.0](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.2.0...v8.3.0) (2023-05-02)
 
 
