@@ -1,3 +1,10 @@
+# [9.0.0-preview.27](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.26...v9.0.0-preview.27) (2023-08-22)
+
+
+### Bug Fixes
+
+* Adds schedulePoker which will properly manage scheduled messages ([4401523](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/4401523f7e3c213129c5a819bd57ad32baabfc3d))
+
 # [9.0.0-preview.26](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0-preview.25...v9.0.0-preview.26) (2023-08-16)
 
 
