@@ -15,6 +15,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
     public class ConsumerFactory<T>
     {
         private readonly ILogger<ConsumerFactory<T>> logger;
+        private readonly TypeContainer<ISaga> allSagas;
         private readonly ConsumerPerQueueChannelResolver channelResolver;
         private readonly ISerializer serializer;
         private readonly RabbitMqConsumerOptions consumerOptions;
@@ -25,10 +26,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private readonly RabbitMqOptions options;
         private string queueName;
 
-        public ConsumerFactory(IOptionsMonitor<RabbitMqOptions> optionsMonitor, ConsumerPerQueueChannelResolver channelResolver, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISerializer serializer, ISubscriberCollection<T> subscriberCollection, SchedulePoker<T> schedulePoker, ILogger<ConsumerFactory<T>> logger)
+        public ConsumerFactory(TypeContainer<ISaga> allSagas, IOptionsMonitor<RabbitMqOptions> optionsMonitor, ConsumerPerQueueChannelResolver channelResolver, IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, ISerializer serializer, ISubscriberCollection<T> subscriberCollection, SchedulePoker<T> schedulePoker, ILogger<ConsumerFactory<T>> logger)
         {
             this.logger = logger;
             this.boundedContext = boundedContext.CurrentValue;
+            this.allSagas = allSagas;
             this.channelResolver = channelResolver;
             this.serializer = serializer;
             this.consumerOptions = consumerOptions.CurrentValue;
@@ -81,9 +83,15 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private void CreateAndStartSchedulePoker(CancellationToken cancellationToken)
         {
-            if (typeof(ISaga).IsAssignableFrom(typeof(T)))
+            bool isSaga = typeof(ISaga).IsAssignableFrom(typeof(T));
+            if (isSaga)
             {
-                schedulePoker.Poke(cancellationToken);
+                bool isSystemSaga = typeof(ISystemSaga).IsAssignableFrom(typeof(T));
+                bool hasRegisteredSagas = allSagas.Items.Where(saga => typeof(ISystemSaga).IsAssignableFrom(saga) == isSystemSaga).Any();
+                if (hasRegisteredSagas)
+                {
+                    schedulePoker.PokeAsync(cancellationToken);
+                }
             }
         }
 

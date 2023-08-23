@@ -26,29 +26,37 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
             this.boundedContext = boundedContext;
         }
 
-        public async Task Poke(CancellationToken cancellationToken)
+        public async Task PokeAsync(CancellationToken cancellationToken)
         {
-            string queueName = $"{GetQueueName(boundedContext.CurrentValue.Name)}.Scheduled";
-            while (cancellationToken.IsCancellationRequested == false)
+            try
             {
-                IConnection connection = connectionResolver.Resolve(queueName, rmqOptionsMonitor.CurrentValue);
+                string queueName = $"{GetQueueName(boundedContext.CurrentValue.Name)}.Scheduled";
 
-                using (IModel channel = connection.CreateModel())
+                while (cancellationToken.IsCancellationRequested == false)
                 {
-                    try
+                    IConnection connection = connectionResolver.Resolve(queueName, rmqOptionsMonitor.CurrentValue);
+
+                    using (IModel channel = connection.CreateModel())
                     {
-                        consumer = new AsyncEventingBasicConsumer(channel);
-                        consumer.Received += AsyncListener_Received;
+                        try
+                        {
+                            consumer = new AsyncEventingBasicConsumer(channel);
+                            consumer.Received += AsyncListener_Received;
 
-                        string consumerTag = channel.BasicConsume(queue: queueName, autoAck: false, consumer: consumer);
+                            string consumerTag = channel.BasicConsume(queue: queueName, autoAck: false, consumer: consumer);
 
-                        await Task.Delay(30000, cancellationToken);
+                            await Task.Delay(30000, cancellationToken);
 
-                        consumer.Received -= AsyncListener_Received;
+                            consumer.Received -= AsyncListener_Received;
+                        }
+                        catch (Exception)
+                        {
+                            await Task.Delay(5000);
+                        }
                     }
-                    catch (Exception) { }
                 }
             }
+            catch (Exception) { }
         }
 
         private Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)
