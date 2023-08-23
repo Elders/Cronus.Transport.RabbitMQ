@@ -1,3 +1,10 @@
+## [9.0.1](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0...v9.0.1) (2023-08-23)
+
+
+### Bug Fixes
+
+* Fixes schedulePoker lifecycle ([1e25d17](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/1e25d178051b8e27a1e86bcd19a02900a21e9242))
+
 # [9.0.0](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.3.0...v9.0.0) (2023-08-22)
 
 
