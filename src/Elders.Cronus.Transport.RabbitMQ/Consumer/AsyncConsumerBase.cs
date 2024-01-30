@@ -1,11 +1,11 @@
-﻿using Elders.Cronus.MessageProcessing;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
+using Elders.Cronus.MessageProcessing;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System.Threading.Tasks;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
@@ -54,6 +54,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 if (sender is AsyncEventingBasicConsumer consumer)
                     await DeliverMessageToSubscribersAsync(@event, consumer).ConfigureAwait(false);
             }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to deliver message");
+                throw;
+            }
             finally
             {
                 isСurrentlyConsuming = false;
@@ -70,42 +75,67 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.subscriberCollection = subscriberCollection;
         }
 
+        private Task SafeProcessAsync(ISubscriber subscriber, CronusMessage cronusMessage)
+        {
+            try
+            {
+                return subscriber.ProcessAsync(cronusMessage);
+            }
+            catch (Exception ex)
+            {
+                return Task.FromException(ex);
+            }
+        }
+
         protected override async Task DeliverMessageToSubscribersAsync(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)
         {
             CronusMessage cronusMessage = null;
+            List<Task> deliverTasks = new List<Task>();
             try
             {
                 cronusMessage = serializer.DeserializeFromBytes<CronusMessage>(ev.Body.ToArray());
                 cronusMessage = ExpandRawPayload(cronusMessage);
+            }
+            catch (Exception ex)
+            {
+                // TODO: send to dead letter exchange/queue
+                logger.ErrorException(ex, () => $"Failed to process message. Failed to deserialize: {Convert.ToBase64String(ev.Body.ToArray())}");
+                Ack(ev, consumer);
+                return;
+            }
 
-                var subscribers = subscriberCollection.GetInterestedSubscribers(cronusMessage);
-                List<Task> deliverTasks = new List<Task>();
+            var subscribers = subscriberCollection.GetInterestedSubscribers(cronusMessage);
 
+            try
+            {
                 foreach (var subscriber in subscribers)
                 {
-                    deliverTasks.Add(subscriber.ProcessAsync(cronusMessage));
+                    deliverTasks.Add(SafeProcessAsync(subscriber, cronusMessage));
                 }
 
                 await Task.WhenAll(deliverTasks).ConfigureAwait(false);
-
+            }
+            catch (Exception ex) when (logger.ErrorException(ex, () =>
+            {
                 // Try find some errors
                 StringBuilder subscriberErrors = new StringBuilder();
-                bool hasErrors = false;
                 foreach (Task subscriberCompletedTasks in deliverTasks)
                 {
                     if (subscriberCompletedTasks.IsFaulted)
                     {
-                        hasErrors = true;
                         subscriberErrors.AppendLine(subscriberCompletedTasks.Exception.ToString());
                     }
                 }
-                if (hasErrors)
-                {
-                    logger.LogError(subscriberErrors.ToString());
-                }
-            }
-            catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to process message." + Environment.NewLine + cronusMessage is null ? "Failed to deserialize" : serializer.SerializeToString(cronusMessage))) { }
+
+                return "Failed to process message." + Environment.NewLine + serializer.SerializeToString(cronusMessage) + Environment.NewLine + subscriberErrors.ToString();
+            }))
+            { }
             finally
+            {
+                Ack(ev, consumer);
+            }
+
+            static void Ack(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)
             {
                 if (consumer.Model.IsOpen)
                 {
