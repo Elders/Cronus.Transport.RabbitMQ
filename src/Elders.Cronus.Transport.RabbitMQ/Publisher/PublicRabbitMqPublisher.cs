@@ -22,7 +22,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 string messageContractId = message.GetMessageType().GetContractId();
 
                 properties.Headers = new Dictionary<string, object>();
-                properties.Headers.Add("cronus_messageid", message.Id);
+                properties.Headers.Add("cronus_messageid", message.Id.ToByteArray());
                 properties.Expiration = message.GetTtl();
 
                 foreach (var recipientHandler in message.RecipientHandlers)

@@ -49,8 +49,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             using (logger.BeginScope(s =>
             {
-                if (@event.BasicProperties.Headers.TryGetValue("cronus_messageId", out object messageId))
-                    s.AddScope("cronus_messageId", messageId);
+                if (@event.BasicProperties.IsHeadersPresent() && @event.BasicProperties.Headers.TryGetValue("cronus_messageid", out object messageIdBytes))
+                {
+                    var messageId = new Guid((byte[])messageIdBytes);
+                    s.AddScope("cronus_messageid", messageId.ToString());
+                }
             }))
             {
                 try
