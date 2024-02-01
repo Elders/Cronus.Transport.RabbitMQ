@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
-using System;
-using System.Collections.Generic;
 
 namespace Elders.Cronus.Transport.RabbitMQ.Publisher
 {
@@ -101,6 +101,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
 
             properties.Headers = new Dictionary<string, object>();
             properties.Headers.Add(message.GetMessageType().GetContractId(), boundedContext);
+            properties.Headers.Add("cronus_messageid", message.Id);
             properties.Expiration = message.GetTtl();
             properties.Persistent = false;
             properties.DeliveryMode = 1;

@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.Options;
+﻿using System.Collections.Generic;
+using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
-using System.Collections.Generic;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
@@ -22,6 +22,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 string messageContractId = message.GetMessageType().GetContractId();
 
                 properties.Headers = new Dictionary<string, object>();
+                properties.Headers.Add("cronus_messageid", message.Id);
                 properties.Expiration = message.GetTtl();
 
                 foreach (var recipientHandler in message.RecipientHandlers)

@@ -47,21 +47,27 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private async Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)
         {
-            try
+            using (logger.BeginScope(s =>
             {
-                isСurrentlyConsuming = true;
+                if (@event.BasicProperties.Headers.TryGetValue("cronus_messageId", out object messageId))
+                    s.AddScope("cronus_messageId", messageId);
+            }))
+            {
+                try
+                {
+                    isСurrentlyConsuming = true;
 
-                if (sender is AsyncEventingBasicConsumer consumer)
-                    await DeliverMessageToSubscribersAsync(@event, consumer).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Failed to deliver message");
-                throw;
-            }
-            finally
-            {
-                isСurrentlyConsuming = false;
+                    if (sender is AsyncEventingBasicConsumer consumer)
+                        await DeliverMessageToSubscribersAsync(@event, consumer).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to deliver message"))
+                {
+                    throw;
+                }
+                finally
+                {
+                    isСurrentlyConsuming = false;
+                }
             }
         }
     }

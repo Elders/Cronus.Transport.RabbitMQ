@@ -1,7 +1,7 @@
-﻿using RabbitMQ.Client;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
@@ -53,6 +53,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             properties.Headers = new Dictionary<string, object>();
             properties.Headers.Add(message.GetMessageType().GetContractId(), boundedContext);
+            properties.Headers.Add("cronus_messageid", message.Id);
             properties.Expiration = message.GetTtl();
             properties.Persistent = true;
 
