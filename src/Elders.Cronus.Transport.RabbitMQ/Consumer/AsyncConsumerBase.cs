@@ -58,6 +58,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 try
                 {
+                    logger.LogDebug("Message received. Sender {sender}.", sender.GetType().Name);
                     isСurrentlyConsuming = true;
 
                     if (sender is AsyncEventingBasicConsumer consumer)
