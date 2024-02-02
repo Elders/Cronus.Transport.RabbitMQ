@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
 namespace Elders.Cronus.Transport.RabbitMQ
@@ -10,13 +11,15 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private readonly ISerializer serializer;
         private readonly PublisherChannelResolver channelResolver;
         private readonly IRabbitMqNamer rabbitMqNamer;
+        private readonly ILogger logger;
 
-        public RabbitMqPublisherBase(ISerializer serializer, PublisherChannelResolver channelResolver, IRabbitMqNamer rabbitMqNamer, IEnumerable<DelegatingPublishHandler> handlers)
+        public RabbitMqPublisherBase(ISerializer serializer, PublisherChannelResolver channelResolver, IRabbitMqNamer rabbitMqNamer, IEnumerable<DelegatingPublishHandler> handlers, ILogger logger)
             : base(handlers)
         {
             this.serializer = serializer;
             this.channelResolver = channelResolver;
             this.rabbitMqNamer = rabbitMqNamer;
+            this.logger = logger;
         }
 
         protected override bool PublishInternal(CronusMessage message)
@@ -32,6 +35,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     Publish(message, boundedContext, exchange, scopedOpt);
                 }
             }
+
             return true;
         }
 
@@ -45,6 +49,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             byte[] body = serializer.SerializeToBytes(message);
             exchangeModel.BasicPublish(exchange, string.Empty, false, props, body);
+            logger.LogDebug("Published message in exchange {exchange} with headers {@headers}.", exchange, props.Headers);
         }
 
         protected virtual IBasicProperties BuildMessageProperties(IBasicProperties properties, CronusMessage message)

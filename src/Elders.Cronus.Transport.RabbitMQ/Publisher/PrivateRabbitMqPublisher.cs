@@ -1,7 +1,7 @@
-﻿using Elders.Cronus.Multitenancy;
+﻿using System.Collections.Generic;
+using Elders.Cronus.Multitenancy;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Collections.Generic;
 
 namespace Elders.Cronus.Transport.RabbitMQ
 {
@@ -10,7 +10,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private readonly IOptionsMonitor<RabbitMqOptions> optionsMonitor;
 
         public PrivateRabbitMqPublisher(ISerializer serializer, PublisherChannelResolver channelResolver, ITenantResolver<IMessage> tenantResolver, IOptionsMonitor<BoundedContext> boundedContext, IOptionsMonitor<RabbitMqOptions> optionsMonitor, BoundedContextRabbitMqNamer rabbitMqNamer, ILogger<PrivateRabbitMqPublisher<TMessage>> logger, IEnumerable<DelegatingPublishHandler> handlers)
-            : base(serializer, channelResolver, rabbitMqNamer, handlers)
+            : base(serializer, channelResolver, rabbitMqNamer, handlers, logger)
         {
             this.optionsMonitor = optionsMonitor;
         }
