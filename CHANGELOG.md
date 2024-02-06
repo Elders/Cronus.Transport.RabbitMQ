@@ -1,3 +1,10 @@
+## [9.0.2](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.1...v9.0.2) (2024-02-06)
+
+
+### Bug Fixes
+
+* Updates packages and adds trace logging ([c9595e6](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/c9595e68570e7c1f529f38205218e4495a2081bc))
+
 ## [9.0.1](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v9.0.0...v9.0.1) (2023-08-23)
 
 
