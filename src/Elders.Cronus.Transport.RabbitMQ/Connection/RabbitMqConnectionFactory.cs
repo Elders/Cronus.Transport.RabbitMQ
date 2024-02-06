@@ -48,9 +48,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 catch (Exception ex)
                 {
                     if (ex is BrokerUnreachableException)
-                        logger.Warn(() => $"Failed to create RabbitMQ connection. Retrying...");
+                        logger.Warn(() => "Failed to create RabbitMQ connection using options {@options}. Retrying...", options);
                     else
-                        logger.WarnException(ex, () => $"Failed to create RabbitMQ connection. Retrying...");
+                        logger.WarnException(ex, () => "Failed to create RabbitMQ connection using options {@options}. Retrying...", options);
 
                     Task.Delay(5000).GetAwaiter().GetResult();
                     tailRecursion = true;
