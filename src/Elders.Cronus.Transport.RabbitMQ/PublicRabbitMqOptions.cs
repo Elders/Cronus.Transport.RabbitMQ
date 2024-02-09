@@ -37,8 +37,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public string BoundedContext { get; set; } = BoundedContextDefault;
 
-        public bool UseAsyncDispatcher { get; set; }
-
         public FederatedExchangeOptions FederatedExchange { get; set; }
 
         public bool UseSsl { get; set; } = false;
