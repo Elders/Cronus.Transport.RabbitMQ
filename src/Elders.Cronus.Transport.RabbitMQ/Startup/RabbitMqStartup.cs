@@ -45,13 +45,13 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
 
                             string consumerTag = channel.BasicConsume(queue: queueName, autoAck: false, consumer: consumer);
 
-                            await Task.Delay(30000, cancellationToken);
+                            await Task.Delay(30000, cancellationToken).ConfigureAwait(false);
 
                             consumer.Received -= AsyncListener_Received;
                         }
                         catch (Exception)
                         {
-                            await Task.Delay(5000);
+                            await Task.Delay(5000).ConfigureAwait(false);
                         }
                     }
                 }
