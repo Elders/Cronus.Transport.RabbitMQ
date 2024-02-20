@@ -24,10 +24,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 lock (connectionLock)
                 {
+                    connection = GetExistingConnection(key);
                     if (connection is null || connection.IsOpen == false)
                     {
-                        connection = GetExistingConnection(key);
-
                         connection = CreateConnection(key, options);
                     }
                 }
@@ -46,7 +45,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private IConnection CreateConnection(string key, IRabbitMqOptions options)
         {
             IConnection connection = connectionFactory.CreateConnectionWithOptions(options);
-            connectionsPerVHost.TryAdd(key, connection);
+            if (connectionsPerVHost.TryRemove(key, out _))
+                connectionsPerVHost.TryAdd(key, connection);
 
             return connection;
         }
