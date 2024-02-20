@@ -45,8 +45,16 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private IConnection CreateConnection(string key, IRabbitMqOptions options)
         {
             IConnection connection = connectionFactory.CreateConnectionWithOptions(options);
-            if (connectionsPerVHost.TryRemove(key, out _))
+
+            if (connectionsPerVHost.TryGetValue(key, out _))
+            {
+                if (connectionsPerVHost.TryRemove(key, out _))
+                    connectionsPerVHost.TryAdd(key, connection);
+            }
+            else
+            {
                 connectionsPerVHost.TryAdd(key, connection);
+            }
 
             return connection;
         }
