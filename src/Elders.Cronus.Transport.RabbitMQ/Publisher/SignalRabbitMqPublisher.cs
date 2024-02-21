@@ -82,7 +82,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
                 if (props == null)
                 {
                     props = exchangeModel.CreateBasicProperties();
-                    props = BuildMessageProperties(props, message);
+                    props = BuildPublicMessageProperties(props, message);
                 }
 
                 PublishUsingChannel(message, exchange, exchangeModel, props);
@@ -93,6 +93,21 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
         {
             byte[] body = serializer.SerializeToBytes(message);
             exchangeModel.BasicPublish(exchange, string.Empty, false, properties, body);
+        }
+
+        private IBasicProperties BuildPublicMessageProperties(IBasicProperties properties, CronusMessage message)
+        {
+            string boundedContext = message.BoundedContext;
+            string tenant = message.GetTenant();
+
+            properties.Headers = new Dictionary<string, object>();
+            properties.Headers.Add($"{message.GetMessageType().GetContractId()}@{tenant}", boundedContext);
+            properties.Headers.Add("cronus_messageid", message.Id.ToByteArray());
+            properties.Expiration = message.GetTtl();
+            properties.Persistent = false;
+            properties.DeliveryMode = 1;
+
+            return properties;
         }
 
         private IBasicProperties BuildMessageProperties(IBasicProperties properties, CronusMessage message)

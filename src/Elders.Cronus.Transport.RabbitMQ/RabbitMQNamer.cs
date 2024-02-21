@@ -69,6 +69,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 isConventionalMessageType = true;
             }
 
+            // This handles the message types which are not defined in Cronus.
             if (isConventionalMessageType == false)
             {
                 yield return $"{bc}.{systemMarker}{messageType.Name}";

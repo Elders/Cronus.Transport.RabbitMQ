@@ -15,28 +15,27 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.options = options;
         }
 
-        protected override IBasicProperties BuildMessageProperties(IBasicProperties properties, CronusMessage message)
+        protected override IBasicProperties AttachHeaders(IBasicProperties properties, CronusMessage message)
         {
+            string boundedContext = message.Headers[MessageHeader.BoundedContext];
+            string tenant = message.Headers[MessageHeader.Tenant];
+            string contractId = message.GetMessageType().GetContractId();
+
             if (message.IsRepublished)
             {
-                string boundedContext = message.Headers[MessageHeader.BoundedContext];
-                string messageContractId = message.GetMessageType().GetContractId();
-
-                properties.Headers = new Dictionary<string, object>();
-                properties.Headers.Add("cronus_messageid", message.Id.ToByteArray());
-                properties.Expiration = message.GetTtl();
-
-                foreach (var recipientHandler in message.RecipientHandlers)
+                foreach (string recipientHandler in message.RecipientHandlers)
                 {
-                    properties.Headers.Add($"{messageContractId}@{recipientHandler}", boundedContext);
+                    properties.Headers.Add($"{contractId}@{recipientHandler}", boundedContext);
+                    properties.Headers.Add($"{contractId}@{recipientHandler}@{tenant}", boundedContext);
                 }
-
-                return properties;
             }
             else
             {
-                return base.BuildMessageProperties(properties, message);
+                properties.Headers.Add($"{contractId}", boundedContext);
+                properties.Headers.Add($"{contractId}@{tenant}", boundedContext);
             }
+
+            return properties;
         }
 
         protected override IEnumerable<IRabbitMqOptions> GetOptionsFor(CronusMessage message)

@@ -46,6 +46,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             IModel exchangeModel = channelResolver.Resolve(exchange, options, boundedContext);
             IBasicProperties props = exchangeModel.CreateBasicProperties();
             props = BuildMessageProperties(props, message);
+            props = AttachHeaders(props, message);
 
             byte[] body = serializer.SerializeToBytes(message);
             exchangeModel.BasicPublish(exchange, string.Empty, false, props, body);
@@ -54,13 +55,19 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         protected virtual IBasicProperties BuildMessageProperties(IBasicProperties properties, CronusMessage message)
         {
-            string boundedContext = message.Headers[MessageHeader.BoundedContext];
-
             properties.Headers = new Dictionary<string, object>();
-            properties.Headers.Add(message.GetMessageType().GetContractId(), boundedContext);
             properties.Headers.Add("cronus_messageid", message.Id.ToByteArray());
             properties.Expiration = message.GetTtl();
             properties.Persistent = true;
+
+            return properties;
+        }
+
+        protected virtual IBasicProperties AttachHeaders(IBasicProperties properties, CronusMessage message)
+        {
+            string boundedContext = message.BoundedContext;
+
+            properties.Headers.Add(message.GetMessageType().GetContractId(), boundedContext);
 
             return properties;
         }
