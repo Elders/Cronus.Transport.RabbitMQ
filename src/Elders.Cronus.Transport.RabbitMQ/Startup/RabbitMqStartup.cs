@@ -232,18 +232,9 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
 
                     thereIsAScheduledQueue = true;
                 }
-                else
+                else if (exchangeGroups.Count > 1)
                 {
-                    routingHeaders.Add("x-dead-letter-exchange", exchangeGroups.First().Key);
-
-                    scheduledQueue = $"{queueName}.Scheduled";
-                    model.QueueDeclare(scheduledQueue, true, false, false, routingHeaders);
-
-                    thereIsAScheduledQueue = true;
-
-                    //   throw new Exception($"There are more than one exchanges defined for {typeof(T).Name}. RabbitMQ does not allow this functionality and you need to fix one or more of the following subscribers:{Environment.NewLine}{string.Join(Environment.NewLine, subscriberCollection.Subscribers.Select(sub => sub.Id))}");
-                    int i = 0;
-                    i++;
+                    throw new Exception($"There are more than one exchanges defined for {typeof(T).Name}. RabbitMQ does not allow this functionality and you need to fix one or more of the following subscribers:{Environment.NewLine}{string.Join(Environment.NewLine, subscriberCollection.Subscribers.Select(sub => sub.Id))}");
                 }
             }
 
@@ -382,6 +373,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
             bool thereIsAScheduledQueue = false;
             string scheduledQueue = string.Empty;
 
+            bool isTriggerQueue = typeof(T).Name.Equals(typeof(ITrigger).Name);
             bool isSagaQueue = typeof(T).Name.Equals(typeof(ISaga).Name) || typeof(T).Name.Equals(typeof(ISystemSaga).Name);
             if (isSagaQueue)
             {
@@ -421,18 +413,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
                     if (bc != boundedContext.Name && isSystemQueue)
                         throw new Exception($"The message {msgType.Name} has a bounded context {bc} which is different than the configured {boundedContext.Name}.");
 
-                    if (bc == boundedContext.Name)
-                    {
-                        bindHeaders.Add(contractId, bc);
-
-                        var handlers = event2Handler[standardExchangeName][contractId];
-                        foreach (var handler in handlers)
-                        {
-                            string key = $"{contractId}@{handler}";
-                            bindHeaders.Add(key, bc);
-                        }
-                    }
-                    else
+                    if (bc != boundedContext.Name || isTriggerQueue)
                     {
                         foreach (string tenant in tenantsOptions.Tenants)
                         {
@@ -445,6 +426,17 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
                                 string key = $"{contractId}@{handler}@{tenant}";
                                 bindHeaders.Add(key, bc);
                             }
+                        }
+                    }
+                    else
+                    {
+                        bindHeaders.Add(contractId, bc);
+
+                        var handlers = event2Handler[standardExchangeName][contractId];
+                        foreach (var handler in handlers)
+                        {
+                            string key = $"{contractId}@{handler}";
+                            bindHeaders.Add(key, bc);
                         }
                     }
                 }
