@@ -82,7 +82,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
                 if (props == null)
                 {
                     props = exchangeModel.CreateBasicProperties();
-                    props = BuildPublicMessageProperties(props, message);
+                    props = BuildMessageProperties(props, message);
                 }
 
                 PublishUsingChannel(message, exchange, exchangeModel, props);
@@ -95,7 +95,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
             exchangeModel.BasicPublish(exchange, string.Empty, false, properties, body);
         }
 
-        private IBasicProperties BuildPublicMessageProperties(IBasicProperties properties, CronusMessage message)
+        private IBasicProperties BuildMessageProperties(IBasicProperties properties, CronusMessage message)
         {
             string contractId = message.GetMessageType().GetContractId();
             string boundedContext = message.BoundedContext;
@@ -104,20 +104,6 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
             properties.Headers = new Dictionary<string, object>();
             properties.Headers.Add($"{contractId}", boundedContext);
             properties.Headers.Add($"{contractId}@{tenant}", boundedContext);
-            properties.Headers.Add("cronus_messageid", message.Id.ToByteArray());
-            properties.Expiration = message.GetTtl();
-            properties.Persistent = false;
-            properties.DeliveryMode = 1;
-
-            return properties;
-        }
-
-        private IBasicProperties BuildMessageProperties(IBasicProperties properties, CronusMessage message)
-        {
-            string boundedContext = message.Headers[MessageHeader.BoundedContext];
-
-            properties.Headers = new Dictionary<string, object>();
-            properties.Headers.Add(message.GetMessageType().GetContractId(), boundedContext);
             properties.Headers.Add("cronus_messageid", message.Id.ToByteArray());
             properties.Expiration = message.GetTtl();
             properties.Persistent = false;
