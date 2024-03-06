@@ -32,25 +32,36 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 IEnumerable<IRabbitMqOptions> scopedOptions = GetOptionsFor(message);
                 foreach (IRabbitMqOptions scopedOpt in scopedOptions)
                 {
-                    Publish(message, boundedContext, exchange, scopedOpt);
+                    handledByRealPublisher &= Publish(message, boundedContext, exchange, scopedOpt);
                 }
             }
 
-            return true;
+            return handledByRealPublisher;
         }
 
         protected abstract IEnumerable<IRabbitMqOptions> GetOptionsFor(CronusMessage message);
 
-        private void Publish(CronusMessage message, string boundedContext, string exchange, IRabbitMqOptions options)
+        private bool Publish(CronusMessage message, string boundedContext, string exchange, IRabbitMqOptions options)
         {
-            IModel exchangeModel = channelResolver.Resolve(exchange, options, boundedContext);
-            IBasicProperties props = exchangeModel.CreateBasicProperties();
-            props = BuildMessageProperties(props, message);
-            props = AttachHeaders(props, message);
+            try
+            {
+                IModel exchangeModel = channelResolver.Resolve(exchange, options, boundedContext);
+                IBasicProperties props = exchangeModel.CreateBasicProperties();
+                props = BuildMessageProperties(props, message);
+                props = AttachHeaders(props, message);
 
-            byte[] body = serializer.SerializeToBytes(message);
-            exchangeModel.BasicPublish(exchange, string.Empty, false, props, body);
-            logger.LogDebug("Published message in exchange {exchange} with headers {@headers}.", exchange, props.Headers);
+                byte[] body = serializer.SerializeToBytes(message);
+                exchangeModel.BasicPublish(exchange, string.Empty, false, props, body);
+                logger.LogDebug("Published message to exchange {exchange} with headers {@headers}.", exchange, props.Headers);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Published message to exchange {exchange} has FAILED.", exchange);
+
+                return false;
+            }
         }
 
         protected virtual IBasicProperties BuildMessageProperties(IBasicProperties properties, CronusMessage message)

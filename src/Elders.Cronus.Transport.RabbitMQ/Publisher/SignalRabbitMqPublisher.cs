@@ -56,22 +56,22 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
 
                 return true;
             }
-            catch (Exception ex) when (logger.WarnException(ex, () => $"Unable to publish {messageType}"))
+            catch (Exception ex) when (logger.ErrorException(ex, () => $"Unable to publish {messageType}"))
             {
                 return false;
             }
         }
 
-        private void PublishInternally(CronusMessage message, string boundedContext, string exchange, IRabbitMqOptions internalOptions)
+        private bool PublishInternally(CronusMessage message, string boundedContext, string exchange, IRabbitMqOptions internalOptions)
         {
             IModel exchangeModel = channelResolver.Resolve(exchange, internalOptions, boundedContext);
             IBasicProperties props = exchangeModel.CreateBasicProperties();
             props = BuildMessageProperties(props, message);
 
-            PublishUsingChannel(message, exchange, exchangeModel, props);
+            return PublishUsingChannel(message, exchange, exchangeModel, props);
         }
 
-        private void PublishPublically(CronusMessage message, string boundedContext, string exchange, IEnumerable<IRabbitMqOptions> scopedOptions)
+        private bool PublishPublically(CronusMessage message, string boundedContext, string exchange, IEnumerable<IRabbitMqOptions> scopedOptions)
         {
             IBasicProperties props = null;
 
@@ -85,14 +85,29 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
                     props = BuildMessageProperties(props, message);
                 }
 
-                PublishUsingChannel(message, exchange, exchangeModel, props);
+                handledByRealPublisher &= PublishUsingChannel(message, exchange, exchangeModel, props);
             }
+
+            return handledByRealPublisher;
         }
 
-        private void PublishUsingChannel(CronusMessage message, string exchange, IModel exchangeModel, IBasicProperties properties)
+        private bool PublishUsingChannel(CronusMessage message, string exchange, IModel exchangeModel, IBasicProperties properties)
         {
-            byte[] body = serializer.SerializeToBytes(message);
-            exchangeModel.BasicPublish(exchange, string.Empty, false, properties, body);
+            try
+            {
+                byte[] body = serializer.SerializeToBytes(message);
+                exchangeModel.BasicPublish(exchange, string.Empty, false, properties, body);
+
+                logger.LogDebug("Published message to exchange {exchange} with headers {@headers}.", exchange, properties.Headers);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Published message to exchange {exchange} has FAILED.", exchange);
+
+                return false;
+            }
         }
 
         private IBasicProperties BuildMessageProperties(IBasicProperties properties, CronusMessage message)
