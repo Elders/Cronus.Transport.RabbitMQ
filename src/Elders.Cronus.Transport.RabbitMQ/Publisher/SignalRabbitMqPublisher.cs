@@ -28,8 +28,10 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
             this.logger = logger;
         }
 
-        protected override bool PublishInternal(CronusMessage message)
+        protected override PublishResult PublishInternal(CronusMessage message)
         {
+            PublishResult publishResult = PublishResult.Initial;
+
             Type messageType = null;
 
             try
@@ -43,26 +45,26 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
                 {
                     foreach (var exchange in exchanges)
                     {
-                        PublishInternally(message, messageBC, exchange, internalOptions);
+                        publishResult &= PublishInternally(message, messageBC, exchange, internalOptions);
                     }
                 }
                 else
                 {
                     foreach (var exchange in exchanges)
                     {
-                        PublishPublically(message, messageBC, exchange, options.PublicClustersOptions);
+                        publishResult &= PublishPublically(message, messageBC, exchange, options.PublicClustersOptions);
                     }
                 }
 
-                return true;
+                return publishResult;
             }
             catch (Exception ex) when (logger.ErrorException(ex, () => $"Unable to publish {messageType}"))
             {
-                return false;
+                return PublishResult.Failed;
             }
         }
 
-        private bool PublishInternally(CronusMessage message, string boundedContext, string exchange, IRabbitMqOptions internalOptions)
+        private PublishResult PublishInternally(CronusMessage message, string boundedContext, string exchange, IRabbitMqOptions internalOptions)
         {
             IModel exchangeModel = channelResolver.Resolve(exchange, internalOptions, boundedContext);
             IBasicProperties props = exchangeModel.CreateBasicProperties();
@@ -71,8 +73,10 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
             return PublishUsingChannel(message, exchange, exchangeModel, props);
         }
 
-        private bool PublishPublically(CronusMessage message, string boundedContext, string exchange, IEnumerable<IRabbitMqOptions> scopedOptions)
+        private PublishResult PublishPublically(CronusMessage message, string boundedContext, string exchange, IEnumerable<IRabbitMqOptions> scopedOptions)
         {
+            PublishResult publishResult = PublishResult.Initial;
+
             IBasicProperties props = null;
 
             foreach (var opt in scopedOptions)
@@ -84,14 +88,13 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
                     props = exchangeModel.CreateBasicProperties();
                     props = BuildMessageProperties(props, message);
                 }
-
-                handledByRealPublisher &= PublishUsingChannel(message, exchange, exchangeModel, props);
+                publishResult &= PublishUsingChannel(message, exchange, exchangeModel, props);
             }
 
-            return handledByRealPublisher;
+            return publishResult;
         }
 
-        private bool PublishUsingChannel(CronusMessage message, string exchange, IModel exchangeModel, IBasicProperties properties)
+        private PublishResult PublishUsingChannel(CronusMessage message, string exchange, IModel exchangeModel, IBasicProperties properties)
         {
             try
             {
@@ -100,13 +103,13 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
 
                 logger.LogDebug("Published message to exchange {exchange} with headers {@headers}.", exchange, properties.Headers);
 
-                return true;
+                return new PublishResult(true, true);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Published message to exchange {exchange} has FAILED.", exchange);
 
-                return false;
+                return PublishResult.Failed;
             }
         }
 

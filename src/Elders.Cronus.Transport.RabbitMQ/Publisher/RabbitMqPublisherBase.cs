@@ -22,8 +22,10 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.logger = logger;
         }
 
-        protected override bool PublishInternal(CronusMessage message)
+        protected override PublishResult PublishInternal(CronusMessage message)
         {
+            PublishResult publishResult = PublishResult.Initial;
+
             string boundedContext = message.BoundedContext;
 
             IEnumerable<string> exchanges = GetExistingExchangesNames(message);
@@ -32,16 +34,16 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 IEnumerable<IRabbitMqOptions> scopedOptions = GetOptionsFor(message);
                 foreach (IRabbitMqOptions scopedOpt in scopedOptions)
                 {
-                    handledByRealPublisher &= Publish(message, boundedContext, exchange, scopedOpt);
+                    publishResult &= Publish(message, boundedContext, exchange, scopedOpt);
                 }
             }
 
-            return handledByRealPublisher;
+            return publishResult;
         }
 
         protected abstract IEnumerable<IRabbitMqOptions> GetOptionsFor(CronusMessage message);
 
-        private bool Publish(CronusMessage message, string boundedContext, string exchange, IRabbitMqOptions options)
+        private PublishResult Publish(CronusMessage message, string boundedContext, string exchange, IRabbitMqOptions options)
         {
             try
             {
@@ -54,13 +56,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 exchangeModel.BasicPublish(exchange, string.Empty, false, props, body);
                 logger.LogDebug("Published message to exchange {exchange} with headers {@headers}.", exchange, props.Headers);
 
-                return true;
+                return new PublishResult(true, true);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Published message to exchange {exchange} has FAILED.", exchange);
 
-                return false;
+                return PublishResult.Failed;
             }
         }
 
