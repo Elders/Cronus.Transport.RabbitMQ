@@ -70,7 +70,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             properties.Headers = new Dictionary<string, object>();
             properties.Headers.Add("cronus_messageid", message.Id.ToByteArray());
-            properties.Expiration = message.GetTtlMilliseconds();
+            string ttl = message.GetTtlMilliseconds();
+            if (string.IsNullOrEmpty(ttl) == false)
+                properties.Expiration = ttl;
             properties.Persistent = true;
 
             return properties;

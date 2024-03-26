@@ -5,7 +5,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
     internal static class MessageExtentions
     {
         private const long TtlTreasholdMilliseconds = 30_000; // https://learn.microsoft.com/en-us/azure/virtual-machines/linux/time-sync
-        private const string NoDelay = "0";
 
         /// <summary>
         /// Gets the <see cref="CronusMessage"/> TTL calculate => Utc.Now - MessageHeaders[publish_timestamp].
@@ -48,12 +47,15 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 string ttlFromHeader = GetTtlMillisecondsFromHeader(message);
                 if (string.IsNullOrEmpty(ttlFromHeader))
-                    return NoDelay;
+                    return string.Empty;
 
                 ttl = long.Parse(ttlFromHeader);
                 if (ttl < TtlTreasholdMilliseconds)
-                    return NoDelay;
+                    return string.Empty;
             }
+
+            if (ttl < TtlTreasholdMilliseconds)
+                return string.Empty;
 
             return ttl.ToString();
         }
