@@ -123,7 +123,9 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
             properties.Headers.Add($"{contractId}", boundedContext);
             properties.Headers.Add($"{contractId}@{tenant}", boundedContext);
             properties.Headers.Add("cronus_messageid", message.Id.ToByteArray());
-            properties.Expiration = message.GetTtlMilliseconds();
+            string ttl = message.GetTtlMilliseconds();
+            if (string.IsNullOrEmpty(ttl) == false)
+                properties.Expiration = ttl;
             properties.Persistent = false;
             properties.DeliveryMode = 1;
 
