@@ -70,7 +70,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             properties.Headers = new Dictionary<string, object>();
             properties.Headers.Add("cronus_messageid", message.Id.ToByteArray());
-            properties.Expiration = message.GetTtl();
+            properties.Expiration = message.GetTtlMilliseconds();
             properties.Persistent = true;
 
             return properties;
@@ -91,7 +91,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             IEnumerable<string> exchanges = rabbitMqNamer.GetExchangeNames(messageType);
 
-            if (string.IsNullOrEmpty(message.GetTtl()) == false)
+            if (string.IsNullOrEmpty(message.GetTtlMilliseconds()) == false)
                 exchanges = exchanges.Select(e => $"{e}.Delayer");
 
             return exchanges;
