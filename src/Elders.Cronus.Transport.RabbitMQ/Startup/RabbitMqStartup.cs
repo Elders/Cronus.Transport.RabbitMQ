@@ -175,7 +175,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
                 {
                     string bc = msgType.GetBoundedContext(boundedContext.Name);
 
-                    if (bc != boundedContext.Name)
+                    if (bc.Equals(boundedContext.Name, StringComparison.OrdinalIgnoreCase) == false)
                         throw new Exception($"The message {msgType.Name} has a bounded context {bc} which is different than the configured {boundedContext.Name}.");
 
                     string messageContractId = msgType.GetContractId();
@@ -410,10 +410,10 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
                     string contractId = msgType.GetContractId();
                     string bc = msgType.GetBoundedContext(boundedContext.Name);
 
-                    if (bc != boundedContext.Name && isSystemQueue)
+                    if (bc.Equals(boundedContext.Name, StringComparison.OrdinalIgnoreCase) == false && isSystemQueue)
                         throw new Exception($"The message {msgType.Name} has a bounded context {bc} which is different than the configured {boundedContext.Name}.");
 
-                    if (bc != boundedContext.Name || isTriggerQueue)
+                    if (bc.Equals(boundedContext.Name, StringComparison.OrdinalIgnoreCase) == false || isTriggerQueue)
                     {
                         foreach (string tenant in tenantsOptions.Tenants)
                         {
