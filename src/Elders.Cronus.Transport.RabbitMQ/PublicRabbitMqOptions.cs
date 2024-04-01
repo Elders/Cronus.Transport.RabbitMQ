@@ -21,11 +21,17 @@ namespace Elders.Cronus.Transport.RabbitMQ
         const string PasswordDefault = "guest";
         const int AdminPortDefault = 5672;
 
-        public string Server { get; set; } = ServerDefault;
+        private string server = ServerDefault;
+        private string vHost = VHostDefault;
+        private string boundedContext = BoundedContextDefault;
+
+        //[Required]
+        public string Server { get => server; set => server = value?.ToLower(); }
 
         public int Port { get; set; } = PortDefault;
 
-        public string VHost { get; set; } = VHostDefault;
+        //[Required]
+        public string VHost { get => vHost; set => vHost = value?.ToLower(); }
 
         public string Username { get; set; } = UsernameDefault;
 
@@ -35,7 +41,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public string ApiAddress { get; set; }
 
-        public string BoundedContext { get; set; } = BoundedContextDefault;
+        // [Required]
+        public string BoundedContext { get => boundedContext; set => boundedContext = value?.ToLower(); }
 
         public FederatedExchangeOptions FederatedExchange { get; set; }
 

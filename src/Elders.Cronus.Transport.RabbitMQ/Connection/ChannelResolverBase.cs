@@ -17,6 +17,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         public virtual IModel Resolve(string resolveKey, IRabbitMqOptions options, string boundedContext)
         {
+            resolveKey = resolveKey.ToLower();
+
             IModel channel = GetExistingChannel(resolveKey);
 
             if (channel is null || channel.IsClosed)

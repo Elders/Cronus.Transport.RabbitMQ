@@ -22,6 +22,26 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.logger = logger;
         }
 
+        // Old version where we foreach first around exchange names. It is known to be working
+        //protected override PublishResult PublishInternal(CronusMessage message)
+        //{
+        //    PublishResult publishResult = PublishResult.Initial;
+
+        //    string boundedContext = message.BoundedContext;
+
+        //    IEnumerable<string> exchanges = GetExistingExchangesNames(message);
+        //    foreach (string exchange in exchanges)
+        //    {
+        //        IEnumerable<IRabbitMqOptions> scopedOptions = GetOptionsFor(message);
+        //        foreach (IRabbitMqOptions scopedOpt in scopedOptions)
+        //        {
+        //            publishResult &= Publish(message, boundedContext, exchange, scopedOpt);
+        //        }
+        //    }
+
+        //    return publishResult;
+        //}
+
         protected override PublishResult PublishInternal(CronusMessage message)
         {
             PublishResult publishResult = PublishResult.Initial;
@@ -29,10 +49,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
             string boundedContext = message.BoundedContext;
 
             IEnumerable<string> exchanges = GetExistingExchangesNames(message);
-            foreach (string exchange in exchanges)
+
+            IEnumerable<IRabbitMqOptions> scopedOptions = GetOptionsFor(message);
+
+            foreach (IRabbitMqOptions scopedOpt in scopedOptions)
             {
-                IEnumerable<IRabbitMqOptions> scopedOptions = GetOptionsFor(message);
-                foreach (IRabbitMqOptions scopedOpt in scopedOptions)
+                foreach (string exchange in exchanges)
                 {
                     publishResult &= Publish(message, boundedContext, exchange, scopedOpt);
                 }

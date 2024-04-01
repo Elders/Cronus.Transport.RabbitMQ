@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Elders.Cronus.Multitenancy;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
@@ -7,11 +8,15 @@ namespace Elders.Cronus.Transport.RabbitMQ
 {
     public class PublicRabbitMqPublisher : RabbitMqPublisherBase<IPublicEvent>
     {
+        private readonly BoundedContext currentBoundedContext;
+        private readonly IOptionsMonitor<RabbitMqOptions> internalOptionsMonitor;
         private readonly IOptionsMonitor<PublicRabbitMqOptionsCollection> options;
 
-        public PublicRabbitMqPublisher(ISerializer serializer, PublisherChannelResolver channelResolver, IOptionsMonitor<PublicRabbitMqOptionsCollection> options, PublicMessagesRabbitMqNamer publicRabbitMqNamer, IEnumerable<DelegatingPublishHandler> handlers, ILogger<PublicRabbitMqPublisher> logger)
+        public PublicRabbitMqPublisher(ISerializer serializer, PublisherChannelResolver channelResolver, IOptionsMonitor<BoundedContext> boundedContextOptionsMonitor, IOptionsMonitor<RabbitMqOptions> internalOptionsMonitor, IOptionsMonitor<PublicRabbitMqOptionsCollection> options, PublicMessagesRabbitMqNamer publicRabbitMqNamer, IEnumerable<DelegatingPublishHandler> handlers, ILogger<PublicRabbitMqPublisher> logger)
             : base(serializer, channelResolver, publicRabbitMqNamer, handlers, logger)
         {
+            this.currentBoundedContext = boundedContextOptionsMonitor.CurrentValue;
+            this.internalOptionsMonitor = internalOptionsMonitor;
             this.options = options;
         }
 
@@ -43,6 +48,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
             foreach (var publicRabbitMqConfig in options.CurrentValue.PublicClustersOptions)
             {
                 yield return publicRabbitMqConfig;
+            }
+
+            if (currentBoundedContext.Name.Equals(message.BoundedContext, System.StringComparison.OrdinalIgnoreCase))
+            {
+                IRabbitMqOptions internalRmqOptions = internalOptionsMonitor.CurrentValue.GetOptionsFor(currentBoundedContext.Name);
+
+                yield return internalRmqOptions;
             }
         }
     }
