@@ -53,7 +53,14 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             if (typeof(IPublicEvent).IsAssignableFrom(messageType))
             {
-                yield return $"{bc}.{systemMarker}PublicEvents";
+                if (boundedContext.Name.Equals(bc, StringComparison.OrdinalIgnoreCase) == false)
+                {
+                    yield return $"{systemMarker}PublicEvents";
+                }
+                else
+                {
+                    yield return $"{bc}.{systemMarker}PublicEvents";
+                }
                 isConventionalMessageType = true;
             }
 
@@ -79,13 +86,25 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
     public sealed class PublicMessagesRabbitMqNamer : IRabbitMqNamer
     {
+        private readonly BoundedContext boundedContext;
+
+        public PublicMessagesRabbitMqNamer(IOptionsMonitor<BoundedContext> options)
+        {
+            this.boundedContext = options.CurrentValue;
+        }
+
         public IEnumerable<string> GetExchangeNames(Type messageType)
         {
             if (typeof(IPublicEvent).IsAssignableFrom(messageType))
             {
+                string bc = messageType.GetBoundedContext(boundedContext.Name);
+
                 // No BoundedContext here, because the bounded context is global here
                 string systemMarker = typeof(ISystemMessage).IsAssignableFrom(messageType) ? "cronus." : string.Empty;
                 yield return $"{systemMarker}PublicEvents";
+
+                if (boundedContext.Name.Equals(bc, StringComparison.OrdinalIgnoreCase))
+                    yield return $"{bc}.{systemMarker}PublicEvents";
             }
         }
     }
