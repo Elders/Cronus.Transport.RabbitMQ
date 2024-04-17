@@ -175,9 +175,6 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
                 {
                     string bc = msgType.GetBoundedContext(boundedContext.Name);
 
-                    if (bc.Equals(boundedContext.Name, StringComparison.OrdinalIgnoreCase) == false)
-                        throw new Exception($"The message {msgType.Name} has a bounded context {bc} which is different than the configured {boundedContext.Name}.");
-
                     string messageContractId = msgType.GetContractId();
                     if (routingHeaders.ContainsKey(messageContractId) == false)
                         routingHeaders.Add(messageContractId, bc);
