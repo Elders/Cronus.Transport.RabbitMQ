@@ -38,7 +38,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
             {
                 string messageBC = message.BoundedContext;
                 messageType = message.GetMessageType();
-                IEnumerable<string> exchanges = rabbitMqNamer.GetExchangeNames(message);
+                IEnumerable<string> exchanges = rabbitMqNamer.GetExchangeNames(messageType);
                 bool isInternalSignal = boundedContext.Name.Equals(messageBC, StringComparison.OrdinalIgnoreCase); // if the message will be published internally to the same BC
 
                 if (isInternalSignal)

@@ -84,70 +84,75 @@ namespace Elders.Cronus.Transport.RabbitMQ
         }
     }
 
-    public sealed class PublicMessagesRabbitMqNamer : IRabbitMqNamer
+    public abstract class PublicMessagesRabbitMqNamerBase : IRabbitMqNamer
     {
         private readonly BoundedContext boundedContext;
 
-        public PublicMessagesRabbitMqNamer(IOptionsMonitor<BoundedContext> options)
+        public PublicMessagesRabbitMqNamerBase(IOptionsMonitor<BoundedContext> options)
         {
             this.boundedContext = options.CurrentValue;
         }
 
         public IEnumerable<string> GetExchangeNames(Type messageType)
         {
-            if (typeof(IPublicEvent).IsAssignableFrom(messageType))
+            if (GetTypeIdentifier().IsAssignableFrom(messageType))
             {
+                if (IsInfrastructureBootstrapMessageType(messageType))
+                {
+                    yield return GetNameIdentifier();
+                    yield break;
+                }
+
                 string bc = messageType.GetBoundedContext(boundedContext.Name);
 
                 // No BoundedContext here, because the bounded context is global here
                 string systemMarker = typeof(ISystemMessage).IsAssignableFrom(messageType) ? "cronus." : string.Empty;
-                yield return $"{systemMarker}PublicEvents";
+                yield return $"{systemMarker}{GetNameIdentifier()}";
 
                 if (boundedContext.Name.Equals(bc, StringComparison.OrdinalIgnoreCase))
-                    yield return $"{bc}.{systemMarker}PublicEvents";
+                    yield return $"{bc}.{systemMarker}{GetNameIdentifier()}";
             }
         }
+
+        /// <summary>
+        /// When starting the system we do a boostrap procedure where the exchanges are being created based on base types and interfaces.
+        /// These are not concrete messages which can be sent via the network.
+        /// </summary>
+        /// <param name="messageType"></param>
+        /// <returns></returns>
+        private bool IsInfrastructureBootstrapMessageType(Type messageType)
+        {
+            return messageType.IsInterface || messageType.IsAbstract;
+        }
+
+        protected abstract string GetNameIdentifier();
+        protected abstract Type GetTypeIdentifier();
     }
 
-    public sealed class SignalMessagesRabbitMqNamer : IRabbitMqNamer
+    public sealed class PublicMessagesRabbitMqNamer : PublicMessagesRabbitMqNamerBase
     {
-        private readonly BoundedContext boundedContext;
+        private const string PublicEventNameIdentifier = "PublicEvents";
+        private static Type PublicEventTypeIdentifier = typeof(IPublicEvent);
 
-        public SignalMessagesRabbitMqNamer(IOptionsMonitor<BoundedContext> options)
-        {
-            this.boundedContext = options.CurrentValue;
-        }
 
-        public IEnumerable<string> GetExchangeNames(Type messageType)
-        {
-            if (typeof(ISignal).IsAssignableFrom(messageType))
-            {
-                // No BoundedContext here, because the bounded context is global here
-                string systemMarker = typeof(ISystemMessage).IsAssignableFrom(messageType) ? "cronus." : string.Empty;
-                yield return $"{systemMarker}Signals";
-            }
-        }
+        public PublicMessagesRabbitMqNamer(IOptionsMonitor<BoundedContext> options) : base(options) { }
 
-        public IEnumerable<string> GetExchangeNames(CronusMessage cronusMessage)
-        {
-            Type payloadType = cronusMessage.Payload.GetType();
-            if (typeof(ISignal).IsAssignableFrom(payloadType))
-            {
-                bool isInternal = boundedContext.Name.Equals(cronusMessage.BoundedContext, StringComparison.OrdinalIgnoreCase);
+        protected override string GetNameIdentifier() => PublicEventNameIdentifier;
 
-                // No BoundedContext here, because the bounded context is global here
-                string systemMarker = typeof(ISystemMessage).IsAssignableFrom(payloadType) ? "cronus." : string.Empty;
+        protected override Type GetTypeIdentifier() => PublicEventTypeIdentifier;
 
-                if (isInternal)
-                {
-                    yield return $"{boundedContext}.{systemMarker}Signals";
-                }
-                else
-                {
-                    yield return $"{systemMarker}Signals";
-                }
-            }
-        }
+    }
+
+    public sealed class SignalMessagesRabbitMqNamer : PublicMessagesRabbitMqNamerBase
+    {
+        private const string SignalNameIdentifier = "Signals";
+        private static Type SignalTypeIdentifier = typeof(ISignal);
+
+        public SignalMessagesRabbitMqNamer(IOptionsMonitor<BoundedContext> options) : base(options) { }
+
+        protected override string GetNameIdentifier() => SignalNameIdentifier;
+
+        protected override Type GetTypeIdentifier() => SignalTypeIdentifier;
     }
 }
 

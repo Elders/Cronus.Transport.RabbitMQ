@@ -279,11 +279,11 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
         private readonly TenantsOptions tenantsOptions;
         private readonly ISubscriberCollection<T> subscriberCollection;
         private readonly IRabbitMqConnectionFactory connectionFactory;
-        private readonly BoundedContextRabbitMqNamer bcRabbitMqNamer;
+        private readonly IRabbitMqNamer bcRabbitMqNamer;
         private bool isSystemQueue = false;
         private readonly string queueName;
 
-        public PublicRabbitMqStartup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, IOptionsMonitor<TenantsOptions> tenantsMonitor, ISubscriberCollection<T> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer)
+        public PublicRabbitMqStartup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, IOptionsMonitor<TenantsOptions> tenantsMonitor, ISubscriberCollection<T> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, IRabbitMqNamer bcRabbitMqNamer)
         {
             this.boundedContext = boundedContext.CurrentValue;
             this.consumerOptions = consumerOptions.CurrentValue;
@@ -496,9 +496,15 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
     }
 
     [CronusStartup(Bootstraps.Configuration)]
-    public class Trigger_Startup : PublicRabbitMqStartup<ITrigger>
+    public class TriggerPrivate_Startup : RabbitMqStartup<ITrigger>
     {
-        public Trigger_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, IOptionsMonitor<TenantsOptions> tenantsOptions, ISubscriberCollection<ITrigger> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, tenantsOptions, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
+        public TriggerPrivate_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, IOptionsMonitor<TenantsOptions> tenantsOptions, ISubscriberCollection<ITrigger> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, BoundedContextRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, tenantsOptions, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
+    }
+
+    [CronusStartup(Bootstraps.Configuration)]
+    public class TriggerPublic_Startup : PublicRabbitMqStartup<ITrigger>
+    {
+        public TriggerPublic_Startup(IOptionsMonitor<RabbitMqConsumerOptions> consumerOptions, IOptionsMonitor<BoundedContext> boundedContext, IOptionsMonitor<TenantsOptions> tenantsOptions, ISubscriberCollection<ITrigger> subscriberCollection, IRabbitMqConnectionFactory connectionFactory, SignalMessagesRabbitMqNamer bcRabbitMqNamer) : base(consumerOptions, boundedContext, tenantsOptions, subscriberCollection, connectionFactory, bcRabbitMqNamer) { }
     }
 
     [CronusStartup(Bootstraps.Configuration)]
