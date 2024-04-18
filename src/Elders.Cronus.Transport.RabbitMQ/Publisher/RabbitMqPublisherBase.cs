@@ -113,7 +113,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
         {
             Type messageType = message.GetMessageType();
 
-            IEnumerable<string> exchanges = rabbitMqNamer.GetExchangeNames(messageType);
+            IEnumerable<string> exchanges = rabbitMqNamer.Get_PublishTo_ExchangeNames(messageType);
 
             if (string.IsNullOrEmpty(message.GetTtlMilliseconds()) == false)
                 exchanges = exchanges.Select(e => $"{e}.Delayer");

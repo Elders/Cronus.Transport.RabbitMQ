@@ -12,8 +12,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
         private readonly IOptionsMonitor<RabbitMqOptions> internalOptionsMonitor;
         private readonly IOptionsMonitor<PublicRabbitMqOptionsCollection> options;
 
-        public PublicRabbitMqPublisher(ISerializer serializer, PublisherChannelResolver channelResolver, IOptionsMonitor<BoundedContext> boundedContextOptionsMonitor, IOptionsMonitor<RabbitMqOptions> internalOptionsMonitor, IOptionsMonitor<PublicRabbitMqOptionsCollection> options, PublicMessagesRabbitMqNamer publicRabbitMqNamer, IEnumerable<DelegatingPublishHandler> handlers, ILogger<PublicRabbitMqPublisher> logger)
-            : base(serializer, channelResolver, publicRabbitMqNamer, handlers, logger)
+        public PublicRabbitMqPublisher(ISerializer serializer, PublisherChannelResolver channelResolver, IOptionsMonitor<BoundedContext> boundedContextOptionsMonitor, IOptionsMonitor<RabbitMqOptions> internalOptionsMonitor, IOptionsMonitor<PublicRabbitMqOptionsCollection> options, IRabbitMqNamer rabbitMqNamer, IEnumerable<DelegatingPublishHandler> handlers, ILogger<PublicRabbitMqPublisher> logger)
+            : base(serializer, channelResolver, rabbitMqNamer, handlers, logger)
         {
             this.currentBoundedContext = boundedContextOptionsMonitor.CurrentValue;
             this.internalOptionsMonitor = internalOptionsMonitor;

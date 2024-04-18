@@ -11,12 +11,12 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
         private readonly PublisherChannelResolver channelResolver;
         private readonly BoundedContext boundedContext;
         private readonly RabbitMqOptions internalOptions;
-        private readonly SignalMessagesRabbitMqNamer rabbitMqNamer;
+        private readonly IRabbitMqNamer rabbitMqNamer;
         private readonly ISerializer serializer;
         private readonly ILogger<SignalRabbitMqPublisher> logger;
         private readonly PublicRabbitMqOptionsCollection options;
 
-        public SignalRabbitMqPublisher(IOptionsMonitor<BoundedContext> boundedContextOptionsMonitor, IOptionsMonitor<RabbitMqOptions> internalOptionsMonitor, IOptionsMonitor<PublicRabbitMqOptionsCollection> optionsMonitor, SignalMessagesRabbitMqNamer rabbitMqNamer, PublisherChannelResolver channelResolver, ISerializer serializer, ILogger<SignalRabbitMqPublisher> logger, IEnumerable<DelegatingPublishHandler> handlers)
+        public SignalRabbitMqPublisher(IOptionsMonitor<BoundedContext> boundedContextOptionsMonitor, IOptionsMonitor<RabbitMqOptions> internalOptionsMonitor, IOptionsMonitor<PublicRabbitMqOptionsCollection> optionsMonitor, IRabbitMqNamer rabbitMqNamer, PublisherChannelResolver channelResolver, ISerializer serializer, ILogger<SignalRabbitMqPublisher> logger, IEnumerable<DelegatingPublishHandler> handlers)
             : base(handlers)
         {
             this.boundedContext = boundedContextOptionsMonitor.CurrentValue;
@@ -38,7 +38,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
             {
                 string messageBC = message.BoundedContext;
                 messageType = message.GetMessageType();
-                IEnumerable<string> exchanges = rabbitMqNamer.GetExchangeNames(messageType);
+                IEnumerable<string> exchanges = rabbitMqNamer.Get_PublishTo_ExchangeNames(messageType);
                 bool isInternalSignal = boundedContext.Name.Equals(messageBC, StringComparison.OrdinalIgnoreCase); // if the message will be published internally to the same BC
 
                 if (isInternalSignal)
