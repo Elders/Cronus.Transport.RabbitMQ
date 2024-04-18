@@ -174,10 +174,16 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
 
                     if (bc.Equals(boundedContext.Name, StringComparison.OrdinalIgnoreCase) == false || isTriggerQueue)
                     {
+                        bindHeaders.Add(contractId, bc);
+
+                        var backwardCompHandlers = event2Handler[standardExchangeName][contractId];
+                        foreach (var handler in backwardCompHandlers)
+                        {
+                            bindHeaders.Add($"{contractId}@{handler}", bc);
+                        }
+
                         foreach (string tenant in tenantsOptions.Tenants)
                         {
-                            bindHeaders.Add(contractId, bc);
-
                             string contractIdWithTenant = $"{contractId}@{tenant}";
                             bindHeaders.Add(contractIdWithTenant, bc);
 
@@ -186,7 +192,6 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
                             {
                                 string key = $"{contractId}@{handler}@{tenant}";
                                 bindHeaders.Add(key, bc);
-                                bindHeaders.Add($"{contractId}@{handler}", bc);
                             }
                         }
                     }
