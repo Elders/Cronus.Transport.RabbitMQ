@@ -12,12 +12,12 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
 {
     public abstract class RabbitMqStartup<T> : ICronusStartup
     {
-        private readonly TenantsOptions tenantsOptions;
         private readonly BoundedContext boundedContext;
         private readonly ISubscriberCollection<T> subscriberCollection;
         private readonly IRabbitMqConnectionFactory connectionFactory;
         private readonly BoundedContextRabbitMqNamer bcRabbitMqNamer;
 
+        private TenantsOptions tenantsOptions;
         private bool isSystemQueue = false;
         private readonly string queueName;
 
@@ -31,6 +31,17 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
 
             isSystemQueue = typeof(ISystemHandler).IsAssignableFrom(typeof(T));
             queueName = bcRabbitMqNamer.Get_QueueName(typeof(T), consumerOptions.CurrentValue.FanoutMode);
+
+            tenantsOptionsMonitor.OnChange(newOptions =>
+            {
+                tenantsOptions = newOptions;
+
+                using (var connection = connectionFactory.CreateConnection())
+                using (var channel = connection.CreateModel())
+                {
+                    RecoverModel(channel);
+                }
+            });
         }
 
         public void Bootstrap()
