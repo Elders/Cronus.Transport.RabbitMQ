@@ -10,7 +10,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
     [CronusStartup(Bootstraps.Runtime)]
     public class RpcApiStartup : ICronusStartup
     {
-        private readonly CronusHostOptions hostOptions;
+        private CronusHostOptions hostOptions;
         private readonly IRequestResponseFactory requestFactory;
         private readonly ILogger<RpcApiStartup> logger;
 
@@ -19,6 +19,13 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
             this.hostOptions = cronusHostOptions.CurrentValue;
             this.requestFactory = requestFactory;
             this.logger = logger;
+
+            cronusHostOptions.OnChange(options =>
+            {
+                logger.Debug(() => "Cronus host options re-loaded with {@options}", options);
+
+                this.hostOptions = options;
+            });
         }
 
         public void Bootstrap()

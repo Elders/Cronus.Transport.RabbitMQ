@@ -25,6 +25,13 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             this.provider = provider;
             this.logger = logger;
             services = new List<object>();
+
+            hostOptions.OnChange(options =>
+            {
+                logger.Debug(() => "Cronus host options re-loaded with {@options}", options);
+
+                this.hostOptions = options;
+            });
         }
 
         public async Task StartAsync()
