@@ -20,7 +20,12 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
             this.requestFactory = requestFactory;
             this.logger = logger;
 
-            cronusHostOptions.OnChange(options => this.hostOptions = options);
+            cronusHostOptions.OnChange(options =>
+            {
+                logger.Debug(() => "Cronus host options re-loaded with {@options}", options);
+
+                this.hostOptions = options;
+            });
         }
 
         public void Bootstrap()
