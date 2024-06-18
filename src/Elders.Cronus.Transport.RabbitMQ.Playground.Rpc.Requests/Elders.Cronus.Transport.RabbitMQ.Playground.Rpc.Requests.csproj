@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Cronus" Version="10.12.1" />
-    <PackageReference Include="Cronus.Persistence.Cassandra" Version="10.8.0" />
+    <PackageReference Include="Cronus" Version="10.13.1" />
+    <PackageReference Include="Cronus.Persistence.Cassandra" Version="10.9.0" />
     <PackageReference Include="Cronus.Projections.Cassandra" Version="10.4.0" />
     <PackageReference Include="Cronus.Serialization.NewtonsoftJson" Version="10.4.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
