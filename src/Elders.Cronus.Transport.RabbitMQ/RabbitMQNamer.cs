@@ -224,7 +224,6 @@ namespace Elders.Cronus.Transport.RabbitMQ
     //        return messageType.IsInterface || messageType.IsAbstract;
     //    }
     //}
-
     //public sealed class SignalMessagesRabbitMqNamer : IRabbitMqNamer
     //{
     //    private const string SignalNameIdentifier = "Signals";
