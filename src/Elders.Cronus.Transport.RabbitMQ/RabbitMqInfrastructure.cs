@@ -15,15 +15,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private readonly RabbitMqOptions options;
         private readonly PublicRabbitMqOptions publicOptions;
-        private readonly PublicMessagesRabbitMqNamer publicRabbitMqNamer;
-        private readonly SignalMessagesRabbitMqNamer signalRabbitMqNamer;
+        private readonly IRabbitMqNamer rabbitMqNamer;
 
-        public RabbitMqInfrastructure(IOptionsMonitor<RabbitMqOptions> options, IOptionsMonitor<PublicRabbitMqOptions> publicOptions, PublicMessagesRabbitMqNamer rabbitMqNamer, SignalMessagesRabbitMqNamer signalRabbitMqNamer)
+        public RabbitMqInfrastructure(IOptionsMonitor<RabbitMqOptions> options, IOptionsMonitor<PublicRabbitMqOptions> publicOptions, IRabbitMqNamer rabbitMqNamer)
         {
             this.options = options.CurrentValue;
             this.publicOptions = publicOptions.CurrentValue;
-            this.publicRabbitMqNamer = rabbitMqNamer;
-            this.signalRabbitMqNamer = signalRabbitMqNamer;
+            this.rabbitMqNamer = rabbitMqNamer;
         }
 
         public void Initialize()
@@ -66,8 +64,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
         private void CreatePublishedLanguageConnection(RabbitMqManagementClient downstreamClient, PublicRabbitMqOptions publicOptions)
         {
-            IEnumerable<string> publicExchangeNames = publicRabbitMqNamer.GetExchangeNames(typeof(IPublicEvent));
-            IEnumerable<string> signalExchangeNames = signalRabbitMqNamer.GetExchangeNames(typeof(ISignal));
+            IEnumerable<string> publicExchangeNames = rabbitMqNamer.Get_FederationUpstream_ExchangeNames(typeof(IPublicEvent));
+            IEnumerable<string> signalExchangeNames = rabbitMqNamer.Get_FederationUpstream_ExchangeNames(typeof(ISignal));
             IEnumerable<string> exchanges = publicExchangeNames.Concat(signalExchangeNames);
 
             foreach (var exchange in exchanges)
@@ -94,7 +92,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 {
                     VHost = options.VHost,
                     Name = publicOptions.VHost + $"--{exchange.ToLower()}",
-                    Pattern = $"{exchange}$",
+                    Pattern = $"^{exchange}$",
                     Priority = 1,
                     Definition = new Policy.DefinitionDto()
                     {
