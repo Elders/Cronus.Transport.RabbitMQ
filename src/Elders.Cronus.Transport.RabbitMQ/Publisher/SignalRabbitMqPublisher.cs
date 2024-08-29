@@ -117,7 +117,6 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
             properties.Headers = new Dictionary<string, object>();
             properties.Headers.Add(contractId, boundedContext);
             properties.Headers.Add($"{contractId}@{tenant}", boundedContext);
-            properties.Headers.Add("cronus_messageid", message.Id.ToByteArray());
 
             string ttl = message.GetTTL(); // https://www.rabbitmq.com/ttl.html#per-message-ttl-in-publishers
             if (string.IsNullOrEmpty(ttl) == false)
