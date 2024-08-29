@@ -8,6 +8,7 @@ trigger:
       - master
       - beta
       - preview*
+      - preview-add-new-bindings
     paths:
       exclude:
       - docs/CHANGELOG.md
