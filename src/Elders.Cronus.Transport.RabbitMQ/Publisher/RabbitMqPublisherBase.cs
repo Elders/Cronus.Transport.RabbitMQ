@@ -27,13 +27,14 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.logger = logger;
         }
 
+        // Comment from latest v.11.0.0-preview.1 => Old version where we foreach first around exchange names. It is known to be working
         protected override bool PublishInternal(CronusMessage message)
         {
             try
             {
                 string boundedContext = message.BoundedContext;
 
-                List<string> exchanges = GetExistingExchangesNames(message);
+                IEnumerable<string> exchanges = GetExistingExchangesNames(message);
                 foreach (string exchange in exchanges)
                 {
                     IRabbitMqOptions scopedOptions = options.GetOptionsFor(message.BoundedContext);
@@ -85,15 +86,16 @@ namespace Elders.Cronus.Transport.RabbitMQ
             return properties;
         }
 
-        private List<string> GetExistingExchangesNames(CronusMessage message)
+        private IEnumerable<string> GetExistingExchangesNames(CronusMessage message)
         {
-            List<string> exchanges = rabbitMqNamer.GetExchangeNames(message.Payload.GetType()).ToList();
+            Type messageType = message.Payload.GetType();
+
+            IEnumerable<string> exchanges = rabbitMqNamer.Get_PublishTo_ExchangeNames(messageType);
 
             if (message.GetPublishDelay() > 1000)
             {
                 exchanges = exchanges.Select(e => $"{e}.Scheduler").ToList();
             }
-
             return exchanges;
         }
     }
