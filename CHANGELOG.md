@@ -1,3 +1,10 @@
+# [7.1.0-preview-add-new-bindings.3](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.1.0-preview-add-new-bindings.2...v7.1.0-preview-add-new-bindings.3) (2024-08-29)
+
+
+### Bug Fixes
+
+* fixes problem when building message properties ([a7c0ccd](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/a7c0ccd0e546fdf7b531b3a6ffae37cf6e9433bc))
+
 # [7.1.0-preview-add-new-bindings.2](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.1.0-preview-add-new-bindings.1...v7.1.0-preview-add-new-bindings.2) (2024-08-29)
 
 
