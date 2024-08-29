@@ -1,3 +1,10 @@
+# [8.4.0-preview-8.2](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.4.0-preview-8.1...v8.4.0-preview-8.2) (2024-08-29)
+
+
+### Bug Fixes
+
+* removes header ([f2b8dd5](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/f2b8dd58ac3f793dfa003da9232145009d129aff))
+
 # [8.4.0-preview-8.1](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.3.0...v8.4.0-preview-8.1) (2024-08-29)
 
 
