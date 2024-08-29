@@ -1,3 +1,10 @@
+# [8.4.0-preview-add-tenant-bindings.1](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.3.0...v8.4.0-preview-add-tenant-bindings.1) (2024-08-29)
+
+
+### Features
+
+* Adds support for publishing and consuming tenant specific messages ([612daed](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/612daedd52a8a5189c28311af0ba138b341c281e))
+
 # [8.3.0](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.2.0...v8.3.0) (2023-05-02)
 
 
