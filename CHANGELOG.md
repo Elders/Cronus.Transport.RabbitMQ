@@ -1,3 +1,10 @@
+# [7.1.0-preview-add-new-bindings.2](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.1.0-preview-add-new-bindings.1...v7.1.0-preview-add-new-bindings.2) (2024-08-29)
+
+
+### Bug Fixes
+
+* trigger ([3bbeb09](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/3bbeb099fdf51d562a98fb75fd334b555b448520))
+
 # [7.1.0-preview-add-new-bindings.1](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0...v7.1.0-preview-add-new-bindings.1) (2024-08-29)
 
 
