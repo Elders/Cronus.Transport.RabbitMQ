@@ -1,3 +1,15 @@
+# [8.4.0-preview-8.1](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.3.0...v8.4.0-preview-8.1) (2024-08-29)
+
+
+### Bug Fixes
+
+* trigger ([88572f2](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/88572f28657b5b47e89ffc4233a058ce422da8c5))
+
+
+### Features
+
+* trigger ([11b71d0](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/11b71d009b57addd29351f2c6f50082db30bcfa2))
+
 # [8.3.0](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.2.0...v8.3.0) (2023-05-02)
 
 
