@@ -31,6 +31,6 @@ module.exports={
   branches: [
     'master',
     {name: 'beta', channel: 'beta', prerelease: true},
-    {name: 'preview', channel: 'beta', prerelease: true}
+    {name: 'preview-add-tenant-bindings', channel: 'beta', prerelease: true}
   ],
 }
