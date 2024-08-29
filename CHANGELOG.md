@@ -1,3 +1,10 @@
+# [8.4.0-preview-8.3](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.4.0-preview-8.2...v8.4.0-preview-8.3) (2024-08-29)
+
+
+### Bug Fixes
+
+* Fixes problem when building non republished message properties ([8e85ed1](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/8e85ed1d3c2f1c774a023f526be861a5e5a5593d))
+
 # [8.4.0-preview-8.2](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.4.0-preview-8.1...v8.4.0-preview-8.2) (2024-08-29)
 
 
