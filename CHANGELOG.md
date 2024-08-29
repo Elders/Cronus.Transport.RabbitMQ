@@ -1,3 +1,10 @@
+# [7.1.0-preview-add-new-bindings.1](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.0.0...v7.1.0-preview-add-new-bindings.1) (2024-08-29)
+
+
+### Features
+
+* Adds support for tenant bindings ([6181139](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/61811395f73a9ac405965097c7bea7f0f7624c69))
+
 # [7.0.0](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v6.4.0...v7.0.0) (2022-04-05)
 
 
