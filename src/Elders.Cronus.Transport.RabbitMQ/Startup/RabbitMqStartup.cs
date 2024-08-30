@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using Elders.Cronus.EventStore.Index;
 using Elders.Cronus.MessageProcessing;
 using Elders.Cronus.Migrations;
@@ -188,40 +190,24 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
                     if (bc.Equals(boundedContext.Name, StringComparison.OrdinalIgnoreCase) == false && isSystemQueue)
                         throw new Exception($"The message {msgType.Name} has a bounded context {bc} which is different than the configured {boundedContext.Name}.");
 
-                    if (bc.Equals(boundedContext.Name, StringComparison.OrdinalIgnoreCase) == false || isTriggerQueue)
+                    List<string> handlers = event2Handler[standardExchangeName][contractId];
+                    if (isTriggerQueue == false)
                     {
-                        bindHeaders.Add(contractId, bc);
-
-                        var backwardCompHandlers = event2Handler[standardExchangeName][contractId];
-                        foreach (var handler in backwardCompHandlers)
+                        if (bc.Equals(boundedContext.Name, StringComparison.OrdinalIgnoreCase) == false)
                         {
-                            bindHeaders.Add($"{contractId}@{handler}", bc);
+                            BuildHeadersForMessageTypeOutsideCurrentBC(contractId, bc, bindHeaders, handlers);
                         }
-
-                        foreach (string tenant in tenantsOptions.Tenants)
+                        else
                         {
-                            string contractIdWithTenant = $"{contractId}@{tenant}";
-                            bindHeaders.Add(contractIdWithTenant, bc);
-
-                            var handlers = event2Handler[standardExchangeName][contractId];
-                            foreach (var handler in handlers)
-                            {
-                                string key = $"{contractId}@{handler}@{tenant}";
-                                bindHeaders.Add(key, bc);
-                            }
+                            BuildHeadersForMessageTypeForCurrentBC(contractId, bc, bindHeaders, handlers);
                         }
                     }
                     else
                     {
-                        bindHeaders.Add(contractId, bc);
-
-                        var handlers = event2Handler[standardExchangeName][contractId];
-                        foreach (var handler in handlers)
-                        {
-                            string key = $"{contractId}@{handler}";
-                            bindHeaders.Add(key, bc);
-                        }
+                        BuildHeadersForMessageTypeForCurrentBC(contractId, bc, bindHeaders, handlers); // here we put both because we can have signals in the same BC and ALSO between diff systems
+                        BuildHeadersForMessageTypeOutsideCurrentBC(contractId, bc, bindHeaders, handlers);
                     }
+                    
                 }
 
                 model.QueueBind(queueName, standardExchangeName, string.Empty, bindHeaders);
@@ -232,6 +218,33 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
                     model.ExchangeDeclare(deadLetterExchangeName, ExchangeType.Headers, true, false);
                     model.QueueBind(scheduledQueue, deadLetterExchangeName, string.Empty, bindHeaders);
                 }
+            }
+        }
+
+        private void BuildHeadersForMessageTypeOutsideCurrentBC(string messageContractId, string currentBC, Dictionary<string, object> headersRef, List<string> handlers)
+        {
+            headersRef.TryAdd(messageContractId, currentBC);
+
+            foreach (string tenant in tenantsOptions.Tenants)
+            {
+                string contractIdWithTenant = $"{messageContractId}@{tenant}";
+                headersRef.Add(contractIdWithTenant, currentBC);
+
+                foreach (var handler in handlers)
+                {
+                    string key = $"{messageContractId}@{handler}@{tenant}";
+                    headersRef.Add(key, currentBC);
+                }
+            }
+        }
+
+        private void BuildHeadersForMessageTypeForCurrentBC(string messageContractId, string currentBC, Dictionary<string, object> headersRef, List<string> handlers)
+        {
+            headersRef.TryAdd(messageContractId, currentBC);
+
+            foreach (var handler in handlers)
+            {
+                headersRef.Add($"{messageContractId}@{handler}", currentBC);
             }
         }
     }

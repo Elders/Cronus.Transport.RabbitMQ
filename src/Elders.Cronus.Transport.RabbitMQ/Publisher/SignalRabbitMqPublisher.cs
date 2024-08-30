@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
@@ -67,8 +68,10 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
         private PublishResult PublishInternally(CronusMessage message, string boundedContext, string exchange, IRabbitMqOptions internalOptions)
         {
             IModel exchangeModel = channelResolver.Resolve(exchange, internalOptions, boundedContext);
+
             IBasicProperties props = exchangeModel.CreateBasicProperties();
             props = BuildMessageProperties(props, message);
+            props = BuildInternalHeaders(props, message);
 
             return PublishUsingChannel(message, exchange, exchangeModel, props);
         }
@@ -77,17 +80,14 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
         {
             PublishResult publishResult = PublishResult.Initial;
 
-            IBasicProperties props = null;
-
             foreach (var opt in scopedOptions)
             {
                 IModel exchangeModel = channelResolver.Resolve(exchange, opt, boundedContext);
 
-                if (props == null)
-                {
-                    props = exchangeModel.CreateBasicProperties();
-                    props = BuildMessageProperties(props, message);
-                }
+                IBasicProperties props = exchangeModel.CreateBasicProperties();
+                props = BuildMessageProperties(props, message);
+                props = BuildPublicHeaders(props, message);
+
                 publishResult &= PublishUsingChannel(message, exchange, exchangeModel, props);
             }
 
@@ -115,19 +115,36 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
 
         private IBasicProperties BuildMessageProperties(IBasicProperties properties, CronusMessage message)
         {
-            string contractId = message.GetMessageType().GetContractId();
-            string boundedContext = message.BoundedContext;
-            string tenant = message.GetTenant();
-
-            properties.Headers = new Dictionary<string, object>();
-            properties.Headers.Add($"{contractId}", boundedContext); // Remove in v11
-            properties.Headers.Add($"{contractId}@{tenant}", boundedContext);
-            properties.Headers.Add("cronus_messageid", message.Id.ToByteArray());
             string ttl = message.GetTtlMilliseconds();
             if (string.IsNullOrEmpty(ttl) == false)
                 properties.Expiration = ttl;
             properties.Persistent = false;
             properties.DeliveryMode = 1;
+
+            return properties;
+        }
+
+        private IBasicProperties BuildPublicHeaders(IBasicProperties properties, CronusMessage message)
+        {
+            string contractId = message.GetMessageType().GetContractId();
+            string boundedContext = message.BoundedContext;
+            string tenant = message.GetTenant();
+
+            properties.Headers = new Dictionary<string, object>();
+            properties.Headers.Add($"{contractId}@{tenant}", boundedContext); // tenant specific binding in public signal
+            properties.Headers.Add("cronus_messageid", message.Id.ToByteArray());
+
+            return properties;
+        }
+
+        private IBasicProperties BuildInternalHeaders(IBasicProperties properties, CronusMessage message)
+        {
+            string contractId = message.GetMessageType().GetContractId();
+            string boundedContext = message.BoundedContext;
+
+            properties.Headers = new Dictionary<string, object>();
+            properties.Headers.Add($"{contractId}", boundedContext); // dont use tenant in internal signal
+            properties.Headers.Add("cronus_messageid", message.Id.ToByteArray());
 
             return properties;
         }
