@@ -59,7 +59,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
 
                 return publishResult;
             }
-            catch (Exception ex) when (logger.ErrorException(ex, () => $"Unable to publish {messageType}"))
+            catch (Exception ex) when (True(() => logger.LogError(ex, "Unable to publish {cronus_messageType}", messageType)))
             {
                 return PublishResult.Failed;
             }

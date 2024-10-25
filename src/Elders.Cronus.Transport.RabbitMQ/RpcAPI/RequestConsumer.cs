@@ -42,7 +42,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
                     TResponse handlerResponse = await handler.HandleAsync(request).ConfigureAwait(false);
                     response = new RpcResponseTransmission(handlerResponse);
                 }
-                catch (Exception ex) when (logger.ErrorException(ex, () => $"Request listened on {queue} failed."))
+                catch (Exception ex) when (True(() => logger.LogError(ex, "Request listened on {cronus_rmqqueue} failed.", queue)))
                 {
                     response = RpcResponseTransmission.WithError(ex);
                 }

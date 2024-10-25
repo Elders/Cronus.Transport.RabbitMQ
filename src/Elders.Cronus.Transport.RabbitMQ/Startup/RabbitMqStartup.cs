@@ -39,7 +39,8 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
 
             tenantsOptionsMonitor.OnChange(newOptions =>
             {
-                this.logger.Debug(() => "Cronus tenant options re-loaded with {@options}", newOptions);
+                if (logger.IsEnabled(LogLevel.Debug))
+                    this.logger.LogDebug("Cronus tenant options re-loaded with {@options}", newOptions);
 
                 tenantsOptions = newOptions;
 
@@ -207,7 +208,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
                         BuildHeadersForMessageTypeForCurrentBC(contractId, bc, bindHeaders, handlers); // here we put both because we can have signals in the same BC and ALSO between diff systems
                         BuildHeadersForMessageTypeOutsideCurrentBC(contractId, bc, bindHeaders, handlers);
                     }
-                    
+
                 }
 
                 model.QueueBind(queueName, standardExchangeName, string.Empty, bindHeaders);

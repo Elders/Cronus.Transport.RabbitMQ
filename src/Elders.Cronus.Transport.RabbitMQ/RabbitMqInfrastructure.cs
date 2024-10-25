@@ -38,12 +38,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 }
 
                 if (ChecksIfHavePublishedLanguageConfigurations() == false)
-                    logger.Warn(() => "Missing configurations for public rabbitMq.");
+                    logger.LogWarning("Missing configurations for public rabbitMq.");
 
                 foreach (PublicRabbitMqOptions publicSettings in publicRmqOptions.PublicClustersOptions)
                     CreatePublishedLanguageConnection(priv, publicSettings);
             }
-            catch (Exception ex) when (logger.ErrorException(ex, () => ex.Message)) { }
+            catch (Exception ex) when (True(() => logger.LogError(ex, ex.Message))) { }
         }
 
         private bool ChecksIfHavePublishedLanguageConfigurations()
