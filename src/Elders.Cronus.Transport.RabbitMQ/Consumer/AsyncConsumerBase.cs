@@ -58,7 +58,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 try
                 {
-                    logger.LogDebug("Message received. Sender {sender}.", sender.GetType().Name);
+                    if (logger.IsEnabled(LogLevel.Debug))
+                        logger.LogDebug("Message received. Sender {sender}.", sender.GetType().Name);
                     isСurrentlyConsuming = true;
 
                     if (sender is AsyncEventingBasicConsumer consumer)
@@ -136,7 +137,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                             subscriberErrors.AppendLine(subscriberCompletedTasks.Exception.ToString());
                         }
                     }
-                    logger.LogError("Failed to process {cronus_messageType} {@cronus_messageData}. Actual errors {errors}", cronusMessage.GetMessageType(), cronusMessage, subscriberErrors.ToString());
+                    logger.LogError(ex, "Failed to process {cronus_messageType} {@cronus_messageData}. Actual errors {errors}", cronusMessage.GetMessageType(), cronusMessage, subscriberErrors.ToString());
                 }
             ))
             { }

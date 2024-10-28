@@ -4,7 +4,6 @@
     public class PublishedLanguageStartup : ICronusStartup
     {
         private readonly RabbitMqInfrastructure infrastructure;
-        private readonly BoundedContext boundedContext;
 
         public PublishedLanguageStartup(RabbitMqInfrastructure infrastructure)
         {
