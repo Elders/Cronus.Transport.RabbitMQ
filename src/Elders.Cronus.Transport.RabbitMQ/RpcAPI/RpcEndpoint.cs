@@ -66,10 +66,10 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             catch (TimeoutException timedOutEx)
             {
                 string error = "The server not responding for too long...";
-                logger.ErrorException(timedOutEx, () => error);
+                logger.LogError(timedOutEx, error);
                 response.Error = error;
             }
-            catch (Exception ex) when (logger.ErrorException(ex, () => ex.Message))
+            catch (Exception ex) when (True(() => logger.LogError(ex, ex.Message)))
             {
                 response.Error = ex.Message;
             }
@@ -87,9 +87,10 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
                 for (int workerNumber = 0; workerNumber < consumerOptions.RpcWorkersCount; workerNumber++)
                     server = new RequestConsumer<TRequest, TResponse>(route, requestChannel, factory, serializer, serviceProvider, logger);
 
-                logger.Info(() => $"{consumerOptions.RpcWorkersCount} RPC request consumers started for {route}.");
+                if (logger.IsEnabled(LogLevel.Information))
+                    logger.LogInformation("{cronus_rmqrpcworkerscount} RPC request consumers started for {route}.", consumerOptions.RpcWorkersCount, route);
             }
-            catch (Exception ex) when (logger.ErrorException(ex, () => $"Unable to start rpc server for {route}.")) { }
+            catch (Exception ex) when (True(() => logger.LogError(ex, "Unable to start rpc server for {cronus_rmqroute}.", route))) { }
         }
 
         async Task IRpc.StopConsumersAsync()
@@ -137,7 +138,8 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
                     }
                 }
             }
-            catch (Exception ex) when (logger.ErrorException(ex, () => $"Unable to start RPC client for {route} to destination BC.")) { }
+            catch (Exception ex) when (False(() => logger.LogError(ex, "Unable to start RPC client for {cronus_rmqroute} to destination BC.", route))) { }
+            catch (Exception) { }
             finally
             {
                 threadGate?.Release();

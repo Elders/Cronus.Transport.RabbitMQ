@@ -30,13 +30,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 foreach (string recipientHandler in message.RecipientHandlers)
                 {
-                    properties.Headers.Add($"{contractId}@{recipientHandler}", boundedContext); // Remove in v11
                     properties.Headers.Add($"{contractId}@{recipientHandler}@{tenant}", boundedContext);
                 }
             }
             else
             {
-                properties.Headers.Add($"{contractId}", boundedContext);// Remove in v11
                 properties.Headers.Add($"{contractId}@{tenant}", boundedContext);
             }
 

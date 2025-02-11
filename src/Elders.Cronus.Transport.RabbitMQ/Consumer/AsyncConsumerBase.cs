@@ -58,13 +58,14 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 try
                 {
-                    logger.LogDebug("Message received. Sender {sender}.", sender.GetType().Name);
+                    if (logger.IsEnabled(LogLevel.Debug))
+                        logger.LogDebug("Message received. Sender {sender}.", sender.GetType().Name);
                     isСurrentlyConsuming = true;
 
                     if (sender is AsyncEventingBasicConsumer consumer)
                         await DeliverMessageToSubscribersAsync(@event, consumer).ConfigureAwait(false);
                 }
-                catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to deliver message"))
+                catch (Exception ex) when (True(() => logger.LogError(ex, "Failed to deliver message")))
                 {
                     throw;
                 }
@@ -109,7 +110,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             catch (Exception ex)
             {
                 // TODO: send to dead letter exchange/queue
-                logger.ErrorException(ex, () => $"Failed to process message. Failed to deserialize: {Convert.ToBase64String(ev.Body.ToArray())}");
+                logger.LogError(ex, "Failed to process message. Failed to deserialize: {}", Convert.ToBase64String(ev.Body.ToArray()));
                 Ack(ev, consumer);
                 return;
             }
@@ -125,20 +126,20 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
                 await Task.WhenAll(deliverTasks).ConfigureAwait(false);
             }
-            catch (Exception ex) when (logger.ErrorException(ex, () =>
-            {
-                // Try find some errors
-                StringBuilder subscriberErrors = new StringBuilder();
-                foreach (Task subscriberCompletedTasks in deliverTasks)
+            catch (Exception ex) when (True(() =>
                 {
-                    if (subscriberCompletedTasks.IsFaulted)
+                    // Try find some errors
+                    StringBuilder subscriberErrors = new StringBuilder();
+                    foreach (Task subscriberCompletedTasks in deliverTasks)
                     {
-                        subscriberErrors.AppendLine(subscriberCompletedTasks.Exception.ToString());
+                        if (subscriberCompletedTasks.IsFaulted)
+                        {
+                            subscriberErrors.AppendLine(subscriberCompletedTasks.Exception.ToString());
+                        }
                     }
+                    logger.LogError(ex, "Failed to process {cronus_messageType} {@cronus_messageData}. Actual errors {errors}", cronusMessage.GetMessageType(), cronusMessage, subscriberErrors.ToString());
                 }
-
-                return "Failed to process message." + Environment.NewLine + serializer.SerializeToString(cronusMessage) + Environment.NewLine + subscriberErrors.ToString();
-            }))
+            ))
             { }
             finally
             {

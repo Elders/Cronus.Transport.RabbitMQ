@@ -22,7 +22,8 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
 
             cronusHostOptions.OnChange(options =>
             {
-                logger.Debug(() => "Cronus host options re-loaded with {@options}", options);
+                if (logger.IsEnabled(LogLevel.Debug))
+                    logger.LogDebug("Cronus host options re-loaded with {@options}", options);
 
                 this.hostOptions = options;
             });

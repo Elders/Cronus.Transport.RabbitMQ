@@ -33,13 +33,15 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 if (subscriberCollection.Subscribers.Any() == false)
                 {
-                    logger.Info(() => $"Consumer {boundedContext}.{typeof(T).Name} not started because there are no subscribers.");
+                    if (logger.IsEnabled(LogLevel.Information))
+                        logger.LogInformation("Consumer {cronus_messageHandler} not started because there are no subscribers.", typeof(T).Name);
                 }
 
                 consumerFactory.CreateAndStartConsumers(tokenSource.Token);
 
             }
-            catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to start rabbitmq consumer.")) { }
+            catch (Exception ex) when (False(() => logger.LogError(ex, "Failed to start rabbitmq consumer."))) { }
+            catch (Exception) { }
 
             return Task.CompletedTask;
         }

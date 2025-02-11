@@ -26,7 +26,8 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             queueToConsume = DeclareUniqueQueue();
             model.BasicConsume(queue: queueToConsume, autoAck: true, consumer: this);
 
-            logger.Info(() => $"RPC response consumer started for {queueToConsume}.");
+            if (logger.IsEnabled(LogLevel.Information))
+                logger.LogInformation("RPC response consumer started for {cronus_rmqqueue}.", queueToConsume);
         }
 
         public Task<TResponse> SendAsync(TRequest request, CancellationToken cancellationToken = default(CancellationToken))
@@ -45,7 +46,8 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 
             model.BasicPublish(exchange: "", routingKey: queueName, basicProperties: props, body: messageBytes); // publish request
 
-            logger.Debug(() => $"Publish request with id {correlationId}, to {queueName}");
+            if (logger.IsEnabled(LogLevel.Debug))
+                logger.LogDebug("Publish requests, to {cronus_rmqqueue}", queueName);
 
             cancellationToken.Register(() => requestTracker.TryRemove(correlationId, out _));
             return taskSource.Task;
@@ -73,7 +75,8 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 
                 return Task.CompletedTask;
             }
-            catch (Exception ex) when (logger.ErrorException(ex, () => $"Unable to process response!"))
+            catch (Exception ex) when (False(() => logger.LogError(ex, "Unable to process response!"))) { }
+            catch (Exception)
             {
                 response.Data = transient.Data;
                 response.Error = transient.Error;

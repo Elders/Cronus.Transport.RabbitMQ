@@ -28,7 +28,8 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 
             hostOptions.OnChange(options =>
             {
-                logger.Debug(() => "Cronus host options re-loaded with {@options}", options);
+                if (logger.IsEnabled(LogLevel.Debug))
+                    logger.LogDebug("Cronus host options re-loaded with {@options}", options);
 
                 this.hostOptions = options;
             });
@@ -87,7 +88,8 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
                     service.StartServer();
                 }
             }
-            catch (Exception ex) when (logger.ErrorException(ex, () => "Failed to start Rpc consumers.")) { }
+            catch (Exception ex) when (False(() => logger.LogError(ex, "Failed to start Rpc consumers."))) { }
+            catch (Exception) { }
         }
 
         private static void CheckForDataContractNamespace(Type type, Action action)
