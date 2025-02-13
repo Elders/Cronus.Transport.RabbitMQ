@@ -65,7 +65,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     if (sender is AsyncEventingBasicConsumer consumer)
                         await DeliverMessageToSubscribersAsync(@event, consumer).ConfigureAwait(false);
                 }
-                catch (Exception ex) when (True(() => logger.LogError(ex, "Failed to deliver message")))
+                catch (Exception ex) when (True(() => logger.LogError(ex, $"Failed to deliver message. MesasgeData: {Convert.ToBase64String(@event.Body.ToArray())}")))
                 {
                     throw;
                 }

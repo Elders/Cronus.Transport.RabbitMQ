@@ -67,6 +67,8 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
                 }
 
                 transient = serializer.DeserializeFromBytes<RpcResponseTransmission>(ev.Body.ToArray());
+                if (transient is null)
+                    throw new Exception("Failed to deserialize.");
 
                 response.Data = transient.Data;
                 response.Error = transient.Error;
