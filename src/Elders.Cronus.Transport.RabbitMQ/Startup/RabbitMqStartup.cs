@@ -137,6 +137,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
                 model.ExchangeDeclare(publishExchangeGroup.Key, PipelineType.Headers.ToString(), true);
             }
 
+
             Dictionary<string, Dictionary<string, List<string>>> event2Handler = BuildEventToHandler();
 
             Dictionary<string, object> routingHeaders = BuildQueueRoutingHeaders();
@@ -174,6 +175,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
                 }
             }
 
+            bool isIEventStoreIndex = typeof(T).Name.Equals(typeof(IEventStoreIndex).Name);
             foreach (var exchangeGroup in bindToExchangeGroups)
             {
                 // Standard exchange
@@ -194,16 +196,23 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
                     List<string> handlers = event2Handler[standardExchangeName][contractId];
                     if (isTriggerQueue == false)
                     {
-                        if (bc.Equals(boundedContext.Name, StringComparison.OrdinalIgnoreCase) == false)
+                        if (isIEventStoreIndex && (typeof(IPublicEvent)).IsAssignableFrom(msgType)) // public event that needs to be handled in index, so we prefix the tenant
                         {
                             BuildHeadersForMessageTypeOutsideCurrentBC(contractId, bc, bindHeaders, handlers);
                         }
                         else
                         {
-                            BuildHeadersForMessageTypeForCurrentBC(contractId, bc, bindHeaders, handlers);
+                            if (bc.Equals(boundedContext.Name, StringComparison.OrdinalIgnoreCase) == false)
+                            {
+                                BuildHeadersForMessageTypeOutsideCurrentBC(contractId, bc, bindHeaders, handlers);
+                            }
+                            else
+                            {
+                                BuildHeadersForMessageTypeForCurrentBC(contractId, bc, bindHeaders, handlers);
+                            }
                         }
                     }
-                    else
+                    else // TRIGGER
                     {
                         BuildHeadersForMessageTypeForCurrentBC(contractId, bc, bindHeaders, handlers); // here we put both because we can have signals in the same BC and ALSO between diff systems
                         BuildHeadersForMessageTypeOutsideCurrentBC(contractId, bc, bindHeaders, handlers);
