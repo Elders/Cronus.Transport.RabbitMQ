@@ -220,13 +220,19 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
 
                 }
 
-                model.QueueBind(queueName, standardExchangeName, string.Empty, bindHeaders);
+                foreach (var header in bindHeaders)
+                {
+                    model.QueueBind(queueName, standardExchangeName, string.Empty, new Dictionary<string, object> { { header.Key, header.Value } });
+                }
 
                 if (thereIsAScheduledQueue)
                 {
-                    string deadLetterExchangeName = $"{standardExchangeName}.Delayer";
-                    model.ExchangeDeclare(deadLetterExchangeName, ExchangeType.Headers, true, false);
-                    model.QueueBind(scheduledQueue, deadLetterExchangeName, string.Empty, bindHeaders);
+                    foreach (var header in bindHeaders)
+                    {
+                        string deadLetterExchangeName = $"{standardExchangeName}.Delayer";
+                        model.ExchangeDeclare(deadLetterExchangeName, ExchangeType.Headers, true, false);
+                        model.QueueBind(scheduledQueue, deadLetterExchangeName, string.Empty, new Dictionary<string, object> { { header.Key, header.Value } });
+                    }
                 }
             }
         }
