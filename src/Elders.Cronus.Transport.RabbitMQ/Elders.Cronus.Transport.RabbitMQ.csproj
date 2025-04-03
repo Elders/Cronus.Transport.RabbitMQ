@@ -31,7 +31,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Cronus" Version="7.0.0" />
+    <PackageReference Include="Cronus" Version="7.1.0-preview-v7-add-rawpayload.1" />
     <PackageReference Include="RabbitMQ.Client" Version="6.2.4" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.0" />

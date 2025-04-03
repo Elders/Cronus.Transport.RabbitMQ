@@ -63,6 +63,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
             try
             {
                 cronusMessage = (CronusMessage)serializer.DeserializeFromBytes(ev.Body);
+                cronusMessage = ExpandRawPayload(cronusMessage);
+
                 var subscribers = subscriberCollection.GetInterestedSubscribers(cronusMessage);
                 foreach (var subscriber in subscribers)
                 {
@@ -90,6 +92,17 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 stream.Position = 0;
                 return reader.ReadToEnd();
             }
+        }
+
+        protected CronusMessage ExpandRawPayload(CronusMessage cronusMessage)
+        {
+            if (cronusMessage.Payload is null && cronusMessage.PayloadRaw?.Length > 0)
+            {
+                IMessage payload = (IMessage)serializer.DeserializeFromBytes(cronusMessage.PayloadRaw);
+                return new CronusMessage(payload, cronusMessage.Headers);
+            }
+
+            return cronusMessage;
         }
     }
 }

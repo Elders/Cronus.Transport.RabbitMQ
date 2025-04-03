@@ -22,7 +22,5 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             return ttl;
         }
-
-
     }
 }
