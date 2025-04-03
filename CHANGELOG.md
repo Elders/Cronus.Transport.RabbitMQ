@@ -1,3 +1,10 @@
+# [7.1.0-preview-add-new-bindings.4](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.1.0-preview-add-new-bindings.3...v7.1.0-preview-add-new-bindings.4) (2025-04-03)
+
+
+### Bug Fixes
+
+* Expands raw cronus message payload ([15e7b17](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/15e7b179008d7e04ca0d84151338ac8e05334f9d))
+
 # [7.1.0-preview-add-new-bindings.3](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.1.0-preview-add-new-bindings.2...v7.1.0-preview-add-new-bindings.3) (2024-08-29)
 
 
