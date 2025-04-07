@@ -1,3 +1,10 @@
+# [8.4.0-preview-8.4](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.4.0-preview-8.3...v8.4.0-preview-8.4) (2025-04-07)
+
+
+### Bug Fixes
+
+* Removes internal publishing of Signals, because it's feature from newer versions of Cronus and causes issues here ([3c9a464](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/3c9a464518c833d318671ef2d710e83959bd0236))
+
 # [8.4.0-preview-8.3](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v8.4.0-preview-8.2...v8.4.0-preview-8.3) (2024-08-29)
 
 
