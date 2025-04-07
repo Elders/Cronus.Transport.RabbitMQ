@@ -32,44 +32,22 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
         protected override bool PublishInternal(CronusMessage message)
         {
             Type messageType = null;
-            bool isSuccess = false;
             try
             {
                 string messageBC = message.BoundedContext;
                 messageType = message.Payload.GetType();
                 IEnumerable<string> exchanges = rabbitMqNamer.Get_PublishTo_ExchangeNames(messageType);
-                bool isInternalSignal = boundedContext.Name.Equals(messageBC, StringComparison.OrdinalIgnoreCase); // if the message will be published internally to the same BC
-
-                if (isInternalSignal)
+                foreach (var exchange in exchanges)
                 {
-                    foreach (var exchange in exchanges)
-                    {
-                        isSuccess &= PublishInternally(message, messageBC, exchange, internalOptions);
-                    }
-                }
-                else
-                {
-                    foreach (var exchange in exchanges)
-                    {
-                        isSuccess &= PublishPublically(message, messageBC, exchange, publicOptions);
-                    }
+                    PublishPublically(message, messageBC, exchange, publicOptions);
                 }
 
-                return isSuccess;
+                return true;
             }
             catch (Exception ex) when (logger.ErrorException(ex, () => $"Unable to publish {messageType}"))
             {
                 return false;
             }
-        }
-
-        private bool PublishInternally(CronusMessage message, string boundedContext, string exchange, IRabbitMqOptions internalOptions)
-        {
-            IModel exchangeModel = channelResolver.Resolve(exchange, internalOptions, boundedContext);
-            IBasicProperties props = exchangeModel.CreateBasicProperties();
-            props = BuildMessageProperties(props, message);
-
-            return PublishUsingChannel(message, exchange, exchangeModel, props);
         }
 
         private bool PublishPublically(CronusMessage message, string boundedContext, string exchange, IRabbitMqOptions scopedOptions)
