@@ -1,3 +1,10 @@
+# [7.1.0-preview-add-new-bindings.5](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.1.0-preview-add-new-bindings.4...v7.1.0-preview-add-new-bindings.5) (2025-04-07)
+
+
+### Bug Fixes
+
+* Removes internal publishing of Signals, because it's feature from newer versions of Cronus and causes issues here ([10edc46](https://github.com/Elders/Cronus.Transport.RabbitMQ/commit/10edc46efe43d09898fd709475914e2ee0840001))
+
 # [7.1.0-preview-add-new-bindings.4](https://github.com/Elders/Cronus.Transport.RabbitMQ/compare/v7.1.0-preview-add-new-bindings.3...v7.1.0-preview-add-new-bindings.4) (2025-04-03)
 
 
