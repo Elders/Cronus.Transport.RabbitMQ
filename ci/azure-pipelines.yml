@@ -106,9 +106,6 @@ stages:
           echo dotnet msbuild `dotnet msbuild --version`
           echo dotnet nuget `dotnet nuget --version`
           echo dotnet `dotnet --version`
-    - task: NuGetAuthenticate@1
-      inputs:
-        nuGetServiceConnections: 'CI-AzurePipelines'
     - task: Bash@3
       inputs:
         targetType: 'inline'
