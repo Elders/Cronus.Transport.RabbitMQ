@@ -106,14 +106,10 @@ stages:
           echo dotnet msbuild `dotnet msbuild --version`
           echo dotnet nuget `dotnet nuget --version`
           echo dotnet `dotnet --version`
-
-    - task: NuGetAuthenticate@1
-      inputs:
-        nuGetServiceConnections: 'CI-AzurePipelines'
     
     - task: DotNetCoreCLI@2
       inputs:
-        command: 'push'
-        packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
-        nuGetFeedType: 'external'
-        publishFeedCredentials: 'CI-AzurePipelines'
+        command: 'custom'
+        projects: '$(Build.ArtifactStagingDirectory)/*.nupkg'
+        custom: 'nuget push'
+        arguments: '--api-key $(NUGET_KEY)'
