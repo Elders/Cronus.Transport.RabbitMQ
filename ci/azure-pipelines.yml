@@ -112,4 +112,4 @@ stages:
         command: 'custom'
         projects: '$(Build.ArtifactStagingDirectory)/*.nupkg'
         custom: 'nuget push'
-        arguments: '--api-key $(NUGET_KEY)'
+        arguments: '--api-key $(NUGET_KEY) --source https://api.nuget.org/v3/index.json'
