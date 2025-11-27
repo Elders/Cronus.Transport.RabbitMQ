@@ -106,10 +106,10 @@ stages:
           echo dotnet msbuild `dotnet msbuild --version`
           echo dotnet nuget `dotnet nuget --version`
           echo dotnet `dotnet --version`
-    
-    - task: DotNetCoreCLI@2
+    - task: NuGetAuthenticate@1
       inputs:
-        command: 'custom'
-        projects: '$(Build.ArtifactStagingDirectory)/*.nupkg'
-        custom: 'nuget push'
-        arguments: '--api-key $(NUGET_KEY) --source https://api.nuget.org/v3/index.json'
+        nuGetServiceConnections: 'CI-AzurePipelines'
+    - task: Bash@3
+      inputs:
+        targetType: 'inline'
+        script: 'dotnet nuget push --api-key $(NUGET_KEY) --source https://api.nuget.org/v3/index.json'
