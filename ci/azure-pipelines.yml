@@ -107,12 +107,13 @@ stages:
           echo dotnet nuget `dotnet nuget --version`
           echo dotnet `dotnet --version`
 
-    - task: NuGetCommand@2
-      name: publish
-      enabled: true
-      condition: and(eq(variables['newVer'], 'yes'), succeeded())
+    - task: NuGetAuthenticate@1
+      inputs:
+        nuGetServiceConnections: 'CI-AzurePipelines'
+    
+    - task: DotNetCoreCLI@2
       inputs:
         command: 'push'
-        packagesToPush: '$(Build.StagingDirectory)/*.nupkg'
+        packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
         nuGetFeedType: 'external'
         publishFeedCredentials: 'CI-AzurePipelines'
