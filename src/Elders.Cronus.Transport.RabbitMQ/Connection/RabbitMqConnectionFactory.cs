@@ -67,7 +67,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
 
             public static MultipleEndpointResolver ComposeEndpointResolver(IRabbitMqOptions options)
             {
-                AmqpTcpEndpoint[] endpoints = AmqpTcpEndpoint.ParseMultiple(options.Server);
+                AmqpTcpEndpoint[] endpoints = AmqpTcpEndpoint.ParseMultiple($"{options.Server}:{options.Port}");
 
                 if (options.UseSsl is false)
                     return new MultipleEndpointResolver(endpoints);
