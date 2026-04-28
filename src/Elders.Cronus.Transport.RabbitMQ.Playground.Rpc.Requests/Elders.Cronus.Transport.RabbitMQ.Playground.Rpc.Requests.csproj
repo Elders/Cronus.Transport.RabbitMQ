@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-Elders.Cronus.Transport.RabbitMQ.Playground.Rpc.Requests-325af238-e760-488a-aeca-d3883e655f13</UserSecretsId>
@@ -12,7 +12,7 @@
     <PackageReference Include="Cronus.Persistence.Cassandra" Version="11.0.0-preview.5" />
     <PackageReference Include="Cronus.Projections.Cassandra" Version="11.0.0" />
     <PackageReference Include="Cronus.Serialization.NewtonsoftJson" Version="11.0.0-preview.4" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.7" />
   </ItemGroup>
 
   <ItemGroup>
