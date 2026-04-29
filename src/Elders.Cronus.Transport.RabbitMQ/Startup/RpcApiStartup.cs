@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Elders.Cronus.Transport.RabbitMQ.RpcAPI;
 using Microsoft.Extensions.Logging;
@@ -29,16 +31,21 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
             });
         }
 
-        public void Bootstrap()
+        /// <summary>
+        /// Bootstraps the RPC API by discovering and registering request handlers when the feature is enabled.
+        /// </summary>
+        /// <param name="cancellationToken">A token to cancel the asynchronous bootstrap.</param>
+        public Task BootstrapAsync(CancellationToken cancellationToken = default)
         {
             if (hostOptions.RpcApiEnabled)
             {
                 ILookup<Type, Type> handlers = GetHandlers();
                 requestFactory.RegisterHandlers(handlers);
-                return;
+                return Task.CompletedTask;
             }
 
             logger.LogInformation("Rpc API feature disabled.");
+            return Task.CompletedTask;
         }
 
         private static ILookup<Type, Type> GetHandlers()

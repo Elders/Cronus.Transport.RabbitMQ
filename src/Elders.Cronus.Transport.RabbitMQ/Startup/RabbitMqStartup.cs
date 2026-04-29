@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection.PortableExecutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Elders.Cronus.EventStore.Index;
 using Elders.Cronus.MessageProcessing;
 using Elders.Cronus.Migrations;
@@ -52,13 +54,19 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
             });
         }
 
-        public void Bootstrap()
+        /// <summary>
+        /// Bootstraps the RabbitMQ topology (exchanges, queues, bindings) for the subscriber type <typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="cancellationToken">A token to cancel the asynchronous bootstrap.</param>
+        public Task BootstrapAsync(CancellationToken cancellationToken = default)
         {
             using (var connection = connectionFactory.CreateConnection())
             using (var channel = connection.CreateModel())
             {
                 RecoverModel(channel);
             }
+
+            return Task.CompletedTask;
         }
 
         private Dictionary<string, Dictionary<string, List<string>>> BuildEventToHandler()

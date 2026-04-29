@@ -1,6 +1,8 @@
 ---
 variables:
-  PROJECT_DIR: Elders.Cronus.Transport.RabbitMQ
+  - group: elders-nuget
+  - name: PROJECT_DIR
+    value: Elders.Cronus.Transport.RabbitMQ
 
 trigger:
   branches:
@@ -77,6 +79,9 @@ stages:
           echo dotnet nuget `dotnet nuget --version`
           echo dotnet `dotnet --version`
     - task: Bash@3
+      name: publish
+      displayName: nuget push to nuget.org
+      condition: and(eq(variables['newVer'], 'yes'), succeeded())
       inputs:
         targetType: 'inline'
         script: 'dotnet nuget push $(Build.StagingDirectory)/*.nupkg --api-key $(NUGET_KEY) --source https://api.nuget.org/v3/index.json --skip-duplicate'

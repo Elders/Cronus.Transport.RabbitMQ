@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 
@@ -42,7 +44,16 @@ namespace Elders.Cronus.Transport.RabbitMQ
         //    return publishResult;
         //}
 
-        protected override PublishResult PublishInternal(CronusMessage message)
+        /// <summary>
+        /// Publishes the supplied <paramref name="message"/> to all RabbitMQ exchanges resolved for it.
+        /// </summary>
+        /// <param name="message">The Cronus message to publish.</param>
+        /// <param name="cancellationToken">A token to cancel the asynchronous publish.</param>
+        /// <remarks>
+        /// The body still uses the synchronous RabbitMQ.Client 6.x API. Stage 2 of the v12 async migration
+        /// will rewrite this to use the asynchronous RabbitMQ.Client 7.x channel/connection API.
+        /// </remarks>
+        protected override Task<PublishResult> PublishInternalAsync(CronusMessage message, CancellationToken cancellationToken)
         {
             PublishResult publishResult = PublishResult.Initial;
 
@@ -60,7 +71,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 }
             }
 
-            return publishResult;
+            return Task.FromResult(publishResult);
         }
 
         protected abstract IEnumerable<IRabbitMqOptions> GetOptionsFor(CronusMessage message);

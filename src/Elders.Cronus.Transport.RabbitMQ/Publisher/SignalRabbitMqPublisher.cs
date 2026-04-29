@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
@@ -29,7 +31,16 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
             this.logger = logger;
         }
 
-        protected override PublishResult PublishInternal(CronusMessage message)
+        /// <summary>
+        /// Publishes the supplied signal <paramref name="message"/> to the appropriate internal or public exchanges.
+        /// </summary>
+        /// <param name="message">The Cronus signal message to publish.</param>
+        /// <param name="cancellationToken">A token to cancel the asynchronous publish.</param>
+        /// <remarks>
+        /// The body still uses the synchronous RabbitMQ.Client 6.x API. Stage 2 of the v12 async migration
+        /// will rewrite this to use the asynchronous RabbitMQ.Client 7.x channel/connection API.
+        /// </remarks>
+        protected override Task<PublishResult> PublishInternalAsync(CronusMessage message, CancellationToken cancellationToken)
         {
             PublishResult publishResult = PublishResult.Initial;
 
@@ -57,11 +68,11 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
                     }
                 }
 
-                return publishResult;
+                return Task.FromResult(publishResult);
             }
             catch (Exception ex) when (True(() => logger.LogError(ex, "Unable to publish {cronus_messageType}", messageType)))
             {
-                return PublishResult.Failed;
+                return Task.FromResult(PublishResult.Failed);
             }
         }
 
