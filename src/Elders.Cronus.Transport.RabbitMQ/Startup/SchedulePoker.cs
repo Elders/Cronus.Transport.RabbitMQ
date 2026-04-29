@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
@@ -21,6 +21,10 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
             this.boundedContext = boundedContext;
         }
 
+        /// <summary>
+        /// Periodically opens a short-lived consumer on the scheduled queue to nudge the broker into delivering due messages.
+        /// </summary>
+        /// <param name="cancellationToken">A token to stop the periodic poking loop.</param>
         public async Task PokeAsync(CancellationToken cancellationToken)
         {
             try
@@ -29,25 +33,23 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
 
                 while (cancellationToken.IsCancellationRequested == false)
                 {
-                    IConnection connection = connectionResolver.Resolve(queueName, rmqOptionsMonitor.CurrentValue);
+                    IConnection connection = await connectionResolver.ResolveAsync(queueName, rmqOptionsMonitor.CurrentValue, cancellationToken).ConfigureAwait(false);
 
-                    using (IModel channel = connection.CreateModel())
+                    await using IChannel channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+                    try
                     {
-                        try
-                        {
-                            consumer = new AsyncEventingBasicConsumer(channel);
-                            consumer.Received += AsyncListener_Received;
+                        consumer = new AsyncEventingBasicConsumer(channel);
+                        consumer.ReceivedAsync += AsyncListener_Received;
 
-                            string consumerTag = channel.BasicConsume(queue: queueName, autoAck: false, consumer: consumer);
+                        string consumerTag = await channel.BasicConsumeAsync(queue: queueName, autoAck: false, consumer: consumer, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                            await Task.Delay(30000, cancellationToken).ConfigureAwait(false);
+                        await Task.Delay(30000, cancellationToken).ConfigureAwait(false);
 
-                            consumer.Received -= AsyncListener_Received;
-                        }
-                        catch (Exception)
-                        {
-                            await Task.Delay(5000).ConfigureAwait(false);
-                        }
+                        consumer.ReceivedAsync -= AsyncListener_Received;
+                    }
+                    catch (Exception)
+                    {
+                        await Task.Delay(5000, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -73,4 +75,3 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
         }
     }
 }
-

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Elders.Cronus.Multitenancy;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -20,11 +20,13 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.options = options;
         }
 
-        protected override IBasicProperties AttachHeaders(IBasicProperties properties, CronusMessage message)
+        protected override BasicProperties AttachHeaders(BasicProperties properties, CronusMessage message)
         {
             string boundedContext = message.Headers[MessageHeader.BoundedContext];
             string tenant = message.Headers[MessageHeader.Tenant];
             string contractId = message.GetMessageType().GetContractId();
+
+            properties.Headers ??= new Dictionary<string, object>();
 
             if (message.IsRepublished)
             {

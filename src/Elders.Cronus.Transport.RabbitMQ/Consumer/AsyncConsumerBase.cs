@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Elders.Cronus.MessageProcessing;
 using Microsoft.Extensions.Logging;
@@ -13,24 +14,31 @@ namespace Elders.Cronus.Transport.RabbitMQ
     {
         protected readonly ILogger logger;
         protected readonly ISerializer serializer;
-        protected readonly IModel model;
+        protected readonly IChannel channel;
         private bool isСurrentlyConsuming;
 
-        public AsyncConsumerBase(IModel model, ISerializer serializer, ILogger logger) : base(model)
+        public AsyncConsumerBase(IChannel channel, ISerializer serializer, ILogger logger) : base(channel)
         {
-            this.model = model;
+            ArgumentNullException.ThrowIfNull(channel);
+            ArgumentNullException.ThrowIfNull(serializer);
+            ArgumentNullException.ThrowIfNull(logger);
+
+            this.channel = channel;
             this.serializer = serializer;
             this.logger = logger;
             isСurrentlyConsuming = false;
-            Received += AsyncListener_Received;
+            ReceivedAsync += AsyncListener_Received;
         }
 
         protected abstract Task DeliverMessageToSubscribersAsync(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer);
 
+        /// <summary>
+        /// Stops the consumer, detaching the receive listener and waiting for any in-flight messages to finish.
+        /// </summary>
         public async Task StopAsync()
         {
             // 1. We detach the listener so ther will be no new messages coming from the queue
-            Received -= AsyncListener_Received;
+            ReceivedAsync -= AsyncListener_Received;
 
             // 2. Wait to handle any messages in progress
             while (isСurrentlyConsuming)
@@ -41,8 +49,8 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 await Task.Delay(10).ConfigureAwait(false);
             }
 
-            if (model.IsOpen)
-                model.Abort();
+            if (channel.IsOpen)
+                await channel.AbortAsync().ConfigureAwait(false);
         }
 
         private async Task AsyncListener_Received(object sender, BasicDeliverEventArgs @event)
@@ -81,8 +89,10 @@ namespace Elders.Cronus.Transport.RabbitMQ
     {
         private readonly ISubscriberCollection<TSubscriber> subscriberCollection;
 
-        public AsyncConsumerBase(IModel model, ISubscriberCollection<TSubscriber> subscriberCollection, ISerializer serializer, ILogger logger) : base(model, serializer, logger)
+        public AsyncConsumerBase(IChannel channel, ISubscriberCollection<TSubscriber> subscriberCollection, ISerializer serializer, ILogger logger) : base(channel, serializer, logger)
         {
+            ArgumentNullException.ThrowIfNull(subscriberCollection);
+
             this.subscriberCollection = subscriberCollection;
         }
 
@@ -111,7 +121,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 // TODO: send to dead letter exchange/queue
                 logger.LogError(ex, "Failed to process message. Failed to deserialize: {}", Convert.ToBase64String(ev.Body.ToArray()));
-                Ack(ev, consumer);
+                await AckAsync(ev, consumer).ConfigureAwait(false);
                 return;
             }
 
@@ -143,14 +153,14 @@ namespace Elders.Cronus.Transport.RabbitMQ
             { }
             finally
             {
-                Ack(ev, consumer);
+                await AckAsync(ev, consumer).ConfigureAwait(false);
             }
 
-            static void Ack(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)
+            static async Task AckAsync(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)
             {
-                if (consumer.Model.IsOpen)
+                if (consumer.Channel.IsOpen)
                 {
-                    consumer.Model.BasicAck(ev.DeliveryTag, false);
+                    await consumer.Channel.BasicAckAsync(ev.DeliveryTag, false).ConfigureAwait(false);
                 }
             }
         }

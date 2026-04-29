@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -16,15 +17,23 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
         private readonly IServiceProvider serviceProvider;
         private static string _timeout = "30000";
 
-        public RequestConsumer(string queue, IModel model, IRequestResponseFactory factory, ISerializer serializer, IServiceProvider serviceProvider, ILogger logger)
-          : base(model, serializer, logger)
+        public RequestConsumer(string queue, IChannel channel, IRequestResponseFactory factory, ISerializer serializer, IServiceProvider serviceProvider, ILogger logger)
+          : base(channel, serializer, logger)
         {
             this.queue = queue;
             this.factory = factory;
             this.serviceProvider = serviceProvider;
-            model.QueueDeclare(queue, exclusive: false);
-            model.BasicQos(0, 1, false);
-            model.BasicConsume(queue, autoAck: false, this); // We should do manual acknowledgement to spread the load equally over multiple servers
+        }
+
+        /// <summary>
+        /// Declares the request queue, configures prefetch, and registers this consumer with the broker.
+        /// </summary>
+        /// <param name="cancellationToken">A token to cancel the asynchronous start.</param>
+        public async Task StartAsync(CancellationToken cancellationToken = default)
+        {
+            await channel.QueueDeclareAsync(queue, durable: false, exclusive: false, autoDelete: false, arguments: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+            await channel.BasicQosAsync(0, 1, false, cancellationToken).ConfigureAwait(false);
+            await channel.BasicConsumeAsync(queue, autoAck: false, consumer: this, cancellationToken: cancellationToken).ConfigureAwait(false); // We should do manual acknowledgement to spread the load equally over multiple servers
         }
 
         protected override async Task DeliverMessageToSubscribersAsync(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer)
@@ -48,15 +57,15 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
                 }
                 finally
                 {
-                    IBasicProperties replyProps = model.CreateBasicProperties();
+                    BasicProperties replyProps = new BasicProperties();
                     replyProps.CorrelationId = ev.BasicProperties.CorrelationId; // correlate requests with the responses
                     replyProps.ReplyTo = ev.BasicProperties.ReplyTo;
                     replyProps.Persistent = false;
                     replyProps.Expiration = _timeout;
 
                     byte[] responseBytes = serializer.SerializeToBytes(response);
-                    model.BasicPublish("", routingKey: replyProps.ReplyTo, replyProps, responseBytes);
-                    model.BasicAck(ev.DeliveryTag, false);
+                    await channel.BasicPublishAsync("", routingKey: replyProps.ReplyTo, mandatory: false, basicProperties: replyProps, body: responseBytes).ConfigureAwait(false);
+                    await channel.BasicAckAsync(ev.DeliveryTag, false).ConfigureAwait(false);
                 }
             }
         }

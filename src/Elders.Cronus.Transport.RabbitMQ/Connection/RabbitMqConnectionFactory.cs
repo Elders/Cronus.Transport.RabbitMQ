@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -18,20 +19,33 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.logger = logger;
         }
 
-        public IConnection CreateConnection()
+        /// <summary>
+        /// Creates a new <see cref="IConnection"/> using the default options registered with this factory.
+        /// </summary>
+        /// <param name="cancellationToken">A token to cancel the connection establishment.</param>
+        /// <returns>A task whose result is the established RabbitMQ connection.</returns>
+        public Task<IConnection> CreateConnectionAsync(CancellationToken cancellationToken = default)
         {
-            return CreateConnectionWithOptions(options);
+            return CreateConnectionWithOptionsAsync(options, cancellationToken);
         }
 
-        public IConnection CreateConnectionWithOptions(IRabbitMqOptions options)
+        /// <summary>
+        /// Creates a new <see cref="IConnection"/> using the supplied <paramref name="options"/>.
+        /// </summary>
+        /// <param name="options">The RabbitMQ options to use for the connection.</param>
+        /// <param name="cancellationToken">A token to cancel the connection establishment.</param>
+        /// <returns>A task whose result is the established RabbitMQ connection.</returns>
+        public async Task<IConnection> CreateConnectionWithOptionsAsync(IRabbitMqOptions options, CancellationToken cancellationToken = default)
         {
+            ArgumentNullException.ThrowIfNull(options);
+
             if (logger.IsEnabled(LogLevel.Debug))
                 logger.LogDebug("Loaded RabbitMQ options are {@Options}", options);
 
-            bool tailRecursion = false;
-
-            do
+            while (true)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 try
                 {
                     var connectionFactory = new ConnectionFactory();
@@ -39,12 +53,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     connectionFactory.UserName = options.Username;
                     connectionFactory.Password = options.Password;
                     connectionFactory.VirtualHost = options.VHost;
-                    connectionFactory.DispatchConsumersAsync = true;
                     connectionFactory.AutomaticRecoveryEnabled = true;
                     connectionFactory.Ssl.Enabled = options.UseSsl;
                     connectionFactory.EndpointResolverFactory = (_) => MultipleEndpointResolver.ComposeEndpointResolver(options);
 
-                    return connectionFactory.CreateConnection();
+                    return await connectionFactory.CreateConnectionAsync(cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -53,12 +66,9 @@ namespace Elders.Cronus.Transport.RabbitMQ
                     else
                         logger.LogWarning(ex, "Failed to create RabbitMQ connection using options {@options}. Retrying...", options);
 
-                    Task.Delay(5000).GetAwaiter().GetResult();
-                    tailRecursion = true;
+                    await Task.Delay(5000, cancellationToken).ConfigureAwait(false);
                 }
-            } while (tailRecursion == true);
-
-            return default;
+            }
         }
 
         private class MultipleEndpointResolver : DefaultEndpointResolver

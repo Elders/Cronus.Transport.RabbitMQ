@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -11,7 +11,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
 {
     public interface IRpc
     {
-        internal void StartServer();
+        internal Task StartServerAsync();
 
         internal Task StopConsumersAsync();
     }
@@ -77,15 +77,18 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             return response;
         }
 
-        void IRpc.StartServer()
+        async Task IRpc.StartServerAsync()
         {
             try
             {
                 IRabbitMqOptions scopedOptions = options.GetOptionsFor(boundedContext.Name);
-                IModel requestChannel = channelResolver.Resolve(route, scopedOptions, options.VHost);
+                IChannel requestChannel = await channelResolver.ResolveAsync(route, scopedOptions, options.VHost).ConfigureAwait(false);
 
                 for (int workerNumber = 0; workerNumber < consumerOptions.RpcWorkersCount; workerNumber++)
+                {
                     server = new RequestConsumer<TRequest, TResponse>(route, requestChannel, factory, serializer, serviceProvider, logger);
+                    await server.StartAsync().ConfigureAwait(false);
+                }
 
                 if (logger.IsEnabled(LogLevel.Information))
                     logger.LogInformation("{cronus_rmqrpcworkerscount} RPC request consumers started for {route}.", consumerOptions.RpcWorkersCount, route);
@@ -123,8 +126,9 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
                         if (cfgFound.HasValue && cfgFound.Value)
                         {
                             IRabbitMqOptions scopedOptions = options.GetOptionsFor(destinationBC);
-                            IModel requestChannel = channelResolver.Resolve(route, scopedOptions, destinationBC);
+                            IChannel requestChannel = await channelResolver.ResolveAsync(route, scopedOptions, destinationBC).ConfigureAwait(false);
                             client = new ResponseConsumer<TRequest, TResponse>(route, requestChannel, serializer, logger);
+                            await client.StartAsync().ConfigureAwait(false);
                             isClientCreated = true;
                         }
                         else

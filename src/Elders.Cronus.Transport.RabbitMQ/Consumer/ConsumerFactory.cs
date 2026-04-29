@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -41,41 +41,47 @@ namespace Elders.Cronus.Transport.RabbitMQ
             queueName = GetQueueName(this.boundedContext.Name, this.consumerOptions.FanoutMode);
         }
 
-        public void CreateAndStartConsumers(CancellationToken cancellationToken)
+        /// <summary>
+        /// Creates and starts the configured number of RabbitMQ consumers for the subscriber type.
+        /// </summary>
+        /// <param name="cancellationToken">A token to cancel the asynchronous start.</param>
+        public async Task CreateAndStartConsumersAsync(CancellationToken cancellationToken)
         {
             bool isTrigger = typeof(T).IsAssignableFrom(typeof(ITrigger));
 
             if (isTrigger)
-                CreateAndStartTriggerConsumers();
+                await CreateAndStartTriggerConsumersAsync(cancellationToken).ConfigureAwait(false);
             else
-                CreateAndStartNormalConsumers();
+                await CreateAndStartNormalConsumersAsync(cancellationToken).ConfigureAwait(false);
 
             CreateAndStartSchedulePoker(cancellationToken);
         }
 
-        private void CreateAndStartTriggerConsumers()
+        private async Task CreateAndStartTriggerConsumersAsync(CancellationToken cancellationToken)
         {
             IRabbitMqOptions scopedOptions = options.GetOptionsFor(boundedContext.Name);
 
             for (int i = 0; i < consumerOptions.WorkersCount; i++)
             {
                 string consumerChannelKey = $"{boundedContext.Name}_{typeof(T).Name}_{i}";
-                IModel channel = channelResolver.Resolve(consumerChannelKey, scopedOptions, options.VHost);
+                IChannel channel = await channelResolver.ResolveAsync(consumerChannelKey, scopedOptions, options.VHost, cancellationToken).ConfigureAwait(false);
 
-                AsyncConsumerBase<T> asyncListener = new AsyncConsumer<T>(queueName, channel, subscriberCollection, serializer, logger);
+                AsyncConsumer<T> asyncListener = new AsyncConsumer<T>(queueName, channel, subscriberCollection, serializer, logger);
+                await asyncListener.StartAsync(cancellationToken).ConfigureAwait(false);
 
                 consumers.Add(asyncListener);
             }
         }
 
-        private void CreateAndStartNormalConsumers()
+        private async Task CreateAndStartNormalConsumersAsync(CancellationToken cancellationToken)
         {
             for (int i = 0; i < consumerOptions.WorkersCount; i++)
             {
                 string consumerChannelKey = $"{boundedContext.Name}_{typeof(T).Name}_{i}";
-                IModel channel = channelResolver.Resolve(consumerChannelKey, options, options.VHost);
+                IChannel channel = await channelResolver.ResolveAsync(consumerChannelKey, options, options.VHost, cancellationToken).ConfigureAwait(false);
 
-                AsyncConsumerBase<T> asyncListener = new AsyncConsumer<T>(queueName, channel, subscriberCollection, serializer, logger);
+                AsyncConsumer<T> asyncListener = new AsyncConsumer<T>(queueName, channel, subscriberCollection, serializer, logger);
+                await asyncListener.StartAsync(cancellationToken).ConfigureAwait(false);
 
                 consumers.Add(asyncListener);
             }
@@ -90,7 +96,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
                 bool hasRegisteredSagas = allSagas.Items.Where(saga => typeof(ISystemSaga).IsAssignableFrom(saga) == isSystemSaga).Any();
                 if (hasRegisteredSagas)
                 {
-                    schedulePoker.PokeAsync(cancellationToken);
+                    _ = schedulePoker.PokeAsync(cancellationToken);
                 }
             }
         }

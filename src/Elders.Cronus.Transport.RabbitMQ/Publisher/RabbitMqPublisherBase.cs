@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -24,36 +24,12 @@ namespace Elders.Cronus.Transport.RabbitMQ
             this.logger = logger;
         }
 
-        // Old version where we foreach first around exchange names. It is known to be working
-        //protected override PublishResult PublishInternal(CronusMessage message)
-        //{
-        //    PublishResult publishResult = PublishResult.Initial;
-
-        //    string boundedContext = message.BoundedContext;
-
-        //    IEnumerable<string> exchanges = GetExistingExchangesNames(message);
-        //    foreach (string exchange in exchanges)
-        //    {
-        //        IEnumerable<IRabbitMqOptions> scopedOptions = GetOptionsFor(message);
-        //        foreach (IRabbitMqOptions scopedOpt in scopedOptions)
-        //        {
-        //            publishResult &= Publish(message, boundedContext, exchange, scopedOpt);
-        //        }
-        //    }
-
-        //    return publishResult;
-        //}
-
         /// <summary>
         /// Publishes the supplied <paramref name="message"/> to all RabbitMQ exchanges resolved for it.
         /// </summary>
         /// <param name="message">The Cronus message to publish.</param>
         /// <param name="cancellationToken">A token to cancel the asynchronous publish.</param>
-        /// <remarks>
-        /// The body still uses the synchronous RabbitMQ.Client 6.x API. Stage 2 of the v12 async migration
-        /// will rewrite this to use the asynchronous RabbitMQ.Client 7.x channel/connection API.
-        /// </remarks>
-        protected override Task<PublishResult> PublishInternalAsync(CronusMessage message, CancellationToken cancellationToken)
+        protected override async Task<PublishResult> PublishInternalAsync(CronusMessage message, CancellationToken cancellationToken)
         {
             PublishResult publishResult = PublishResult.Initial;
 
@@ -67,26 +43,26 @@ namespace Elders.Cronus.Transport.RabbitMQ
             {
                 foreach (string exchange in exchanges)
                 {
-                    publishResult &= Publish(message, boundedContext, exchange, scopedOpt);
+                    publishResult &= await PublishAsync(message, boundedContext, exchange, scopedOpt, cancellationToken).ConfigureAwait(false);
                 }
             }
 
-            return Task.FromResult(publishResult);
+            return publishResult;
         }
 
         protected abstract IEnumerable<IRabbitMqOptions> GetOptionsFor(CronusMessage message);
 
-        private PublishResult Publish(CronusMessage message, string boundedContext, string exchange, IRabbitMqOptions options)
+        private async Task<PublishResult> PublishAsync(CronusMessage message, string boundedContext, string exchange, IRabbitMqOptions options, CancellationToken cancellationToken)
         {
             try
             {
-                IModel exchangeModel = channelResolver.Resolve(exchange, options, boundedContext);
-                IBasicProperties props = exchangeModel.CreateBasicProperties();
+                IChannel exchangeChannel = await channelResolver.ResolveAsync(exchange, options, boundedContext, cancellationToken).ConfigureAwait(false);
+                BasicProperties props = new BasicProperties();
                 props = BuildMessageProperties(props, message);
                 props = AttachHeaders(props, message);
 
                 byte[] body = serializer.SerializeToBytes(message);
-                exchangeModel.BasicPublish(exchange, string.Empty, false, props, body);
+                await exchangeChannel.BasicPublishAsync(exchange, string.Empty, false, props, body, cancellationToken).ConfigureAwait(false);
                 logger.LogDebug("Published message to exchange {exchange} with headers {@headers}.", exchange, props.Headers);
 
                 return new PublishResult(true, true);
@@ -99,7 +75,7 @@ namespace Elders.Cronus.Transport.RabbitMQ
             }
         }
 
-        protected virtual IBasicProperties BuildMessageProperties(IBasicProperties properties, CronusMessage message)
+        protected virtual BasicProperties BuildMessageProperties(BasicProperties properties, CronusMessage message)
         {
             properties.Headers = new Dictionary<string, object>();
             properties.Headers.Add("cronus_messageid", message.Id.ToByteArray());
@@ -111,10 +87,11 @@ namespace Elders.Cronus.Transport.RabbitMQ
             return properties;
         }
 
-        protected virtual IBasicProperties AttachHeaders(IBasicProperties properties, CronusMessage message)
+        protected virtual BasicProperties AttachHeaders(BasicProperties properties, CronusMessage message)
         {
             string boundedContext = message.BoundedContext;
 
+            properties.Headers ??= new Dictionary<string, object>();
             properties.Headers.Add(message.GetMessageType().GetContractId(), boundedContext);
 
             return properties;

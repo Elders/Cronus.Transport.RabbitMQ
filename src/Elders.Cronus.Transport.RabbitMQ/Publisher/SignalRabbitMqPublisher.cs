@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -36,11 +35,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
         /// </summary>
         /// <param name="message">The Cronus signal message to publish.</param>
         /// <param name="cancellationToken">A token to cancel the asynchronous publish.</param>
-        /// <remarks>
-        /// The body still uses the synchronous RabbitMQ.Client 6.x API. Stage 2 of the v12 async migration
-        /// will rewrite this to use the asynchronous RabbitMQ.Client 7.x channel/connection API.
-        /// </remarks>
-        protected override Task<PublishResult> PublishInternalAsync(CronusMessage message, CancellationToken cancellationToken)
+        protected override async Task<PublishResult> PublishInternalAsync(CronusMessage message, CancellationToken cancellationToken)
         {
             PublishResult publishResult = PublishResult.Initial;
 
@@ -57,60 +52,60 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
                 {
                     foreach (var exchange in exchanges)
                     {
-                        publishResult &= PublishInternally(message, messageBC, exchange, internalOptions);
+                        publishResult &= await PublishInternallyAsync(message, messageBC, exchange, internalOptions, cancellationToken).ConfigureAwait(false);
                     }
                 }
                 else
                 {
                     foreach (var exchange in exchanges)
                     {
-                        publishResult &= PublishPublically(message, messageBC, exchange, options.PublicClustersOptions);
+                        publishResult &= await PublishPublicallyAsync(message, messageBC, exchange, options.PublicClustersOptions, cancellationToken).ConfigureAwait(false);
                     }
                 }
 
-                return Task.FromResult(publishResult);
+                return publishResult;
             }
             catch (Exception ex) when (True(() => logger.LogError(ex, "Unable to publish {cronus_messageType}", messageType)))
             {
-                return Task.FromResult(PublishResult.Failed);
+                return PublishResult.Failed;
             }
         }
 
-        private PublishResult PublishInternally(CronusMessage message, string boundedContext, string exchange, IRabbitMqOptions internalOptions)
+        private async Task<PublishResult> PublishInternallyAsync(CronusMessage message, string boundedContext, string exchange, IRabbitMqOptions internalOptions, CancellationToken cancellationToken)
         {
-            IModel exchangeModel = channelResolver.Resolve(exchange, internalOptions, boundedContext);
+            IChannel exchangeChannel = await channelResolver.ResolveAsync(exchange, internalOptions, boundedContext, cancellationToken).ConfigureAwait(false);
 
-            IBasicProperties props = exchangeModel.CreateBasicProperties();
+            BasicProperties props = new BasicProperties();
             props = BuildMessageProperties(props, message);
             props = BuildInternalHeaders(props, message);
 
-            return PublishUsingChannel(message, exchange, exchangeModel, props);
+            return await PublishUsingChannelAsync(message, exchange, exchangeChannel, props, cancellationToken).ConfigureAwait(false);
         }
 
-        private PublishResult PublishPublically(CronusMessage message, string boundedContext, string exchange, IEnumerable<IRabbitMqOptions> scopedOptions)
+        private async Task<PublishResult> PublishPublicallyAsync(CronusMessage message, string boundedContext, string exchange, IEnumerable<IRabbitMqOptions> scopedOptions, CancellationToken cancellationToken)
         {
             PublishResult publishResult = PublishResult.Initial;
 
             foreach (var opt in scopedOptions)
             {
-                IModel exchangeModel = channelResolver.Resolve(exchange, opt, boundedContext);
+                IChannel exchangeChannel = await channelResolver.ResolveAsync(exchange, opt, boundedContext, cancellationToken).ConfigureAwait(false);
 
-                IBasicProperties props = exchangeModel.CreateBasicProperties();
+                BasicProperties props = new BasicProperties();
                 props = BuildMessageProperties(props, message);
                 props = BuildPublicHeaders(props, message);
 
-                publishResult &= PublishUsingChannel(message, exchange, exchangeModel, props);
+                publishResult &= await PublishUsingChannelAsync(message, exchange, exchangeChannel, props, cancellationToken).ConfigureAwait(false);
             }
 
             return publishResult;
         }
 
-        private PublishResult PublishUsingChannel(CronusMessage message, string exchange, IModel exchangeModel, IBasicProperties properties)
+        private async Task<PublishResult> PublishUsingChannelAsync(CronusMessage message, string exchange, IChannel exchangeChannel, BasicProperties properties, CancellationToken cancellationToken)
         {
             try
             {
                 byte[] body = serializer.SerializeToBytes(message);
-                exchangeModel.BasicPublish(exchange, string.Empty, false, properties, body);
+                await exchangeChannel.BasicPublishAsync(exchange, string.Empty, false, properties, body, cancellationToken).ConfigureAwait(false);
 
                 logger.LogDebug("Published message to exchange {exchange} with headers {@headers}.", exchange, properties.Headers);
 
@@ -124,18 +119,18 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
             }
         }
 
-        private IBasicProperties BuildMessageProperties(IBasicProperties properties, CronusMessage message)
+        private BasicProperties BuildMessageProperties(BasicProperties properties, CronusMessage message)
         {
             string ttl = message.GetTtlMilliseconds();
             if (string.IsNullOrEmpty(ttl) == false)
                 properties.Expiration = ttl;
             properties.Persistent = false;
-            properties.DeliveryMode = 1;
+            properties.DeliveryMode = DeliveryModes.Transient;
 
             return properties;
         }
 
-        private IBasicProperties BuildPublicHeaders(IBasicProperties properties, CronusMessage message)
+        private BasicProperties BuildPublicHeaders(BasicProperties properties, CronusMessage message)
         {
             string contractId = message.GetMessageType().GetContractId();
             string boundedContext = message.BoundedContext;
@@ -148,7 +143,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Publisher
             return properties;
         }
 
-        private IBasicProperties BuildInternalHeaders(IBasicProperties properties, CronusMessage message)
+        private BasicProperties BuildInternalHeaders(BasicProperties properties, CronusMessage message)
         {
             string contractId = message.GetMessageType().GetContractId();
             string boundedContext = message.BoundedContext;

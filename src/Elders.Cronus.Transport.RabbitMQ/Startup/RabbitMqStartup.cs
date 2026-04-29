@@ -46,11 +46,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
 
                 tenantsOptions = newOptions;
 
-                using (var connection = connectionFactory.CreateConnection())
-                using (var channel = connection.CreateModel())
-                {
-                    RecoverModel(channel);
-                }
+                _ = RecoverTopologyAsync(CancellationToken.None);
             });
         }
 
@@ -60,13 +56,29 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
         /// <param name="cancellationToken">A token to cancel the asynchronous bootstrap.</param>
         public Task BootstrapAsync(CancellationToken cancellationToken = default)
         {
-            using (var connection = connectionFactory.CreateConnection())
-            using (var channel = connection.CreateModel())
-            {
-                RecoverModel(channel);
-            }
+            return RecoverTopologyAsync(cancellationToken);
+        }
 
-            return Task.CompletedTask;
+        /// <summary>
+        /// Opens a short-lived connection and channel and applies the topology declarations for the subscriber type.
+        /// </summary>
+        /// <param name="cancellationToken">A token to cancel the asynchronous topology recovery.</param>
+        private async Task RecoverTopologyAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                await using IConnection connection = await connectionFactory.CreateConnectionAsync(cancellationToken).ConfigureAwait(false);
+                await using IChannel channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                await RecoverModelAsync(channel, cancellationToken).ConfigureAwait(false);
+
+                await channel.CloseAsync(cancellationToken).ConfigureAwait(false);
+                await connection.CloseAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to recover RabbitMQ topology for {handlerType}.", typeof(T).Name);
+            }
         }
 
         private Dictionary<string, Dictionary<string, List<string>>> BuildEventToHandler()
@@ -130,7 +142,12 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
             return routingHeaders;
         }
 
-        private void RecoverModel(IModel model)
+        /// <summary>
+        /// Declares all exchanges, queues, and bindings required for subscribers of type <typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="channel">The channel on which the AMQP topology declarations are issued.</param>
+        /// <param name="cancellationToken">A token to cancel the asynchronous topology declaration.</param>
+        private async Task RecoverModelAsync(IChannel channel, CancellationToken cancellationToken)
         {
             var messageTypes = subscriberCollection.Subscribers.SelectMany(x => x.GetInvolvedMessageTypes()).Where(mt => typeof(ISystemMessage).IsAssignableFrom(mt) == isSystemQueue).Distinct().ToList();
 
@@ -142,14 +159,14 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
 
             foreach (var publishExchangeGroup in publishToExchangeGroups)
             {
-                model.ExchangeDeclare(publishExchangeGroup.Key, PipelineType.Headers.ToString(), true);
+                await channel.ExchangeDeclareAsync(publishExchangeGroup.Key, PipelineType.Headers.ToString(), true, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
 
             Dictionary<string, Dictionary<string, List<string>>> event2Handler = BuildEventToHandler();
 
             Dictionary<string, object> routingHeaders = BuildQueueRoutingHeaders();
-            model.QueueDeclare(queueName, true, false, false, null);
+            await channel.QueueDeclareAsync(queueName, true, false, false, null, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var bindToExchangeGroups = messageTypes
                 .SelectMany(mt => bcRabbitMqNamer.Get_BindTo_ExchangeNames(mt).Select(x => new { Exchange = x, MessageType = mt }))
@@ -173,7 +190,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
                     };
 
                     scheduledQueue = $"{queueName}.Scheduled";
-                    model.QueueDeclare(scheduledQueue, true, false, false, arguments);
+                    await channel.QueueDeclareAsync(scheduledQueue, true, false, false, arguments, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     thereIsAScheduledQueue = true;
                 }
@@ -188,7 +205,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
             {
                 // Standard exchange
                 string standardExchangeName = exchangeGroup.Key;
-                model.ExchangeDeclare(standardExchangeName, PipelineType.Headers.ToString(), true, false, null);
+                await channel.ExchangeDeclareAsync(standardExchangeName, PipelineType.Headers.ToString(), true, false, null, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 var bindHeaders = new Dictionary<string, object>();
                 bindHeaders.Add("x-match", "any");
@@ -230,7 +247,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
 
                 foreach (var header in bindHeaders)
                 {
-                    model.QueueBind(queueName, standardExchangeName, string.Empty, new Dictionary<string, object> { { header.Key, header.Value } });
+                    await channel.QueueBindAsync(queueName, standardExchangeName, string.Empty, new Dictionary<string, object> { { header.Key, header.Value } }, cancellationToken: cancellationToken).ConfigureAwait(false);
                 }
 
                 if (thereIsAScheduledQueue)
@@ -238,8 +255,8 @@ namespace Elders.Cronus.Transport.RabbitMQ.Startup
                     foreach (var header in bindHeaders)
                     {
                         string deadLetterExchangeName = $"{standardExchangeName}.Delayer";
-                        model.ExchangeDeclare(deadLetterExchangeName, ExchangeType.Headers, true, false);
-                        model.QueueBind(scheduledQueue, deadLetterExchangeName, string.Empty, new Dictionary<string, object> { { header.Key, header.Value } });
+                        await channel.ExchangeDeclareAsync(deadLetterExchangeName, ExchangeType.Headers, true, false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        await channel.QueueBindAsync(scheduledQueue, deadLetterExchangeName, string.Empty, new Dictionary<string, object> { { header.Key, header.Value } }, cancellationToken: cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

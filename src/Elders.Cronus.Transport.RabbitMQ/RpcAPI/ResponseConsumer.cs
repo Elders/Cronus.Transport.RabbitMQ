@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -17,23 +17,31 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
         private static HashSet<string> occupiedNames = new HashSet<string>();
         private static string _timeout = "30000";
         private readonly string queueName;
-        private readonly string queueToConsume;
+        private string queueToConsume;
 
-        public ResponseConsumer(string queueName, IModel model, ISerializer serializer, ILogger logger)
-          : base(model, serializer, logger)
+        public ResponseConsumer(string queueName, IChannel channel, ISerializer serializer, ILogger logger)
+          : base(channel, serializer, logger)
         {
             this.queueName = queueName;
-            queueToConsume = DeclareUniqueQueue();
-            model.BasicConsume(queue: queueToConsume, autoAck: true, consumer: this);
+        }
+
+        /// <summary>
+        /// Declares the unique reply queue and registers this consumer with the broker.
+        /// </summary>
+        /// <param name="cancellationToken">A token to cancel the asynchronous start.</param>
+        public async Task StartAsync(CancellationToken cancellationToken = default)
+        {
+            queueToConsume = await DeclareUniqueQueueAsync(cancellationToken).ConfigureAwait(false);
+            await channel.BasicConsumeAsync(queue: queueToConsume, autoAck: true, consumer: this, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             if (logger.IsEnabled(LogLevel.Information))
                 logger.LogInformation("RPC response consumer started for {cronus_rmqqueue}.", queueToConsume);
         }
 
-        public Task<TResponse> SendAsync(TRequest request, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<TResponse> SendAsync(TRequest request, CancellationToken cancellationToken = default(CancellationToken))
         {
             string correlationId = Guid.NewGuid().ToString(); // Create a new request id
-            IBasicProperties props = model.CreateBasicProperties();
+            BasicProperties props = new BasicProperties();
             props.CorrelationId = correlationId;
             props.ReplyTo = queueToConsume;
             props.Expiration = _timeout;
@@ -44,13 +52,13 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             TaskCompletionSource<TResponse> taskSource = new TaskCompletionSource<TResponse>();
             requestTracker.TryAdd(correlationId, taskSource);
 
-            model.BasicPublish(exchange: "", routingKey: queueName, basicProperties: props, body: messageBytes); // publish request
+            await channel.BasicPublishAsync(exchange: "", routingKey: queueName, mandatory: false, basicProperties: props, body: messageBytes, cancellationToken: cancellationToken).ConfigureAwait(false); // publish request
 
             if (logger.IsEnabled(LogLevel.Debug))
                 logger.LogDebug("Publish requests, to {cronus_rmqqueue}", queueName);
 
             cancellationToken.Register(() => requestTracker.TryRemove(correlationId, out _));
-            return taskSource.Task;
+            return await taskSource.Task.ConfigureAwait(false);
         }
 
         protected override Task DeliverMessageToSubscribersAsync(BasicDeliverEventArgs ev, AsyncEventingBasicConsumer consumer) // await responses and add to collection
@@ -88,10 +96,11 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
             return Task.CompletedTask;
         }
 
-        private string DeclareUniqueQueue()
+        private async Task<string> DeclareUniqueQueueAsync(CancellationToken cancellationToken)
         {
             string queue = $"{queueName}.client.{Guid.NewGuid().ToString().Substring(0, 8)}";
-            return model.QueueDeclare(queue, exclusive: false).QueueName;
+            QueueDeclareOk result = await channel.QueueDeclareAsync(queue, durable: false, exclusive: false, autoDelete: false, arguments: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return result.QueueName;
         }
     }
 }

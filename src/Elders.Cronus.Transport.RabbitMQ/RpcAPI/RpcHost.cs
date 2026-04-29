@@ -85,7 +85,7 @@ namespace Elders.Cronus.Transport.RabbitMQ.RpcAPI
                 // this separation is necessary in order to avoid unneeded client starts
                 foreach (IRpc service in services)
                 {
-                    service.StartServer();
+                    await service.StartServerAsync().ConfigureAwait(false);
                 }
             }
             catch (Exception ex) when (False(() => logger.LogError(ex, "Failed to start Rpc consumers."))) { }
